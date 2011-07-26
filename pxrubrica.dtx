@@ -27,7 +27,7 @@
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
 %</driver>
-  [2011/07/23 v0.1 PX Japanese-style ruby]
+  [2011/07/27 v0.1+ PX Japanese-style ruby]
 %<*driver>
 \documentclass{jsarticle}
 \usepackage{doc}
@@ -312,6 +312,15 @@
 % これ自体の既定値は
 % 「突出許可、進入無し、中付き、熟語ルビ、上側配置」である。
 % ［既定 = \texttt{\vb cjP\vb}］
+%
+% \item |\rubyfontsetup{|\jmeta{命令}|}|
+%
+% ルビ用のフォント切替命令を設定する。
+% 例えば、ルビは必ず明朝体で出力したいという場合は、
+% 以下の命令を実行すればよい。
+%\begin{quote}\begin{verbatim}
+%\rubyfontsetup{\mcfamily}
+%\end{verbatim}\end{quote}
 %
 % \item |\rubybigintrusion{|\jmeta{実数}|}|
 %
@@ -640,6 +649,13 @@
 % \subsection{パラメタ}
 %
 % \subsubsection{全般設定}
+%
+% \begin{macro}{\pxrr@ruby@font}
+% ルビ用フォント切替命令。
+%    \begin{macrocode}
+\let\pxrr@ruby@font\@empty
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\pxrr@big@intr}
 % \begin{macro}{\pxrr@small@intr}
@@ -1062,15 +1078,14 @@
 % \end{macro}
 % \end{macro}
 %
-% \begin{macro}{\pxrr@use@fontsize}
-% |\pxrr@use@fontsize{|\jmeta{サイズ}|}|\Means
-% フォントサイズを変更する。
-% この命令の中ではマクロ展開のトレースを無効にする。
+% \begin{macro}{\pxrr@without@macro@trace}
+% |\pxrr@without@macro@trace{|\jmeta{テキスト}|}|\Means
+% マクロ展開のトレースを無効にした状態で\jmeta{テキスト}を実行する。
 %    \begin{macrocode}
-\def\pxrr@use@fontsize#1{%
+\def\pxrr@without@macro@trace#1{%
   \chardef\pxrr@tracingmacros=\tracingmacros
   \tracingmacros\z@
-  \fontsize{#1}{\z@}\selectfont
+  #1%
   \tracingmacros\pxrr@tracingmacros
 }
 %    \end{macrocode}
@@ -1429,6 +1444,16 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\rubyfontsetup}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\rubyfontsetup{}
+\def\rubyfontsetup#{%
+  \def\pxrr@ruby@font
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\rubybigintrusion}
 % \begin{macro}{\rubysmallintrusion}
 % \begin{macro}{\rubymaxmargin}
@@ -1720,7 +1745,7 @@
 }
 \let\pxrr@po@PRcolon@bb\pxrr@po@PRcolon@bi
 \let\pxrr@po@PRcolon@bs\pxrr@po@PRcolon@bi
-\def\pxrr@po@PRcolon@ai{%
+\def\pxrr@po@PRcolon@mi{%
   \let\pxrr@ascomp=:\relax
 }
 \@namedef{pxrr@po@PR@*}{%
@@ -1731,7 +1756,7 @@
 }
 \let\pxrr@po@PRstar@bb\pxrr@po@PRstar@bi
 \let\pxrr@po@PRstar@bs\pxrr@po@PRstar@bi
-\def\pxrr@po@PRstar@ai{%
+\def\pxrr@po@PRstar@mi{%
   \let\pxrr@ascomp=*\relax
 }
 \@namedef{pxrr@po@PR@<}{%
@@ -1946,7 +1971,7 @@
   \@tempdima=1zw\relax
   \edef\pxrr@body@zw{\the\@tempdima}%
   \begingroup
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     \@tempdima=1zw\relax
     \xdef\pxrr@gtempa{\the\@tempdima}%
   \endgroup
@@ -1984,7 +2009,19 @@
 }
 %    \end{macrocode}
 % \end{macro}
-
+%
+% \begin{macro}{\pxrr@use@ruby@font}
+%    \begin{macrocode}
+\def\pxrr@use@ruby@font{%
+  \pxrr@without@macro@trace{%
+    \let\rubyfontsize\pxrr@ruby@fsize
+    \fontsize{\pxrr@ruby@fsize}{\z@}\selectfont
+    \pxrr@ruby@font
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{ルビ用均等割り}
 %
 % \begin{macro}{\pxrr@locate@inner}
@@ -2257,7 +2294,7 @@
 \def\pxrr@compose@block#1#2#3{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #3%
   }%
   \@tempdima\wd\pxrr@boxr
@@ -2285,7 +2322,7 @@
       \pxrr@decompose{#3}%
       \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
       \pxrr@evenspace@int{#1}\pxrr@boxr
-       {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\wd\pxrr@boxa}%
+       \pxrr@use@ruby@font{\wd\pxrr@boxa}%
       \pxrr@adjust@margin
     \fi
     \let\pxrr@bspace\pxrr@zeropt
@@ -2333,11 +2370,11 @@
 \def\pxrr@compose@twoside@block#1#2#3#4{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #3%
   }%
   \setbox\pxrr@boxb\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #4%
   }%
 %    \end{macrocode}
@@ -2357,24 +2394,32 @@
 %    \end{macrocode}
 % 全体の幅より短いボックスを均等割りで組み直す。
 %    \begin{macrocode}
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
-    \pxrr@decompose{#2}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
-  \fi
   \ifdim\pxrr@maxwdx>\wd\pxrr@boxr
     \pxrr@decompose{#3}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
     \pxrr@evenspace@int{#1}\pxrr@boxr
-     {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\pxrr@maxwd}%
+     \pxrr@use@ruby@font{\pxrr@maxwd}%
     \pxrr@adjust@margin
   \fi
   \ifdim\pxrr@maxwdx>\wd\pxrr@boxb
     \pxrr@decompose{#4}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
     \pxrr@evenspace@int{#1}\pxrr@boxb
-     {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\pxrr@maxwd}%
+     \pxrr@use@ruby@font{\pxrr@maxwd}%
     \pxrr@adjust@margin
+  \fi
+%    \end{macrocode}
+% 親文字列のボックスを最後に処理して、その |\pxrr@?space| の値を
+% 以降の処理で用いる。
+% （親文字列が短くない場合は |\pxrr@?space| はゼロ。）
+%    \begin{macrocode}
+  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
+    \pxrr@decompose{#2}%
+    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
+    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
+  \else
+    \let\pxrr@bspace\pxrr@zeropt
+    \let\pxrr@aspace\pxrr@zeropt
   \fi
 %    \end{macrocode}
 % 実際に組版を行う。
@@ -2665,9 +2710,16 @@
 %
 % ゴースト処理が無効の場合に後ろ側の禁則処理を行うため、
 % ルビ命令の直後に続くトークンを取得して、
-% |\prebreakpenalty| の値を保存する。
+% その前禁則ペナルティ（|\prebreakpenalty|）の値を保存する。
 % 信頼性の低い方法なので、ゴースト処理が可能な場合はそちらを
 % 利用するべきである。
+%
+% \begin{macro}{\pxrr@end@kinsoku}
+% ルビ命令直後の文字の前禁則ペナルティ値とみなす値。
+%    \begin{macrocode}
+\def\pxrr@end@kinsoku{0}
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\pxrr@ruby@scan}
 % 片側ルビ用の先読み処理。
@@ -2705,9 +2757,11 @@
 % |\CS| の直後に続くトークンについて、
 % それが「通常文字」
 % （和文文字トークンまたはカテゴリコード11、12の欧文文字トークン）
-% である場合にはその |\prebreakpenalty| の値を、
+% である場合にはその前禁則ペナルティ（|\prebreakpenalty|）の値を、
 % そうでない場合はゼロを |\pxrr@cntr| に代入する。
 % その後、|\CS| を実行（展開）する。
+% \Note ただし、欧文ルビの場合、欧文文字の前禁則ペナルティは 20000
+% として扱う。
 %    \begin{macrocode}
 \def\pxrr@check@kinsoku#1{%
   \let\pxrr@tempb#1%
@@ -2715,11 +2769,22 @@
 }
 \def\pxrr@check@kinsoku@a{%
   \pxrr@check@char\pxrr@tempa
-  \if@tempswa
-    \expandafter\pxrr@check@kinsoku@b
-  \else
+%    \end{macrocode}
+% 和文ルビの場合は、欧文通常文字も和文通常文字と同じ扱いにする。
+%    \begin{macrocode}
+  \ifpxrr@abody\else
+    \ifnum\pxrr@cntr=\@ne
+      \pxrr@cntr\tw@
+    \fi
+  \fi
+  \ifcase\pxrr@cntr
     \pxrr@cntr\z@
     \expandafter\pxrr@tempb
+  \or
+    \pxrr@cntr\@MM
+    \expandafter\pxrr@tempb
+  \else
+    \expandafter\pxrr@check@kinsoku@b
   \fi
 }
 %    \end{macrocode}
@@ -2741,7 +2806,8 @@
 %
 % \begin{macro}{\pxrr@check@char}
 % |\pxrr@check@char\CS|\Means
-% トークン |\CS| が「通常文字」であるかを |\if@tempswa| に返す。
+% トークン |\CS| が「通常文字」であるかを調べ、以下の値を |\pxrr@cntr|
+% に返す： 0 = 通常文字でない；1 = 欧文通常文字；2 = 和文通常文字。
 %
 % 定義本体の中でカテゴリコード12の |kanji| というトークン列が
 % 必要なので、少々特殊な処置をしている。
@@ -2759,26 +2825,26 @@
 % 判定する。
 %    \begin{macrocode}
     \ifcat\noexpand##1\relax
-      \@tempswafalse
+      \pxrr@cntr\z@
     \else\ifcat\noexpand##1\noexpand~%
-      \@tempswafalse
+      \pxrr@cntr\z@
     \else\ifcat\noexpand##1A%
-      \@tempswatrue
+      \pxrr@cntr\@ne
     \else\ifcat\noexpand##10%
-      \@tempswatrue
+      \pxrr@cntr\@ne
     \else
 %    \end{macrocode}
 % それ以外の場合。
 % 和文文字トークンであるかを |\meaning| テストで調べる。
 % （和文文字の |\ifcat| 判定は色々と面倒な点があるので避ける。）
 %    \begin{macrocode}
-      \@tempswafalse
+      \pxrr@cntr\z@
       \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
     \fi\fi\fi\fi
   }%
   \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
     \ifcat @##1@%
-      \@tempswatrue
+      \pxrr@cntr\tw@
     \fi
   }%
 }
@@ -2920,9 +2986,9 @@
         \penalty\@M
       \else\if :\pxrr@bscomp
         \hskip\xkanjiskip
-      \else
+      \else\ifpxrr@abody\else
         \hskip\kanjiskip
-      \fi\fi
+      \fi\fi\fi
 %    \end{macrocode}
 % 実際の進入の量を求め、その量の負のグル―を入れる。
 %    \begin{macrocode}
@@ -2950,16 +3016,18 @@
 % 直後の文字の前禁則ペナルティが、挿入されるグルーの前に
 % 入るようにする。
 %    \begin{macrocode}
-    \if *\pxrr@bscomp
+    \if *\pxrr@ascomp
       \penalty\@M
       \hskip-\pxrr@dima
-    \else\if :\pxrr@bscomp
+    \else\if :\pxrr@ascomp
       \penalty\pxrr@end@kinsoku
       \hskip-\pxrr@dima
       \hskip\xkanjiskip
     \else
       \penalty\pxrr@end@kinsoku
-      \hskip-\pxrr@dima
+      \ifpxrr@abody\else
+        \hskip-\pxrr@dima
+      \fi
       \hskip\kanjiskip
     \fi\fi
 %    \end{macrocode}
@@ -3117,12 +3185,25 @@
   \ifpxrr@bprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@head
   \fi
-  \def\pxrr@pre##1##2{%
-    \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
-    \pxrr@intrude@head
-    \unhbox\pxrr@boxr
-    \pxrr@intrude@end
-  }%
+  \ifpxrr@abody
+%    \end{macrocode}
+% 欧文ルビの場合、親文字列（欧文）には均等割りを行うべきでない。
+% このため、親文字列をグループで囲って一文字扱いにする。
+%    \begin{macrocode}
+    \def\pxrr@pre##1##2{%
+      \pxrr@compose@block\pxrr@locate@sing@{{##1}}{##2}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+    }%
+  \else
+    \def\pxrr@pre##1##2{%
+      \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+    }%
+  \fi
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
 %    \end{macrocode}
@@ -3178,6 +3259,7 @@
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
     pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
     pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
+    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
     ----
   }%
 }

@@ -37,7 +37,7 @@
 %%   Right brace   \}     Tilde         \~}
 \NeedsTeXFormat{pLaTeX2e}
 \ProvidesPackage{pxrubrica}
-  [2011/07/23 v0.1 PX Japanese-style ruby]
+  [2011/07/27 v0.1+ PX Japanese-style ruby]
 \RequirePackage{keyval}
 \def\pxrr@pkgname{pxrubrica}
 \def\pxrr@error{%
@@ -109,6 +109,7 @@
   \pxrr@eh@fatal
 }
 \newif\ifpxrrDebug
+\let\pxrr@ruby@font\@empty
 \def\pxrr@big@intr{1}
 \def\pxrr@small@intr{0.5}
 
@@ -182,10 +183,10 @@
 }
 \def\pxrr@nil{\noexpand\pxrr@nil}
 \def\pxrr@end{\noexpand\pxrr@end}
-\def\pxrr@use@fontsize#1{%
+\def\pxrr@without@macro@trace#1{%
   \chardef\pxrr@tracingmacros=\tracingmacros
   \tracingmacros\z@
-  \fontsize{#1}{\z@}\selectfont
+  #1%
   \tracingmacros\pxrr@tracingmacros
 }
 \mathchardef\pxrr@invscale@ca=259
@@ -387,6 +388,10 @@
   \fi
   \pxrr@in@setupfalse
 }
+\newcommand*\rubyfontsetup{}
+\def\rubyfontsetup#{%
+  \def\pxrr@ruby@font
+}
 \newcommand*\rubybigintrusion[1]{%
   \edef\pxrr@big@intr{#1}%
 }
@@ -544,7 +549,7 @@
 }
 \let\pxrr@po@PRcolon@bb\pxrr@po@PRcolon@bi
 \let\pxrr@po@PRcolon@bs\pxrr@po@PRcolon@bi
-\def\pxrr@po@PRcolon@ai{%
+\def\pxrr@po@PRcolon@mi{%
   \let\pxrr@ascomp=:\relax
 }
 \@namedef{pxrr@po@PR@*}{%
@@ -555,7 +560,7 @@
 }
 \let\pxrr@po@PRstar@bb\pxrr@po@PRstar@bi
 \let\pxrr@po@PRstar@bs\pxrr@po@PRstar@bi
-\def\pxrr@po@PRstar@ai{%
+\def\pxrr@po@PRstar@mi{%
   \let\pxrr@ascomp=*\relax
 }
 \@namedef{pxrr@po@PR@<}{%
@@ -677,7 +682,7 @@
   \@tempdima=1zw\relax
   \edef\pxrr@body@zw{\the\@tempdima}%
   \begingroup
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     \@tempdima=1zw\relax
     \xdef\pxrr@gtempa{\the\@tempdima}%
   \endgroup
@@ -704,7 +709,13 @@
   \advance\@tempdima\pxrr@inter@gap\@tempdimb
   \edef\pxrr@ruby@lower{\the\@tempdima}%
 }
-
+\def\pxrr@use@ruby@font{%
+  \pxrr@without@macro@trace{%
+    \let\rubyfontsize\pxrr@ruby@fsize
+    \fontsize{\pxrr@ruby@fsize}{\z@}\selectfont
+    \pxrr@ruby@font
+  }%
+}
 \chardef\pxrr@locate@inner=1
 \chardef\pxrr@locate@head=0
 \chardef\pxrr@locate@end=2
@@ -823,7 +834,7 @@
 \def\pxrr@compose@block#1#2#3{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #3%
   }%
   \@tempdima\wd\pxrr@boxr
@@ -839,7 +850,7 @@
       \pxrr@decompose{#3}%
       \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
       \pxrr@evenspace@int{#1}\pxrr@boxr
-       {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\wd\pxrr@boxa}%
+       \pxrr@use@ruby@font{\wd\pxrr@boxa}%
       \pxrr@adjust@margin
     \fi
     \let\pxrr@bspace\pxrr@zeropt
@@ -870,11 +881,11 @@
 \def\pxrr@compose@twoside@block#1#2#3#4{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #3%
   }%
   \setbox\pxrr@boxb\hbox{%
-    \pxrr@use@fontsize{\pxrr@ruby@fsize}%
+    \pxrr@use@ruby@font
     #4%
   }%
   \@tempdima\wd\pxrr@boxa
@@ -887,24 +898,27 @@
   \edef\pxrr@maxwd{\the\@tempdima}%
   \advance\@tempdima-\pxrr@epsilon\relax
   \edef\pxrr@maxwdx{\the\@tempdima}%
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
-    \pxrr@decompose{#2}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
-  \fi
   \ifdim\pxrr@maxwdx>\wd\pxrr@boxr
     \pxrr@decompose{#3}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
     \pxrr@evenspace@int{#1}\pxrr@boxr
-     {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\pxrr@maxwd}%
+     \pxrr@use@ruby@font{\pxrr@maxwd}%
     \pxrr@adjust@margin
   \fi
   \ifdim\pxrr@maxwdx>\wd\pxrr@boxb
     \pxrr@decompose{#4}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
     \pxrr@evenspace@int{#1}\pxrr@boxb
-     {\pxrr@use@fontsize{\pxrr@ruby@fsize}}{\pxrr@maxwd}%
+     \pxrr@use@ruby@font{\pxrr@maxwd}%
     \pxrr@adjust@margin
+  \fi
+  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
+    \pxrr@decompose{#2}%
+    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
+    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
+  \else
+    \let\pxrr@bspace\pxrr@zeropt
+    \let\pxrr@aspace\pxrr@zeropt
   \fi
   \setbox\z@\hbox{%
     \@tempdima\wd\pxrr@boxr
@@ -1034,6 +1048,7 @@
   }%
   \pxrr@ruby@exit
 }
+\def\pxrr@end@kinsoku{0}
 \def\pxrr@ruby@scan#1#2{%
   \def\pxrr@tempc{%
     \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
@@ -1054,11 +1069,19 @@
 }
 \def\pxrr@check@kinsoku@a{%
   \pxrr@check@char\pxrr@tempa
-  \if@tempswa
-    \expandafter\pxrr@check@kinsoku@b
-  \else
+  \ifpxrr@abody\else
+    \ifnum\pxrr@cntr=\@ne
+      \pxrr@cntr\tw@
+    \fi
+  \fi
+  \ifcase\pxrr@cntr
     \pxrr@cntr\z@
     \expandafter\pxrr@tempb
+  \or
+    \pxrr@cntr\@MM
+    \expandafter\pxrr@tempb
+  \else
+    \expandafter\pxrr@check@kinsoku@b
   \fi
 }
 \def\pxrr@check@kinsoku@b#1{%
@@ -1071,21 +1094,21 @@
 \def\pxrr@tempa#1#2\pxrr@nil{%
   \def\pxrr@check@char##1{%
     \ifcat\noexpand##1\relax
-      \@tempswafalse
+      \pxrr@cntr\z@
     \else\ifcat\noexpand##1\noexpand~%
-      \@tempswafalse
+      \pxrr@cntr\z@
     \else\ifcat\noexpand##1A%
-      \@tempswatrue
+      \pxrr@cntr\@ne
     \else\ifcat\noexpand##10%
-      \@tempswatrue
+      \pxrr@cntr\@ne
     \else
-      \@tempswafalse
+      \pxrr@cntr\z@
       \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
     \fi\fi\fi\fi
   }%
   \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
     \ifcat @##1@%
-      \@tempswatrue
+      \pxrr@cntr\tw@
     \fi
   }%
 }
@@ -1143,9 +1166,9 @@
         \penalty\@M
       \else\if :\pxrr@bscomp
         \hskip\xkanjiskip
-      \else
+      \else\ifpxrr@abody\else
         \hskip\kanjiskip
-      \fi\fi
+      \fi\fi\fi
       \pxrr@dima\pxrr@bspace\relax
       \ifdim\pxrr@bintr<\pxrr@dima
         \pxrr@dima\pxrr@bintr\relax
@@ -1160,16 +1183,18 @@
     \ifdim\pxrr@aintr<\pxrr@dima
       \pxrr@dima\pxrr@aintr\relax
     \fi
-    \if *\pxrr@bscomp
+    \if *\pxrr@ascomp
       \penalty\@M
       \hskip-\pxrr@dima
-    \else\if :\pxrr@bscomp
+    \else\if :\pxrr@ascomp
       \penalty\pxrr@end@kinsoku
       \hskip-\pxrr@dima
       \hskip\xkanjiskip
     \else
       \penalty\pxrr@end@kinsoku
-      \hskip-\pxrr@dima
+      \ifpxrr@abody\else
+        \hskip-\pxrr@dima
+      \fi
       \hskip\kanjiskip
     \fi\fi
     \penalty\@MM
@@ -1275,12 +1300,21 @@
   \ifpxrr@bprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@head
   \fi
-  \def\pxrr@pre##1##2{%
-    \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
-    \pxrr@intrude@head
-    \unhbox\pxrr@boxr
-    \pxrr@intrude@end
-  }%
+  \ifpxrr@abody
+    \def\pxrr@pre##1##2{%
+      \pxrr@compose@block\pxrr@locate@sing@{{##1}}{##2}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+    }%
+  \else
+    \def\pxrr@pre##1##2{%
+      \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+    }%
+  \fi
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
   \pxrr@whole@list
@@ -1323,6 +1357,7 @@
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
     pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
     pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
+    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
     ----
   }%
 }
