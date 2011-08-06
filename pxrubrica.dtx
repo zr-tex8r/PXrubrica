@@ -22,7 +22,7 @@
 % \iffalse
 %
 %    \begin{macrocode}
-%<!driver>\NeedsTeXFormat{pLaTeX2e}
+%<!driver>\NeedsTeXFormat{LaTeX2e}
 %<!driver>\ProvidesPackage{pxrubrica}
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
@@ -67,6 +67,9 @@
 %
 % \MakeShortVerb{\|}
 %
+% \setcounter{tocdepth}{3}
+% \tableofcontents
+%
 % \section{パッケージ読込}
 %
 % |\usepackage| 命令を用いて読み込む。
@@ -105,14 +108,16 @@
 % |}{|\jmeta{ルビ文字}|}|
 % 
 % 和文ルビの命令。
-% すなわち、和文文字列の上側（横組）／右側（縦組）にルビを付す。
+% すなわち、和文文字列の上側（横組）／右側（縦組）にルビを付す
+% （オプションで逆側にもできる）。
 % 
 % ここで、\jmeta{オプション}は以下の形式をもつ。
 % \begin{quote}
-% \jmeta{前進入設定}\jmeta{前空き設定}^^A
-% \jmeta{モード}\jmeta{前空き設定}\jmeta{後設定}
+% \jmeta{前進入設定}\jmeta{前補助設定}^^A
+% \jmeta{モード}\jmeta{後補助設定}\jmeta{後進入設定}
 % \end{quote}
-% \jmeta{モード}は複数指定可能で、排他な指定が併存した場合は
+% \jmeta{前補助設定}・\jmeta{モード}・\jmeta{後補助設定}は
+% 複数指定可能で、排他な指定が併存した場合は
 % 後のものが有効になる。
 % また、どの要素も省略可能で、その場合は |\rubysetup| で指定された
 % 既定値が用いられる。
@@ -132,11 +137,23 @@
 %   \end{tabular}
 % \end{quote}
 %
-% \jmeta{前空き設定}は以下の値の何れか。
+% \jmeta{前補助設定}は以下の値の何れか。
 % \begin{quote}
-%   \begin{tabular}{ll}
-%     \texttt{:} & 和欧文間空白
-%   \end{tabular}
+%   \begin{tabular}[t]{ll}
+%     \texttt{:} & 和欧文間空白挿入 \\
+%     \texttt{.} & 空白挿入なし
+%   \end{tabular}\qquad
+%   \begin{tabular}[t]{ll}
+%     \texttt{*} & 行分割禁止 \\
+%     \texttt{!} & 段落頭で進入許可
+%   \end{tabular}\par
+%   空白挿入量の既定値は、和文ルビ（|\ruby|）では和文間空白、
+%   欧文ルビ（|\aruby|）の場合はゼロである。
+%   |*| 無指定の場合の行分割の可否（ペナルティ）は {p\TeX} の標準の
+%   動作に従う。
+%   |!| 無指定の場合、段落冒頭では\jmeta{前進入設定}の設定に関わらず
+%   進入が抑止される。
+%   （以上の説明はゴースト処理無効の場合。）
 % \end{quote}
 %
 % \jmeta{モード}は以下の値の何れか。
@@ -159,11 +176,25 @@
 %   ルビを付す指定。
 % \end{quote}
 %
-% \jmeta{後空き設定}は以下の値の何れか。
+% \jmeta{後補助設定}は以下の値の何れか。
 % \begin{quote}
-%   \begin{tabular}{ll}
-%     \texttt{:} & 和欧文間空白
-%   \end{tabular}
+%   \begin{tabular}[t]{ll}
+%     \texttt{:} & 和欧文間空白挿入 \\
+%     \texttt{.} & 空白挿入なし
+%   \end{tabular}\qquad
+%   \begin{tabular}[t]{ll}
+%     \texttt{*} & 行分割禁止 \\
+%     \texttt{!} & 段落末で進入許可
+%   \end{tabular}\par
+%   空白挿入量の既定値は、和文ルビでは和文間空白、
+%   欧文ルビの場合はゼロである。
+%   |!| 無指定の場合、段落末尾では進入が抑止される。
+%   |*| 無指定の場合の行分割の可否（ペナルティ）は {p\TeX} の
+%   標準の動作に従うのが原則だが、直後にあるものが文字でない場合、
+%   正しく動作しない可能性がある。
+%   従って、不適切な行分割が起こりうる場合は適宜 |*| を指定する
+%   必要がある（なお、段落末尾で |*| を指定してはならない）。
+%   （以上の説明はゴースト処理無効の場合。）
 % \end{quote}
 %
 % \jmeta{後進入設定}は以下の値。
@@ -346,6 +377,11 @@
 % \item |\rubyusejghost|／|\rubynousejghost|
 %
 % 和文ゴースト処理を行う／行わない。
+% ［既定 = 行わない］
+%
+% \item |\rubyuseaghost|／|\rubynouseaghost|
+%
+% 欧文ゴースト処理を行う／行わない。
 % ［既定 = 行わない］
 %
 % \end{itemize}
@@ -544,7 +580,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\pxrr@warn@bad@athead}
+% \begin{macro}{\pxrr@warn@must@group}
 % 欧文ルビ、あるいは両側ルビでグループルビ以外の指定が行われた場合。
 % 強制的にグループルビに変更される。
 %    \begin{macrocode}
@@ -745,7 +781,7 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@extra}
-% Extra実現方法
+% 拡張機能実装方法
 % （|\rubyuseextra|）。
 % 整数定数。
 %    \begin{macrocode}
@@ -782,7 +818,7 @@
 %
 % \begin{macro}{\ifpxrr@edge@adjust}
 % 行頭・行末での突出の自動補正を行うか
-% （|\[no]rubyadjustatlineedge|）。
+% （|\ruby[no]adjustatlineedge|）。
 % スイッチ。
 %    \begin{macrocode}
 \newif\ifpxrr@edge@adjust \pxrr@edge@adjustfalse
@@ -791,7 +827,7 @@
 %
 % \begin{macro}{\ifpxrr@break@jukugo}
 % 熟語ルビで中間の行分割を許すか
-% （|\[no]rubyadjustatlineedge|）。
+% （|\ruby[no]breakjukugo|）。
 % スイッチ。
 %    \begin{macrocode}
 \newif\ifpxrr@break@jukugo \pxrr@edge@adjustfalse
@@ -823,11 +859,12 @@
 % \end{macro}
 %
 % \begin{macro}{\ifpxrr@d@athead}
-% 肩付きルビであるか否か（偽なら中付きルビ）。
-% |\rubysetup| の |h|／|c| の設定。
-% スイッチ。
+% 肩付き／中付きの設定。
+% |\rubysetup| の |c|／|h|／|H| の設定。
+% 整数定数：0 = 中付き（|c|）；
+% 1 = 肩付き（|h|）；2 = 拡張肩付き（|H|）。
 %    \begin{macrocode}
-\newif\ifpxrr@d@athead
+\chardef\pxrr@d@athead=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -848,6 +885,24 @@
 % 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@d@side=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@d@evensp}
+% 親文字列が短い場合に均等割りを行うか。
+% 0 = 行わない；1 = 行う。
+% |\rubysetup| の |e|／|E| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@d@evensp=1
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@d@fullsize}
+% |\rubysetup| の |f|／|F| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@d@fullsize=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -879,11 +934,10 @@
 %
 % \begin{macro}{\pxrr@bscomp}
 % \begin{macro}{\pxrr@ascomp}
-% 空き補正量。
+% 空き補正設定。
 % |\ruby| の |:| 指定に由来する。
-% 暗黙の文字トークン（未定義値は |\relax|）。
-%
-% 既定値設定（|\rubysetup|）でこれに対応するものはない。
+% 暗黙の文字トークン（無指定は |\relax|）。
+% \Note 既定値設定（|\rubysetup|）でこれに対応するものはない。
 %    \begin{macrocode}
 \let\pxrr@bscomp\relax
 \let\pxrr@ascomp\relax
@@ -891,12 +945,38 @@
 % \end{macro}
 % \end{macro}
 %
-% \begin{macro}{\ifpxrr@athead}
-% 肩付きルビであるか否か（偽なら中付きルビ）。
-% |\ruby| の |h|／|c| の設定。
+% \begin{macro}{\ifpxrr@bnobr}
+% \begin{macro}{\ifpxrr@anobr}
+% ルビ付文字の直前／直後で行分割を許すか。
+% |\ruby| の |*| 指定に由来する。
 % スイッチ。
+% \Note 既定値設定（|\rubysetup|）でこれに対応するものはない。
 %    \begin{macrocode}
-\newif\ifpxrr@athead
+\newif\ifpxrr@bnobr \pxrr@bnobrfalse
+\newif\ifpxrr@anobr \pxrr@anobrfalse
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@bfintr}
+% \begin{macro}{\ifpxrr@afintr}
+% 段落冒頭／末尾で進入を許可するか。
+% |\ruby| の |!| 指定に由来する。
+% スイッチ。
+% \Note 既定値設定（|\rubysetup|）でこれに対応するものはない。
+%    \begin{macrocode}
+\newif\ifpxrr@bfintr \pxrr@bfintrfalse
+\newif\ifpxrr@afintr \pxrr@afintrfalse
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@athead}
+% 肩付き／中付きの設定。
+% |\ruby| の |c|／|h|／|H| の設定。
+% 整数定数（値の意味は |\pxrr@d@athead| と同じ）。
+%    \begin{macrocode}
+\chardef\pxrr@athead=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -925,6 +1005,24 @@
 % 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@side=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@evensp}
+% 親文字列が短い場合に均等割りを行うか。
+% 0 = 行わない；1 = 行う。
+% |\ruby| の |e|／|E| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@evensp=1
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@fullsize}
+% |\ruby| の |f|／|F| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@fullsize=1
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1016,6 +1114,18 @@
 %    \begin{macrocode}
 \def\pxrr@ifx#1{%
   \ifx#1\expandafter\@firstoftwo
+  \else\expandafter\@secondoftwo
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ifnum}
+% |\pxrr@ifnum{|\jmeta{引数}|}|\jmeta{真}|}{|\jmeta{偽}|}|\Means
+% |\ifnum|\jmeta{引数} を行うテスト。
+%    \begin{macrocode}
+\def\pxrr@ifnum#1{%
+  \ifnum#1\expandafter\@firstoftwo
   \else\expandafter\@secondoftwo
   \fi
 }
@@ -1408,6 +1518,230 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \subsection{エンジン依存処理}
+%
+% この小節のマクロ内で使われる変数。
+%    \begin{macrocode}
+\let\pxrr@x@gtempa\@empty
+\newif\ifpxrr@x@swa
+%    \end{macrocode}
+%
+% \begin{macro}{\pxrr@ifprimitive}
+% |\pxrr@ifprimitive\CS{|\jmeta{真}|}{|\jmeta{偽}|}|\Means
+% |\CS| の現在の定義が同名のプリミティブであるかをテストする。
+%    \begin{macrocode}
+\def\pxrr@ifprimitive#1{%
+  \edef\pxrr@x@tempa{\string#1}%
+  \edef\pxrr@x@tempb{\meaning#1}%
+  \ifx\pxrr@x@tempa\pxrr@x@tempb \expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@ptex}
+% エンジンが {p\TeX} 系（{up\TeX} 系を含む）であるか。
+% |\kansuji| のプリミティブテストで判定する。
+%    \begin{macrocode}
+\pxrr@ifprimitive\kansuji{%
+  \pxrr@csletcs{ifpxrr@in@ptex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@ptex}{iffalse}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@uptex}
+% エンジンが {up\TeX} 系であるか。
+% |\enablecjktoken| のプリミティブテストで判定する。
+%    \begin{macrocode}
+\pxrr@ifprimitive\enablecjktoken{%
+  \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@xetex}
+% エンジンが {XeTeX} 系であるか。
+% |\XeTeXrevision| のプリミティブテストで判定する。
+%    \begin{macrocode}
+\pxrr@ifprimitive\XeTeXrevision{%
+  \pxrr@csletcs{ifpxrr@in@xetex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@xetex}{iffalse}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@unicode}
+% 「和文」内部コードがUnicodeであるか。
+%    \begin{macrocode}
+\ifpxrr@in@xetex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else\ifpxrr@in@uptex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else
+  \pxrr@csletcs{ifpxrr@in@unicode}{iffalse}%
+\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@jc}
+% 和文の「複合コード」を内部コードに変換する（展開可能）。
+% 「複合コード」は「\jmeta{JISコード16進4桁}|:|\jmeta{Unicode16進4桁}」
+% の形式。
+%    \begin{macrocode}
+\def\pxrr@jc#1{%
+  \pxrr@jc@a#1\pxrr@nil
+}
+\ifpxrr@in@unicode
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    "#2\space
+  }
+\else\ifpxrr@in@ptex
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    \jis"#1\space\space
+  }
+\else
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    `?\space
+  }
+\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@jchardef}
+% 和文用の |\chardef|。
+%    \begin{macrocode}
+\ifpxrr@in@uptex
+  \let\pxrr@jchardef\kchardef
+\else
+  \let\pxrr@jchardef\chardef
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@tate}
+% 縦組であるか。
+% \Note {p\TeX} 以外での縦組をサポートする予定はない。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \pxrr@csletcs{ifpxrr@in@tate}{iftdir}
+\else
+  \pxrr@csletcs{ifpxrr@in@tate}{iffalse}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@jchar@token}
+% |\pxrr@get@jchar@token\CS{|\jmeta{整数}|}|\Means
+% 内部文字コードが\jmeta{整数}である和文文字のトークンを得る。
+%    \begin{macrocode}
+\def\pxrr@get@jchar@token#1#2{%
+  \begingroup
+    \kansujichar\@ne=#2\relax
+    \xdef\pxrr@x@gtempa{\kansuji\@ne}%
+  \endgroup
+  \let#1\pxrr@x@gtempa
+}
+\ifpxrr@in@unicode\else
+  \ifpxrr@in@ptex\else
+    \def\pxrr@get@jchar@token#1#2{%
+      \def#1{?}%
+    }
+  \fi
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@x@K}
+% 適当な漢字（実際は〈一〉）のトークン。
+%    \begin{macrocode}
+\pxrr@jchardef\pxrr@x@K=\pxrr@jc{306C:4E00}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@iiskip}
+% |\pxrr@get@iiskip\CS|\Means
+% 現在の実効の和文間空白の量を取得する。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@get@iiskip#1{%
+    \pxrr@x@swafalse
+    \begingroup
+      \inhibitxspcode\pxrr@x@K\thr@@
+      \kanjiskip\p@
+      \setbox\z@\hbox{\noautospacing\pxrr@x@K\pxrr@x@K}%
+      \setbox\tw@\hbox{\pxrr@x@K\pxrr@x@K}%
+      \ifdim\wd\tw@>\wd\z@
+        \aftergroup\pxrr@x@swatrue
+      \fi
+    \endgroup
+    \edef#1{%
+      \ifpxrr@x@swa \the\kanjiskip
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+\else
+  \def\pxrr@get@iiskip#1{%
+    \let#1\pxrr@zeropt
+  }
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@iaiskip}
+% |\pxrr@get@iaiskip\CS|\Means
+% 現在の実効の和欧文間空白の量を取得する。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@get@iaiskip#1{%
+    \pxrr@x@swafalse
+    \begingroup
+      \inhibitxspcode\pxrr@x@K\thr@@ \xspcode`X=\thr@@
+      \xkanjiskip\p@
+      \setbox\z@\hbox{\noautoxspacing\pxrr@x@K X}%
+      \setbox\tw@\hbox{\pxrr@x@K X}%
+      \ifdim\wd\tw@>\wd\z@
+        \aftergroup\pxrr@x@swatrue
+      \fi
+    \endgroup
+    \edef#1{%
+      \ifpxrr@x@swa \the\xkanjiskip
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+\else
+  \def\pxrr@get@iaiskip#1{%
+    \let#1\pxrr@zeropt
+  }
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@zwidth}
+% |\pxrr@get@zwidth\CS|\Means
+% 現在の和文フォントの全角幅を取得する。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1zw\relax
+    \edef#1{\the\@tempdima}%
+  }
+\else
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1em\relax
+    \edef#1{\the\@tempdima}%
+  }
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{パラメタ設定公開命令}
 %
 % \begin{macro}{\ifpxrr@in@setup}
@@ -1431,9 +1765,11 @@
     \pxrr@csletcs{ifpxrr@d@aprotr}{ifpxrr@aprotr}%
     \let\pxrr@d@bintr\pxrr@bintr@
     \let\pxrr@d@aintr\pxrr@aintr@
-    \pxrr@csletcs{ifpxrr@d@athead}{ifpxrr@athead}%
+    \let\pxrr@d@athead\pxrr@athead
     \let\pxrr@d@mode\pxrr@mode
     \let\pxrr@d@side\pxrr@side
+    \let\pxrr@d@evensp\pxrr@evensp
+    \let\pxrr@d@fullsize\pxrr@fullsize
   \fi
 %    \end{macrocode}
 % |\ifpxrr@in@setup| を偽に戻す。
@@ -1599,7 +1935,7 @@
 %
 % \begin{macro}{\pxrr@parse@option}
 % |\pxrr@parse@option{|\jmeta{オプション}|}|\Means
-% \jmeta{オプション}を解析し、|\ifpxrr@athead| や\ 
+% \jmeta{オプション}を解析し、|\pxrr@athead| や\ 
 % |\pxrr@mode| 等のパラメタを設定する。
 %    \begin{macrocode}
 \def\pxrr@parse@option#1{%
@@ -1618,14 +1954,20 @@
   \pxrr@csletcs{ifpxrr@aprotr}{ifpxrr@d@aprotr}%
   \let\pxrr@bintr@\pxrr@d@bintr
   \let\pxrr@aintr@\pxrr@d@aintr
-  \pxrr@csletcs{ifpxrr@athead}{ifpxrr@d@athead}%
+  \let\pxrr@athead@\pxrr@d@athead
   \let\pxrr@mode\pxrr@d@mode
   \let\pxrr@side\pxrr@d@side
+  \let\pxrr@evensp\pxrr@d@evensp
+  \let\pxrr@fullsize\pxrr@d@fullsize
 %    \end{macrocode}
-% 次の2つの既定値は常に |\relax|（無効）である。
+% 以下のパラメタの既定値は固定されている。
 %    \begin{macrocode}
   \let\pxrr@bscomp\relax
   \let\pxrr@ascomp\relax
+  \pxrr@bnobrfalse
+  \pxrr@anobrfalse
+  \pxrr@bfintrfalse
+  \pxrr@afintrfalse
 %    \end{macrocode}
 % 有限状態機械を開始させる。
 % 入力の末尾に |@| を加えている。
@@ -1643,8 +1985,12 @@
 \typeout{\pxrr@po@FS/#1[\@nameuse{pxrr@po@C@#1}]}%
 \fi
   \csname pxrr@po@PR@#1\endcsname
-  \pxrr@letcs\pxrr@po@FS
-   {pxrr@po@TR@\pxrr@po@FS @\@nameuse{pxrr@po@C@#1}}%
+  \expandafter\ifx\csname pxrr@po@C@#1\endcsname\relax
+    \let\pxrr@po@FS\relax
+  \else
+    \pxrr@letcs\pxrr@po@FS
+     {pxrr@po@TR@\pxrr@po@FS @\@nameuse{pxrr@po@C@#1}}%
+  \fi
 \ifpxrrDebug
 \typeout{->\pxrr@po@FS}%
 \fi
@@ -1661,25 +2007,28 @@
 %    \begin{macrocode}
 \def\pxrr@parse@option@exit#1\pxrr@end{%
 %    \end{macrocode}
-% 両側ルビ命令の場合は、|\pxrr@side| の値を変更する。
-%    \begin{macrocode}
-  \ifpxrr@truby
-    \chardef\pxrr@side\tw@
-  \fi
-%    \end{macrocode}
-% 既定値設定（|\rubysetup|）でない場合は整合性検査を行う。
+% 既定値設定（|\rubysetup|）である場合何もしない。
 %    \begin{macrocode}
   \ifpxrr@in@setup\else
+%    \end{macrocode}
+% 両側ルビ命令の場合は、|\pxrr@side| の値を変更する。
+%    \begin{macrocode}
+    \ifpxrr@truby
+      \chardef\pxrr@side\tw@
+    \fi
+%    \end{macrocode}
+% 整合性検査を行う。
+%    \begin{macrocode}
     \pxrr@check@option
-  \fi
 %    \end{macrocode}
 % |\pxrr@?intr| の値を設定する。
 %    \begin{macrocode}
-  \@tempdima=\pxrr@ruby@zw\relax
-  \@tempdimb=\pxrr@or@zero\pxrr@bintr@\@tempdima
-  \edef\pxrr@bintr{\the\@tempdimb}%
-  \@tempdimb=\pxrr@or@zero\pxrr@aintr@\@tempdima
-  \edef\pxrr@aintr{\the\@tempdimb}%
+    \@tempdima=\pxrr@ruby@zw\relax
+    \@tempdimb=\pxrr@or@zero\pxrr@bintr@\@tempdima
+    \edef\pxrr@bintr{\the\@tempdimb}%
+    \@tempdimb=\pxrr@or@zero\pxrr@aintr@\@tempdima
+    \edef\pxrr@aintr{\the\@tempdimb}%
+  \fi
 }
 %    \end{macrocode}
 %
@@ -1702,19 +2051,26 @@
 \def\pxrr@po@C@@{F}
 \@namedef{pxrr@po@C@|}{V}
 \@namedef{pxrr@po@C@:}{S}
+\@namedef{pxrr@po@C@.}{S}
 \@namedef{pxrr@po@C@*}{S}
+\@namedef{pxrr@po@C@!}{S}
 \@namedef{pxrr@po@C@<}{B}
 \@namedef{pxrr@po@C@(}{B}
 \@namedef{pxrr@po@C@>}{A}
 \@namedef{pxrr@po@C@)}{A}
 \@namedef{pxrr@po@C@-}{M}
-\def\pxrr@po@C@h{M}
 \def\pxrr@po@C@c{M}
+\def\pxrr@po@C@h{M}
+\def\pxrr@po@C@H{M}
 \def\pxrr@po@C@m{M}
 \def\pxrr@po@C@g{M}
 \def\pxrr@po@C@j{M}
 \def\pxrr@po@C@P{M}
 \def\pxrr@po@C@S{M}
+\def\pxrr@po@C@e{M}
+\def\pxrr@po@C@E{M}
+\def\pxrr@po@C@f{M}
+\def\pxrr@po@C@F{M}
 %    \end{macrocode}
 % 
 % 機能プロセス。
@@ -1731,9 +2087,12 @@
 \def\pxrr@po@PRbar@bb{%
   \pxrr@bprotrfalse
 }
-\def\pxrr@po@PRbar@mi{%
+\def\pxrr@po@PRbar@bs{%
   \def\pxrr@aintr@{}\pxrr@aprotrtrue
 }
+\let\pxrr@po@PRbar@mi\pxrr@po@PRbar@bs
+\let\pxrr@po@PRbar@as\pxrr@po@PRbar@bs
+\let\pxrr@po@PRbar@ai\pxrr@po@PRbar@bs
 \def\pxrr@po@PRbar@ab{%
   \pxrr@aprotrfalse
 }
@@ -1748,17 +2107,43 @@
 \def\pxrr@po@PRcolon@mi{%
   \let\pxrr@ascomp=:\relax
 }
+\let\pxrr@po@PRcolon@as\pxrr@po@PRcolon@mi
+\@namedef{pxrr@po@PR@.}{%
+  \csname pxrr@po@PRdot@\pxrr@po@FS\endcsname
+}
+\def\pxrr@po@PRdot@bi{%
+  \let\pxrr@bscomp=.\relax
+}
+\let\pxrr@po@PRdot@bb\pxrr@po@PRdot@bi
+\let\pxrr@po@PRdot@bs\pxrr@po@PRdot@bi
+\def\pxrr@po@PRdot@mi{%
+  \let\pxrr@ascomp=.\relax
+}
+\let\pxrr@po@PRdot@as\pxrr@po@PRdot@mi
 \@namedef{pxrr@po@PR@*}{%
   \csname pxrr@po@PRstar@\pxrr@po@FS\endcsname
 }
 \def\pxrr@po@PRstar@bi{%
-  \let\pxrr@bscomp=*\relax
+  \pxrr@bnobrtrue
 }
 \let\pxrr@po@PRstar@bb\pxrr@po@PRstar@bi
 \let\pxrr@po@PRstar@bs\pxrr@po@PRstar@bi
 \def\pxrr@po@PRstar@mi{%
-  \let\pxrr@ascomp=*\relax
+  \pxrr@anobrtrue
 }
+\let\pxrr@po@PRstar@as\pxrr@po@PRstar@mi
+\@namedef{pxrr@po@PR@!}{%
+  \csname pxrr@po@PRbang@\pxrr@po@FS\endcsname
+}
+\def\pxrr@po@PRbang@bi{%
+  \pxrr@bfintrtrue
+}
+\let\pxrr@po@PRbang@bb\pxrr@po@PRbang@bi
+\let\pxrr@po@PRbang@bs\pxrr@po@PRbang@bi
+\def\pxrr@po@PRbang@mi{%
+  \pxrr@afintrtrue
+}
+\let\pxrr@po@PRbang@as\pxrr@po@PRbang@mi
 \@namedef{pxrr@po@PR@<}{%
   \def\pxrr@bintr@{\pxrr@big@intr}\pxrr@bprotrtrue
 }
@@ -1771,11 +2156,14 @@
 \@namedef{pxrr@po@PR@)}{%
   \def\pxrr@aintr@{\pxrr@small@intr}\pxrr@aprotrtrue
 }
-\def\pxrr@po@PR@h{%
-  \pxrr@atheadtrue
-}
 \def\pxrr@po@PR@c{%
-  \pxrr@atheadfalse
+  \chardef\pxrr@athead\z@
+}
+\def\pxrr@po@PR@h{%
+  \chardef\pxrr@athead\@ne
+}
+\def\pxrr@po@PR@H{%
+  \chardef\pxrr@athead\tw@
 }
 \def\pxrr@po@PR@m{%
   \let\pxrr@mode=m%
@@ -1792,6 +2180,18 @@
 \def\pxrr@po@PR@S{%
   \chardef\pxrr@side\@ne
 }
+\def\pxrr@po@PR@E{%
+  \chardef\pxrr@evensp\z@
+}
+\def\pxrr@po@PR@e{%
+  \chardef\pxrr@evensp\@ne
+}
+\def\pxrr@po@PR@F{%
+  \chardef\pxrr@fullsize\z@
+}
+\def\pxrr@po@PR@f{%
+  \chardef\pxrr@fullsize\@ne
+}
 %    \end{macrocode}
 % 
 % 遷移表。
@@ -1800,6 +2200,7 @@
 \def\pxrr@po@TR@bb@F{fi}
 \def\pxrr@po@TR@bs@F{fi}
 \def\pxrr@po@TR@mi@F{fi}
+\def\pxrr@po@TR@as@F{fi}
 \def\pxrr@po@TR@ai@F{fi}
 \def\pxrr@po@TR@ab@F{fi}
 \def\pxrr@po@TR@fi@F{fi}
@@ -1807,12 +2208,14 @@
 \def\pxrr@po@TR@bb@V{bs}
 \def\pxrr@po@TR@bs@V{ab}
 \def\pxrr@po@TR@mi@V{ab}
+\def\pxrr@po@TR@as@V{ab}
 \def\pxrr@po@TR@ai@V{ab}
 \def\pxrr@po@TR@ab@V{fi}
-\def\pxrr@po@TR@bi@S{mi}
-\def\pxrr@po@TR@bb@S{mi}
-\def\pxrr@po@TR@bs@S{mi}
-\def\pxrr@po@TR@mi@S{ai}
+\def\pxrr@po@TR@bi@S{bs}
+\def\pxrr@po@TR@bb@S{bs}
+\def\pxrr@po@TR@bs@S{bs}
+\def\pxrr@po@TR@mi@S{as}
+\def\pxrr@po@TR@as@S{as}
 \def\pxrr@po@TR@bi@B{bs}
 \def\pxrr@po@TR@bi@M{mi}
 \def\pxrr@po@TR@bb@M{mi}
@@ -1822,6 +2225,7 @@
 \def\pxrr@po@TR@bb@A{fi}
 \def\pxrr@po@TR@bs@A{fi}
 \def\pxrr@po@TR@mi@A{fi}
+\def\pxrr@po@TR@as@A{fi}
 \def\pxrr@po@TR@ai@A{fi}
 %    \end{macrocode}
 % \end{macro}
@@ -1886,27 +2290,43 @@
 %    \end{macrocode}
 % 肩付き指定（|h|）に関する検査。
 %    \begin{macrocode}
-  \ifpxrr@athead
+  \ifnum\pxrr@athead>\z@
 %    \end{macrocode}
 % 横組みでは不可なので中付きに変更する。
 %    \begin{macrocode}
-    \ifydir
-      \pxrr@atheadfalse
+    \ifpxrr@in@tate\else
+      \pxrr@athead\z@
     \fi
 %    \end{macrocode}
 % グループルビでは不可なので中付きに変更する。
 %    \begin{macrocode}
     \if g\pxrr@mode
-      \pxrr@atheadfalse
+      \pxrr@athead\z@
     \fi
 %    \end{macrocode}
 % 以上の2つの場合について、明示指定であれば警告を出す。
 %    \begin{macrocode}
-    \ifpxrr@athead\else
-      \ifpxrr@d@athead\else
+    \ifnum\pxrr@athead=\z@
+      \ifnum\pxrr@d@athead>\z@
         \pxrr@warn@bad@athead
       \fi
     \fi
+  \fi
+%    \end{macrocode}
+% 親文字列均等割り抑止（|E|）の再設定（エラー・警告なし）。
+%
+% 欧文ルビの場合は、均等割りを常に無効にする。
+%    \begin{macrocode}
+  \ifpxrr@abody
+    \chardef\pxrr@evensp\z@
+  \fi
+%    \end{macrocode}
+% グループルビ以外では、均等割りを有効にする。
+% （この場合、親文字列は一文字毎に分解されるので、意味はもたない。
+% 均等割り抑止の方が特殊な処理なので、通常の処理に合わせる。）
+%    \begin{macrocode}
+  \if g\pxrr@mode\else
+    \chardef\pxrr@evensp\@ne
   \fi
 }
 %    \end{macrocode}
@@ -1961,6 +2381,16 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@iiskip}
+% \begin{macro}{\pxrr@iaiskip}
+% 和文間空白および和欧文間空白の量。
+%    \begin{macrocode}
+\let\pxrr@iiskip\pxrr@zeropt
+\let\pxrr@iaiskip\pxrr@zeropt
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@assign@fsize}
 % 上記の変数（マクロ）を設定する。
 %    \begin{macrocode}
@@ -1968,18 +2398,19 @@
   \@tempdima=\f@size\p@
   \@tempdima\pxrr@size@ratio\@tempdima
   \edef\pxrr@ruby@fsize{\the\@tempdima}%
-  \@tempdima=1zw\relax
-  \edef\pxrr@body@zw{\the\@tempdima}%
+  \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
     \pxrr@use@ruby@font
-    \@tempdima=1zw\relax
-    \xdef\pxrr@gtempa{\the\@tempdima}%
+    \pxrr@get@zwidth\pxrr@gtempa
+    \global\let\pxrr@gtempa\pxrr@gtempa
   \endgroup
   \let\pxrr@ruby@zw\pxrr@gtempa
+  \pxrr@get@iiskip\pxrr@iiskip
+  \pxrr@get@iaiskip\pxrr@iaiskip
 %    \end{macrocode}
 % |\pxrr@htratio| の値を設定する。
 %    \begin{macrocode}
-  \iftdir
+  \ifpxrr@in@tate
     \let\pxrr@htratio\pxrr@thtratio
   \else
     \let\pxrr@htratio\pxrr@yhtratio
@@ -2221,43 +2652,96 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \subsection{命令の頑強化}
+% \subsection{小書き仮名の変換}
 %
-% \begin{macro}{\pxrr@add@protect}
-% |\pxrr@add@protect\CS|\Means
-% 命令 |\CS| に |\protect| を施して頑強なものに変える。
-% |\CS| は最初から |\DeclareRobustCommand| で定義された頑強な命令と
-% ほぼ同じように振舞う
-% ――例えば、|\CS| の定義の本体は \verb*+\CS + という制御綴に
-% 移される。
-% 唯一の相違点は、「組版中」
-% （すなわち |\protect|$\;=\;$|\@typeset@protect|）の場合は、
-% |\CS| は \verb*+\protect\CS + ではなく、単なる \verb*+\CS + に
-% 展開されることである。
-% 組版中は |\protect| は結局 |\relax| であるので、
-% |\DeclareRobustCommand| 定義の命令の場合、|\relax| が「実行」
-% されることになるが、{p\TeX}ではこれがメトリックグル―の挿入に
-% 干渉するので、このパッケージの目的に沿わないのである。
-% \Note
-% |\CS| は「制御語」（制御記号でなく）である必要がある。
+% \begin{macro}{\pxrr@trans@res}
+% |\pxrr@transform@kana| 内で変換結果を保持するマクロ。
 %    \begin{macrocode}
-\def\pxrr@add@protect#1{%
-  \expandafter\pxrr@add@protect@a
-    \csname\expandafter\@gobble\string#1\space\endcsname#1%
+\let\pxrr@trans@res\@empty
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@transform@kana}
+% |\pxrr@transform@kana\CS|\Means
+% マクロ |\CS| の展開テキストの中でグループに含まれない小書き仮名を
+% 対応する非小書き仮名に変換し、|\CS| を上書きする。
+%    \begin{macrocode}
+\def\pxrr@transform@kana#1{%
+  \let\pxrr@trans@res\@empty
+  \def\pxrr@transform@kana@end\pxrr@end{%
+    \let#1\pxrr@trans@res
+  }%
+  \expandafter\pxrr@transform@kana@loop@a#1\pxrr@end
 }
-\def\pxrr@add@protect@a#1#2{%
-  \let#1=#2%
-  \def#2{\pxrr@check@protect\protect#1}%
+\def\pxrr@transform@kana@loop@a{%
+  \futurelet\pxrr@tempa\pxrr@transform@kana@loop@b
 }
-\def\pxrr@check@protect{%
-  \ifx\protect\@typeset@protect
-    \expandafter\@gobble
+\def\pxrr@transform@kana@loop@b{%
+  \ifx\pxrr@tempa\pxrr@end
+    \let\pxrr@tempb\pxrr@transform@kana@end
+  \else\ifx\pxrr@tempa\bgroup
+    \let\pxrr@tempb\pxrr@transform@kana@loop@c
+  \else\ifx\pxrr@tempa\@sptoken
+    \let\pxrr@tempb\pxrr@transform@kana@loop@d
+  \else
+    \let\pxrr@tempb\pxrr@transform@kana@loop@e
+  \fi\fi\fi
+  \pxrr@tempb
+}
+\def\pxrr@transform@kana@loop@c#1{%
+  \pxrr@appto\pxrr@trans@res{{#1}}%
+  \pxrr@transform@kana@loop@a
+}
+\expandafter\def\expandafter\pxrr@transform@kana@loop@d\space{%
+  \pxrr@appto\pxrr@trans@res{ }%
+  \pxrr@transform@kana@loop@a
+}
+\def\pxrr@transform@kana@loop@e#1{%
+  \expandafter\pxrr@transform@kana@loop@f\string#1\pxrr@nil#1%
+}
+\def\pxrr@transform@kana@loop@f#1#2\pxrr@nil#3{%
+  \@tempswafalse
+  \ifnum`#1>\@cclv
+    \begingroup\expandafter\expandafter\expandafter\endgroup
+    \expandafter\ifx\csname pxrr@nonsmall/#3\endcsname\relax\else
+      \@tempswatrue
+    \fi
   \fi
+  \if@tempswa
+    \edef\pxrr@tempa{%
+      \noexpand\pxrr@appto\noexpand\pxrr@trans@res
+       {\csname pxrr@nonsmall/#3\endcsname}%
+    }%
+    \pxrr@tempa
+  \else
+    \pxrr@appto\pxrr@trans@res{#3}%
+  \fi
+  \pxrr@transform@kana@loop@a
+}
+\def\pxrr@assign@nonsmall#1/#2\pxrr@nil{%
+  \pxrr@get@jchar@token\pxrr@tempa{\pxrr@jc{#1}}%
+  \pxrr@get@jchar@token\pxrr@tempb{\pxrr@jc{#2}}%
+  \expandafter\edef\csname pxrr@nonsmall/\pxrr@tempa\endcsname
+   {\pxrr@tempb}%
+}
+\@tfor\pxrr@tempc:=%
+    {2421:3041/2422:3042}{2423:3043/2424:3044}%
+    {2425:3045/2426:3046}{2427:3047/2428:3048}%
+    {2429:3049/242A:304A}{2443:3063/2444:3064}%
+    {2463:3083/2464:3084}{2465:3085/2466:3086}%
+    {2467:3087/2468:3088}{246E:308E/246F:308F}%
+    {2521:30A1/2522:30A2}{2523:30A3/2524:30A4}%
+    {2525:30A5/2526:30A6}{2527:30A7/2528:30A8}%
+    {2529:30A9/252A:30AA}{2543:30C3/2544:30C4}%
+    {2563:30E3/2564:30E4}{2565:30E5/2566:30E6}%
+    {2567:30E7/2568:30E8}{256E:30EE/256F:30EF}%
+  \do{%
+  \expandafter\pxrr@assign@nonsmall\pxrr@tempc\pxrr@nil
 }
 %    \end{macrocode}
 % \end{macro}
 %
-% \subsection{ブロック毎の処理}
+% \subsection{ブロック毎の組版}
 %
 % \begin{macro}{\ifpxrr@protr}
 % ルビ文字列の突出があるか。
@@ -2291,7 +2775,18 @@
 % 突出があるかを |\ifpxrr@protr| に返し、前と後の突出の量を
 % それぞれ |\pxrr@bspace| と |\pxrr@aspace| に返す。
 %    \begin{macrocode}
-\def\pxrr@compose@block#1#2#3{%
+\def\pxrr@compose@block{%
+%    \end{macrocode}
+% 本体の前に加工処理を介入させる。
+% |\pxrr@compose@block@do| に本体マクロを |\let| する。
+%    \begin{macrocode}
+  \let\pxrr@compose@block@do\pxrr@compose@oneside@block@do
+  \pxrr@compose@block@pre
+}
+%    \end{macrocode}
+% こちらが本体。
+%    \begin{macrocode}
+\def\pxrr@compose@oneside@block@do#1#2#3{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
     \pxrr@use@ruby@font
@@ -2304,11 +2799,19 @@
 % ルビ文字列の方が長い場合。
 % 親文字列をルビ文字列の長さに合わせて均等割りで組み直す。
 % |\pxrr@?space| は |\pxrr@evenspace@int| が返す値のままでよい。
+% 「拡張肩付き」指定の場合、前側の突出を抑止する。
 %    \begin{macrocode}
     \pxrr@protrtrue
+    \let\pxrr@locate@temp#1%
+    \ifnum\pxrr@athead>\@ne
+      \ifnum\pxrr@locate@temp=\pxrr@locate@inner
+        \let\pxrr@locate@temp\pxrr@locate@head
+      \fi
+    \fi
     \pxrr@decompose{#2}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\wd\pxrr@boxr}%
+    \pxrr@evenspace@int\pxrr@locate@temp\pxrr@boxa\relax
+     {\wd\pxrr@boxr}%
   \else\ifdim-\pxrr@epsilon>\@tempdima
 %    \end{macrocode}
 % ルビ文字列の方が短い場合。
@@ -2318,7 +2821,7 @@
 % |\pxrr@?space| はゼロに設定する。
 %    \begin{macrocode}
     \pxrr@protrfalse
-    \ifpxrr@athead\else
+    \ifnum\pxrr@athead=\z@
       \pxrr@decompose{#3}%
       \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
       \pxrr@evenspace@int{#1}\pxrr@boxr
@@ -2367,7 +2870,11 @@
 % \begin{macro}{\pxrr@compose@twoside@block}
 % 両側ルビ用のブロック構成。
 %    \begin{macrocode}
-\def\pxrr@compose@twoside@block#1#2#3#4{%
+\def\pxrr@compose@twoside@block{%
+  \let\pxrr@compose@block@do\pxrr@compose@twoside@block@do
+  \pxrr@compose@block@pre
+}
+\def\pxrr@compose@twoside@block@do#1#2#3#4{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
     \pxrr@use@ruby@font
@@ -2441,6 +2948,77 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@compose@block@pre}
+% 親文字列の加工を行う。
+%    \begin{macrocode}
+\def\pxrr@compose@block@pre{%
+%    \end{macrocode}
+% |f| 指定時は小書き仮名の変換を施す。
+%    \begin{macrocode}
+  \pxrr@ifnum{\pxrr@fullsize>\z@}{%
+    \pxrr@compose@block@pre@a
+  }{%
+    \pxrr@compose@block@pre@c
+  }%
+}
+\def\pxrr@compose@block@pre@a#1#2#3{%
+  \def\pxrr@compose@block@tempa{#3}%
+  \pxrr@transform@kana\pxrr@compose@block@tempa
+  \expandafter\pxrr@compose@block@pre@b
+   \expandafter{\pxrr@compose@block@tempa}{#1}{#2}%
+}
+\def\pxrr@compose@block@pre@b#1#2#3{%
+  \pxrr@compose@block@pre@c{#2}{#3}{#1}%
+}
+\def\pxrr@compose@block@pre@c{%
+  \pxrr@ifnum{\pxrr@evensp=\z@}{%
+    \pxrr@compose@block@pre@d
+  }{%
+    \pxrr@compose@block@do
+  }%
+}
+\def\pxrr@compose@block@pre@d#1#2{%
+  \pxrr@compose@block@do{#1}{{#2}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{命令の頑強化}
+%
+% \begin{macro}{\pxrr@add@protect}
+% |\pxrr@add@protect\CS|\Means
+% 命令 |\CS| に |\protect| を施して頑強なものに変える。
+% |\CS| は最初から |\DeclareRobustCommand| で定義された頑強な命令と
+% ほぼ同じように振舞う
+% ――例えば、|\CS| の定義の本体は \verb*+\CS + という制御綴に
+% 移される。
+% 唯一の相違点は、「組版中」
+% （すなわち |\protect|$\;=\;$|\@typeset@protect|）の場合は、
+% |\CS| は \verb*+\protect\CS + ではなく、単なる \verb*+\CS + に
+% 展開されることである。
+% 組版中は |\protect| は結局 |\relax| であるので、
+% |\DeclareRobustCommand| 定義の命令の場合、|\relax| が「実行」
+% されることになるが、{p\TeX}ではこれがメトリックグル―の挿入に
+% 干渉するので、このパッケージの目的に沿わないのである。
+% \Note
+% |\CS| は「制御語」（制御記号でなく）である必要がある。
+%    \begin{macrocode}
+\def\pxrr@add@protect#1{%
+  \expandafter\pxrr@add@protect@a
+    \csname\expandafter\@gobble\string#1\space\endcsname#1%
+}
+\def\pxrr@add@protect@a#1#2{%
+  \let#1=#2%
+  \def#2{\pxrr@check@protect\protect#1}%
+}
+\def\pxrr@check@protect{%
+  \ifx\protect\@typeset@protect
+    \expandafter\@gobble
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{致命的エラー対策}
 %
 % 致命的エラーが起こった場合は、ルビ入力を放棄して
@@ -2485,6 +3063,326 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \subsection{先読み処理}
+%
+% ゴースト処理が無効の場合に後ろ側の禁則処理を行うため、
+% ルビ命令の直後に続くトークンを取得して、
+% その前禁則ペナルティ（|\prebreakpenalty|）の値を保存する。
+% 信頼性の低い方法なので、ゴースト処理が可能な場合はそちらを
+% 利用するべきである。
+%
+% \begin{macro}{\pxrr@end@kinsoku}
+% ルビ命令直後の文字の前禁則ペナルティ値とみなす値。
+%    \begin{macrocode}
+\def\pxrr@end@kinsoku{0}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ruby@scan}
+% 片側ルビ用の先読み処理。
+%    \begin{macrocode}
+\def\pxrr@ruby@scan#1#2{%
+%    \end{macrocode}
+% |\pxrr@check@kinsoku| の続きの処理。
+% |\pxrr@cntr| の値を |\pxrr@end@kinsoku| に保存して、
+% ルビ処理本体を呼び出す。
+%    \begin{macrocode}
+  \def\pxrr@tempc{%
+    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
+    \pxrr@do@proc{#1}{#2}%
+  }%
+  \pxrr@check@kinsoku\pxrr@tempc
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@truby@scan}
+% 両側ルビ用の先読み処理。
+%    \begin{macrocode}
+\def\pxrr@truby@scan#1#2#3{%
+  \def\pxrr@tempc{%
+    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
+    \pxrr@do@proc{#1}{#2}{#3}%
+  }%
+  \pxrr@check@kinsoku\pxrr@tempc
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@check@kinsoku}
+% |\pxrr@check@kinsoku\CS|\Means
+% |\CS| の直後に続くトークンについて、
+% それが「通常文字」
+% （和文文字トークンまたはカテゴリコード11、12の欧文文字トークン）
+% である場合にはその前禁則ペナルティ（|\prebreakpenalty|）の値を、
+% そうでない場合はゼロを |\pxrr@cntr| に代入する。
+% その後、|\CS| を実行（展開）する。
+% \Note ただし、欧文ルビの場合、欧文文字の前禁則ペナルティは 20000
+% として扱う。
+%    \begin{macrocode}
+\def\pxrr@check@kinsoku#1{%
+  \let\pxrr@tempb#1%
+  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
+}
+\def\pxrr@check@kinsoku@a{%
+  \pxrr@check@char\pxrr@tempa
+%    \end{macrocode}
+% 和文ルビの場合は、欧文通常文字も和文通常文字と同じ扱いにする。
+%    \begin{macrocode}
+  \ifpxrr@abody\else
+    \ifnum\pxrr@cntr=\@ne
+      \pxrr@cntr\tw@
+    \fi
+  \fi
+  \ifcase\pxrr@cntr
+    \pxrr@cntr\z@
+    \expandafter\pxrr@tempb
+  \or
+    \pxrr@cntr\@MM
+    \expandafter\pxrr@tempb
+  \else
+    \expandafter\pxrr@check@kinsoku@b
+  \fi
+}
+%    \end{macrocode}
+% |\let| されたトークンのままでは符号位置を得ることができない
+% ため、改めてマクロの引数として受け取り、複製した上で
+% 片方を後の処理に使う。
+% 既に後続トークンは「通常文字」である
+% （つまり空白や |{| ではない）ことが判明していることに注意。
+%    \begin{macrocode}
+\def\pxrr@check@kinsoku@b#1{%
+  \pxrr@check@kinsoku@c#1#1%
+}
+\def\pxrr@check@kinsoku@c#1{%
+  \pxrr@cntr\prebreakpenalty`#1\relax
+  \pxrr@tempb
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@check@char}
+% |\pxrr@check@char\CS|\Means
+% トークン |\CS| が「通常文字」であるかを調べ、以下の値を |\pxrr@cntr|
+% に返す： 0 = 通常文字でない；1 = 欧文通常文字；2 = 和文通常文字。
+%
+% 定義本体の中でカテゴリコード12の |kanji| というトークン列が
+% 必要なので、少々特殊な処置をしている。
+% まず |\pxrr@check@char| を定義するためのマクロを用意する。
+%    \begin{macrocode}
+\def\pxrr@tempa#1#2\pxrr@nil{%
+%    \end{macrocode}
+% 実際に呼び出される時には |#2| はカテゴリコード12の |kanji| に
+% 置き換わる。
+% （不要な |\| を |#1| に受け取らせている。）
+%    \begin{macrocode}
+  \def\pxrr@check@char##1{%
+%    \end{macrocode}
+% まず制御綴とカテゴリコード11、12、13を手早く |\ifcat| で
+% 判定する。
+%    \begin{macrocode}
+    \ifcat\noexpand##1\relax
+      \pxrr@cntr\z@
+    \else\ifcat\noexpand##1\noexpand~%
+      \pxrr@cntr\z@
+    \else\ifcat\noexpand##1A%
+      \pxrr@cntr\@ne
+    \else\ifcat\noexpand##10%
+      \pxrr@cntr\@ne
+    \else
+%    \end{macrocode}
+% それ以外の場合。
+% 和文文字トークンであるかを |\meaning| テストで調べる。
+% （和文文字の |\ifcat| 判定は色々と面倒な点があるので避ける。）
+%    \begin{macrocode}
+      \pxrr@cntr\z@
+      \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
+    \fi\fi\fi\fi
+  }%
+  \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
+    \ifcat @##1@%
+      \pxrr@cntr\tw@
+    \fi
+  }%
+}
+%    \end{macrocode}
+% 規定の引数を用意して「定義マクロ」を呼ぶ。
+%    \begin{macrocode}
+\expandafter\pxrr@tempa\string\kanji\pxrr@nil
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{進入処理}
+%
+% \begin{macro}{\pxrr@auto@penalty}
+% 自動挿入されるペナルティ。
+% （整数定数への |\let|。）
+%    \begin{macrocode}
+\let\pxrr@auto@penalty\z@
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@auto@icspace}
+% 文字間の空き。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@auto@icspace\pxrr@zeropt
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@intr@amount}
+% 進入の幅。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@intr@amount\pxrr@zeropt
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@intrude@setauto@j}
+% 和文の場合の |\pxrr@auto@*| の設定。
+%    \begin{macrocode}
+\def\pxrr@intrude@setauto@j{%
+%    \end{macrocode}
+% 行分割禁止（|*|）の場合、
+% ペナルティを 20000 とし、字間空きはゼロにする。
+%    \begin{macrocode}
+  \ifpxrr@bnobr
+    \let\pxrr@auto@penalty\@MM
+    \let\pxrr@auto@icspace\pxrr@zeropt
+%    \end{macrocode}
+% それ以外の場合は、ペナルティはゼロで、
+% |\pxrr@bspace| の設定を活かす。
+%    \begin{macrocode}
+  \else
+    \let\pxrr@auto@penalty\z@
+    \if :\pxrr@bscomp
+      \let\pxrr@auto@icspace\pxrr@iaiskip
+    \else\if .\pxrr@bscomp
+      \let\pxrr@auto@icspace\pxrr@zeropt
+    \else
+      \let\pxrr@auto@icspace\pxrr@iiskip
+    \fi\fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@intrude@setauto@a}
+% 欧文の場合の |\pxrr@auto@*| の設定。
+%    \begin{macrocode}
+\def\pxrr@intrude@setauto@a{%
+%    \end{macrocode}
+% 欧文の場合、和欧文間空白挿入指定（|:|）でない場合は、
+% （欧文同士と見做して）行分割禁止にする。
+%    \begin{macrocode}
+  \if :\pxrr@bscomp\else
+    \pxrr@bnobrtrue
+  \fi
+  \ifpxrr@bnobr
+    \let\pxrr@auto@penalty\@MM
+    \let\pxrr@auto@icspace\pxrr@zeropt
+  \else
+%    \end{macrocode}
+% この分岐は和欧文間空白挿入指定（|:|）に限る。
+%    \begin{macrocode}
+    \let\pxrr@auto@penalty\z@
+    \let\pxrr@auto@icspace\pxrr@iaiskip
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{前側進入処理}
+%
+% \begin{macro}{\pxrr@intrude@head}
+% 前側の進入処理。
+%    \begin{macrocode}
+\def\pxrr@intrude@head{%
+%    \end{macrocode}
+% ゴースト処理が有効な場合は進入処理を行わない。
+% （だから進入が扱えない。）
+%    \begin{macrocode}
+  \ifpxrr@ghost\else
+%    \end{macrocode}
+% 実効の進入幅は |\pxrr@bintr| と |\pxrr@bspace| の小さい方。
+%    \begin{macrocode}
+    \let\pxrr@intr@amount\pxrr@bspace
+    \ifdim\pxrr@bintr<\pxrr@intr@amount\relax
+      \let\pxrr@intr@amount\pxrr@bintr
+    \fi
+%    \end{macrocode}
+% |\pxrr@auto@*| の設定法は和文ルビと欧文ルビで処理が異なる。
+%    \begin{macrocode}
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+%    \end{macrocode}
+% 実際に項目の出力を行う。
+%
+% 段落冒頭の場合、|!| 指定（|pxrr@bfintr| が真）ならば進入のための
+% 負のグル―を入れる（他の項目は入れない）。
+%    \begin{macrocode}
+    \ifpxrr@par@head
+      \ifpxrr@bfintr
+        \hskip-\pxrr@intr@amount\relax
+      \fi
+%    \end{macrocode}
+% 段落冒頭でない場合、ペナルティ、字間空きのグル―、進入用のグル―を
+% 順番に入れる。
+%    \begin{macrocode}
+    \else
+      \penalty\pxrr@auto@penalty\relax
+      \hskip-\pxrr@intr@amount\relax
+      \hskip\pxrr@auto@icspace\relax
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{後側進入処理}
+%
+% \begin{macro}{\pxrr@intrude@end}
+% 末尾での進入処理。
+%    \begin{macrocode}
+\def\pxrr@intrude@end{%
+  \ifpxrr@ghost\else
+%    \end{macrocode}
+% 実効の進入幅は |\pxrr@bintr| と |\pxrr@bspace| の小さい方。
+%    \begin{macrocode}
+    \let\pxrr@intr@amount\pxrr@aspace
+    \ifdim\pxrr@aintr<\pxrr@intr@amount\relax
+      \let\pxrr@intr@amount\pxrr@aintr
+    \fi
+%    \end{macrocode}
+% |\pxrr@auto@*| の設定法は和文ルビと欧文ルビで処理が異なる。
+%    \begin{macrocode}
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+%    \end{macrocode}
+% 直後の文字の前禁則ペナルティが、挿入されるグルーの前に
+% 入るようにする。
+%    \begin{macrocode}
+    \ifnum\pxrr@auto@penalty<\@MM
+      \let\pxrr@auto@penalty\pxrr@end@kinsoku
+    \fi
+    \penalty\pxrr@auto@penalty\relax
+    \hskip-\pxrr@intr@amount\relax
+    \hskip\pxrr@auto@icspace\relax
+%    \end{macrocode}
+% 本物の前禁則ペナルティ（負かも知れない）はここに加算される。
+% ここで行分割してはいけないのでペナルティ値を 20000 にする。
+%    \begin{macrocode}
+    \penalty\@MM
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \subsection{メインです}
 %
@@ -2706,155 +3604,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \subsubsection{先読み処理}
-%
-% ゴースト処理が無効の場合に後ろ側の禁則処理を行うため、
-% ルビ命令の直後に続くトークンを取得して、
-% その前禁則ペナルティ（|\prebreakpenalty|）の値を保存する。
-% 信頼性の低い方法なので、ゴースト処理が可能な場合はそちらを
-% 利用するべきである。
-%
-% \begin{macro}{\pxrr@end@kinsoku}
-% ルビ命令直後の文字の前禁則ペナルティ値とみなす値。
-%    \begin{macrocode}
-\def\pxrr@end@kinsoku{0}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@ruby@scan}
-% 片側ルビ用の先読み処理。
-%    \begin{macrocode}
-\def\pxrr@ruby@scan#1#2{%
-%    \end{macrocode}
-% |\pxrr@check@kinsoku| の続きの処理。
-% |\pxrr@cntr| の値を |\pxrr@end@kinsoku| に保存して、
-% ルビ処理本体を呼び出す。
-%    \begin{macrocode}
-  \def\pxrr@tempc{%
-    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
-    \pxrr@do@proc{#1}{#2}%
-  }%
-  \pxrr@check@kinsoku\pxrr@tempc
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@truby@scan}
-% 両側ルビ用の先読み処理。
-%    \begin{macrocode}
-\def\pxrr@truby@scan#1#2#3{%
-  \def\pxrr@tempc{%
-    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
-    \pxrr@do@proc{#1}{#2}{#3}%
-  }%
-  \pxrr@check@kinsoku\pxrr@tempc
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@check@kinsoku}
-% |\pxrr@check@kinsoku\CS|\Means
-% |\CS| の直後に続くトークンについて、
-% それが「通常文字」
-% （和文文字トークンまたはカテゴリコード11、12の欧文文字トークン）
-% である場合にはその前禁則ペナルティ（|\prebreakpenalty|）の値を、
-% そうでない場合はゼロを |\pxrr@cntr| に代入する。
-% その後、|\CS| を実行（展開）する。
-% \Note ただし、欧文ルビの場合、欧文文字の前禁則ペナルティは 20000
-% として扱う。
-%    \begin{macrocode}
-\def\pxrr@check@kinsoku#1{%
-  \let\pxrr@tempb#1%
-  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
-}
-\def\pxrr@check@kinsoku@a{%
-  \pxrr@check@char\pxrr@tempa
-%    \end{macrocode}
-% 和文ルビの場合は、欧文通常文字も和文通常文字と同じ扱いにする。
-%    \begin{macrocode}
-  \ifpxrr@abody\else
-    \ifnum\pxrr@cntr=\@ne
-      \pxrr@cntr\tw@
-    \fi
-  \fi
-  \ifcase\pxrr@cntr
-    \pxrr@cntr\z@
-    \expandafter\pxrr@tempb
-  \or
-    \pxrr@cntr\@MM
-    \expandafter\pxrr@tempb
-  \else
-    \expandafter\pxrr@check@kinsoku@b
-  \fi
-}
-%    \end{macrocode}
-% |\let| されたトークンのままでは符号位置を得ることができない
-% ため、改めてマクロの引数として受け取り、複製した上で
-% 片方を後の処理に使う。
-% 既に後続トークンは「通常文字」である
-% （つまり空白や |{| ではない）ことが判明していることに注意。
-%    \begin{macrocode}
-\def\pxrr@check@kinsoku@b#1{%
-  \pxrr@check@kinsoku@c#1#1%
-}
-\def\pxrr@check@kinsoku@c#1{%
-  \pxrr@cntr\prebreakpenalty`#1\relax
-  \pxrr@tempb
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@check@char}
-% |\pxrr@check@char\CS|\Means
-% トークン |\CS| が「通常文字」であるかを調べ、以下の値を |\pxrr@cntr|
-% に返す： 0 = 通常文字でない；1 = 欧文通常文字；2 = 和文通常文字。
-%
-% 定義本体の中でカテゴリコード12の |kanji| というトークン列が
-% 必要なので、少々特殊な処置をしている。
-% まず |\pxrr@check@char| を定義するためのマクロを用意する。
-%    \begin{macrocode}
-\def\pxrr@tempa#1#2\pxrr@nil{%
-%    \end{macrocode}
-% 実際に呼び出される時には |#2| はカテゴリコード12の |kanji| に
-% 置き換わる。
-% （不要な |\| を |#1| に受け取らせている。）
-%    \begin{macrocode}
-  \def\pxrr@check@char##1{%
-%    \end{macrocode}
-% まず制御綴とカテゴリコード11、12、13を手早く |\ifcat| で
-% 判定する。
-%    \begin{macrocode}
-    \ifcat\noexpand##1\relax
-      \pxrr@cntr\z@
-    \else\ifcat\noexpand##1\noexpand~%
-      \pxrr@cntr\z@
-    \else\ifcat\noexpand##1A%
-      \pxrr@cntr\@ne
-    \else\ifcat\noexpand##10%
-      \pxrr@cntr\@ne
-    \else
-%    \end{macrocode}
-% それ以外の場合。
-% 和文文字トークンであるかを |\meaning| テストで調べる。
-% （和文文字の |\ifcat| 判定は色々と面倒な点があるので避ける。）
-%    \begin{macrocode}
-      \pxrr@cntr\z@
-      \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
-    \fi\fi\fi\fi
-  }%
-  \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
-    \ifcat @##1@%
-      \pxrr@cntr\tw@
-    \fi
-  }%
-}
-%    \end{macrocode}
-% 規定の引数を用意して「定義マクロ」を呼ぶ。
-%    \begin{macrocode}
-\expandafter\pxrr@tempa\string\kanji\pxrr@nil
-%    \end{macrocode}
-% \end{macro}
-%
 % \subsubsection{入力検査}
 %
 % グループ・文字の個数の検査を行う手続。
@@ -2959,83 +3708,10 @@
 %
 % \begin{macro}{\pxrr@inter@mono}
 % モノルビのブロック間に挿入される空き。
+% 和文間空白とする。
 %    \begin{macrocode}
 \def\pxrr@inter@mono{%
-  \hskip\kanjiskip
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@intrude@head}
-% 先頭での進入処理。
-%    \begin{macrocode}
-\def\pxrr@intrude@head{%
-%    \end{macrocode}
-% ゴースト処理が行われている場合は、こちらの処理は行わない。
-% （だから進入が扱えない。）
-%    \begin{macrocode}
-  \ifpxrr@ghost\else
-%    \end{macrocode}
-% 段落冒頭では処理なし。
-%    \begin{macrocode}
-    \ifpxrr@par@head\else
-%    \end{macrocode}
-% 前空き補正の処理。
-%    \begin{macrocode}
-      \if *\pxrr@bscomp
-        \penalty\@M
-      \else\if :\pxrr@bscomp
-        \hskip\xkanjiskip
-      \else\ifpxrr@abody\else
-        \hskip\kanjiskip
-      \fi\fi\fi
-%    \end{macrocode}
-% 実際の進入の量を求め、その量の負のグル―を入れる。
-%    \begin{macrocode}
-      \pxrr@dima\pxrr@bspace\relax
-      \ifdim\pxrr@bintr<\pxrr@dima
-        \pxrr@dima\pxrr@bintr\relax
-      \fi
-      \hskip-\pxrr@dima
-    \fi
-  \fi
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@intrude@end}
-% 末尾での進入処理。
-%    \begin{macrocode}
-\def\pxrr@intrude@end{%
-  \ifpxrr@ghost\else
-    \pxrr@dima\pxrr@aspace\relax
-    \ifdim\pxrr@aintr<\pxrr@dima
-      \pxrr@dima\pxrr@aintr\relax
-    \fi
-%    \end{macrocode}
-% 直後の文字の前禁則ペナルティが、挿入されるグルーの前に
-% 入るようにする。
-%    \begin{macrocode}
-    \if *\pxrr@ascomp
-      \penalty\@M
-      \hskip-\pxrr@dima
-    \else\if :\pxrr@ascomp
-      \penalty\pxrr@end@kinsoku
-      \hskip-\pxrr@dima
-      \hskip\xkanjiskip
-    \else
-      \penalty\pxrr@end@kinsoku
-      \ifpxrr@abody\else
-        \hskip-\pxrr@dima
-      \fi
-      \hskip\kanjiskip
-    \fi\fi
-%    \end{macrocode}
-% 本物の前禁則ペナルティ（負かも知れない）はここに加算される。
-% ここで行分割してはいけないので大きな値にする。
-%    \begin{macrocode}
-    \penalty\@MM
-  \fi
+  \hskip\pxrr@iiskip\relax
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3185,25 +3861,12 @@
   \ifpxrr@bprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@head
   \fi
-  \ifpxrr@abody
-%    \end{macrocode}
-% 欧文ルビの場合、親文字列（欧文）には均等割りを行うべきでない。
-% このため、親文字列をグループで囲って一文字扱いにする。
-%    \begin{macrocode}
-    \def\pxrr@pre##1##2{%
-      \pxrr@compose@block\pxrr@locate@sing@{{##1}}{##2}%
-      \pxrr@intrude@head
-      \unhbox\pxrr@boxr
-      \pxrr@intrude@end
-    }%
-  \else
-    \def\pxrr@pre##1##2{%
-      \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
-      \pxrr@intrude@head
-      \unhbox\pxrr@boxr
-      \pxrr@intrude@end
-    }%
-  \fi
+  \def\pxrr@pre##1##2{%
+    \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
+    \pxrr@intrude@head
+    \unhbox\pxrr@boxr
+    \pxrr@intrude@end
+  }%
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
 %    \end{macrocode}
@@ -3243,17 +3906,25 @@
     pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
     pxrr@body@zw = \pxrr@body@zw^^J%
     pxrr@ruby@zw = \pxrr@ruby@zw^^J%
+    pxrr@iiskip = \pxrr@iiskip^^J%
+    pxrr@iaiskip = \pxrr@iaiskip^^J%
     pxrr@htratio = \pxrr@htratio^^J%
     pxrr@ruby@raise = \pxrr@ruby@raise^^J%
     pxrr@ruby@lower = \pxrr@ruby@lower^^J%
     ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
     ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
     pxrr@side = \the\pxrr@side^^J%
+    pxrr@evensp = \the\pxrr@evensp^^J%
+    pxrr@fullsize = \the\pxrr@fullsize^^J%
     pxrr@bscomp = \meaning\pxrr@bscomp^^J%
     pxrr@ascomp = \meaning\pxrr@ascomp^^J%
+    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
+    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
+    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
+    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
     pxrr@bintr = \pxrr@bintr^^J%
     pxrr@aintr = \pxrr@aintr^^J%
-    ifpxrr@athead = \meaning\ifpxrr@athead^^J%
+    pxrr@athead = \the\pxrr@athead^^J%
     pxrr@mode = \meaning\pxrr@mode^^J%
     pxrr@body@list = \meaning\pxrr@body@list^^J%
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
@@ -3298,7 +3969,7 @@
 % 全角空白文字。
 % 文字そのものをファイルに含ませたくないのでchardefにする。
 %    \begin{macrocode}
-\chardef\pxrr@zspace=\jis"2121\relax
+\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
 %    \end{macrocode}
 % \end{macro}
 %

@@ -35,7 +35,7 @@
 %%   Right bracket \]     Circumflex    \^     Underscore    \_
 %%   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %%   Right brace   \}     Tilde         \~}
-\NeedsTeXFormat{pLaTeX2e}
+\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pxrubrica}
   [2011/07/27 v0.1+ PX Japanese-style ruby]
 \RequirePackage{keyval}
@@ -134,19 +134,27 @@
 \newif\ifpxrr@d@aprotr \pxrr@d@aprotrtrue
 \def\pxrr@d@bintr{}
 \def\pxrr@d@aintr{}
-\newif\ifpxrr@d@athead
+\chardef\pxrr@d@athead=0
 \let\pxrr@d@mode=j
 \chardef\pxrr@d@side=0
+\chardef\pxrr@d@evensp=1
+\chardef\pxrr@d@fullsize=0
 \newif\ifpxrr@bprotr \pxrr@bprotrfalse
 \newif\ifpxrr@aprotr \pxrr@aprotrfalse
 \def\pxrr@bintr{}
 \def\pxrr@aintr{}
 \let\pxrr@bscomp\relax
 \let\pxrr@ascomp\relax
-\newif\ifpxrr@athead
+\newif\ifpxrr@bnobr \pxrr@bnobrfalse
+\newif\ifpxrr@anobr \pxrr@anobrfalse
+\newif\ifpxrr@bfintr \pxrr@bfintrfalse
+\newif\ifpxrr@afintr \pxrr@afintrfalse
+\chardef\pxrr@athead=0
 \let\pxrr@mode=\@undefined
 \newif\ifpxrr@abody
 \chardef\pxrr@side=0
+\chardef\pxrr@evensp=1
+\chardef\pxrr@fullsize=1
 \newif\ifpxrr@ok
 \newcount\pxrr@cnta
 \newcount\pxrr@cntr
@@ -162,6 +170,11 @@
 \let\pxrr@res\@empty
 \def\pxrr@ifx#1{%
   \ifx#1\expandafter\@firstoftwo
+  \else\expandafter\@secondoftwo
+  \fi
+}
+\def\pxrr@ifnum#1{%
+  \ifnum#1\expandafter\@firstoftwo
   \else\expandafter\@secondoftwo
   \fi
 }
@@ -372,6 +385,135 @@
 \def\pxrr@tzip@single@c#1\pxrr@end#2\pxrr@end#3\pxrr@end{%
   \def\pxrr@res{\pxrr@pre{#1}{#2}{#3}\pxrr@post}%
 }
+\let\pxrr@x@gtempa\@empty
+\newif\ifpxrr@x@swa
+\def\pxrr@ifprimitive#1{%
+  \edef\pxrr@x@tempa{\string#1}%
+  \edef\pxrr@x@tempb{\meaning#1}%
+  \ifx\pxrr@x@tempa\pxrr@x@tempb \expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+\pxrr@ifprimitive\kansuji{%
+  \pxrr@csletcs{ifpxrr@in@ptex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@ptex}{iffalse}%
+}
+\pxrr@ifprimitive\enablecjktoken{%
+  \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
+}
+\pxrr@ifprimitive\XeTeXrevision{%
+  \pxrr@csletcs{ifpxrr@in@xetex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@xetex}{iffalse}%
+}
+\ifpxrr@in@xetex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else\ifpxrr@in@uptex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else
+  \pxrr@csletcs{ifpxrr@in@unicode}{iffalse}%
+\fi\fi
+\def\pxrr@jc#1{%
+  \pxrr@jc@a#1\pxrr@nil
+}
+\ifpxrr@in@unicode
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    "#2\space
+  }
+\else\ifpxrr@in@ptex
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    \jis"#1\space\space
+  }
+\else
+  \def\pxrr@jc@a#1:#2\pxrr@nil{%
+    `?\space
+  }
+\fi\fi
+\ifpxrr@in@uptex
+  \let\pxrr@jchardef\kchardef
+\else
+  \let\pxrr@jchardef\chardef
+\fi
+\ifpxrr@in@ptex
+  \pxrr@csletcs{ifpxrr@in@tate}{iftdir}
+\else
+  \pxrr@csletcs{ifpxrr@in@tate}{iffalse}
+\fi
+\def\pxrr@get@jchar@token#1#2{%
+  \begingroup
+    \kansujichar\@ne=#2\relax
+    \xdef\pxrr@x@gtempa{\kansuji\@ne}%
+  \endgroup
+  \let#1\pxrr@x@gtempa
+}
+\ifpxrr@in@unicode\else
+  \ifpxrr@in@ptex\else
+    \def\pxrr@get@jchar@token#1#2{%
+      \def#1{?}%
+    }
+  \fi
+\fi
+\pxrr@jchardef\pxrr@x@K=\pxrr@jc{306C:4E00}
+\ifpxrr@in@ptex
+  \def\pxrr@get@iiskip#1{%
+    \pxrr@x@swafalse
+    \begingroup
+      \inhibitxspcode\pxrr@x@K\thr@@
+      \kanjiskip\p@
+      \setbox\z@\hbox{\noautospacing\pxrr@x@K\pxrr@x@K}%
+      \setbox\tw@\hbox{\pxrr@x@K\pxrr@x@K}%
+      \ifdim\wd\tw@>\wd\z@
+        \aftergroup\pxrr@x@swatrue
+      \fi
+    \endgroup
+    \edef#1{%
+      \ifpxrr@x@swa \the\kanjiskip
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+\else
+  \def\pxrr@get@iiskip#1{%
+    \let#1\pxrr@zeropt
+  }
+\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@iaiskip#1{%
+    \pxrr@x@swafalse
+    \begingroup
+      \inhibitxspcode\pxrr@x@K\thr@@ \xspcode`X=\thr@@
+      \xkanjiskip\p@
+      \setbox\z@\hbox{\noautoxspacing\pxrr@x@K X}%
+      \setbox\tw@\hbox{\pxrr@x@K X}%
+      \ifdim\wd\tw@>\wd\z@
+        \aftergroup\pxrr@x@swatrue
+      \fi
+    \endgroup
+    \edef#1{%
+      \ifpxrr@x@swa \the\xkanjiskip
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+\else
+  \def\pxrr@get@iaiskip#1{%
+    \let#1\pxrr@zeropt
+  }
+\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1zw\relax
+    \edef#1{\the\@tempdima}%
+  }
+\else
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1em\relax
+    \edef#1{\the\@tempdima}%
+  }
+\fi
 \newif\ifpxrr@in@setup \pxrr@in@setupfalse
 \newcommand*\rubysetup[1]{%
   \pxrr@in@setuptrue
@@ -382,9 +524,11 @@
     \pxrr@csletcs{ifpxrr@d@aprotr}{ifpxrr@aprotr}%
     \let\pxrr@d@bintr\pxrr@bintr@
     \let\pxrr@d@aintr\pxrr@aintr@
-    \pxrr@csletcs{ifpxrr@d@athead}{ifpxrr@athead}%
+    \let\pxrr@d@athead\pxrr@athead
     \let\pxrr@d@mode\pxrr@mode
     \let\pxrr@d@side\pxrr@side
+    \let\pxrr@d@evensp\pxrr@evensp
+    \let\pxrr@d@fullsize\pxrr@fullsize
   \fi
   \pxrr@in@setupfalse
 }
@@ -464,11 +608,17 @@
   \pxrr@csletcs{ifpxrr@aprotr}{ifpxrr@d@aprotr}%
   \let\pxrr@bintr@\pxrr@d@bintr
   \let\pxrr@aintr@\pxrr@d@aintr
-  \pxrr@csletcs{ifpxrr@athead}{ifpxrr@d@athead}%
+  \let\pxrr@athead@\pxrr@d@athead
   \let\pxrr@mode\pxrr@d@mode
   \let\pxrr@side\pxrr@d@side
+  \let\pxrr@evensp\pxrr@d@evensp
+  \let\pxrr@fullsize\pxrr@d@fullsize
   \let\pxrr@bscomp\relax
   \let\pxrr@ascomp\relax
+  \pxrr@bnobrfalse
+  \pxrr@anobrfalse
+  \pxrr@bfintrfalse
+  \pxrr@afintrfalse
   \def\pxrr@po@FS{bi}%
   \expandafter\pxrr@parse@option@loop\pxrr@tempa @\pxrr@end
 }
@@ -477,8 +627,12 @@
 \typeout{\pxrr@po@FS/#1[\@nameuse{pxrr@po@C@#1}]}%
 \fi
   \csname pxrr@po@PR@#1\endcsname
-  \pxrr@letcs\pxrr@po@FS
-   {pxrr@po@TR@\pxrr@po@FS @\@nameuse{pxrr@po@C@#1}}%
+  \expandafter\ifx\csname pxrr@po@C@#1\endcsname\relax
+    \let\pxrr@po@FS\relax
+  \else
+    \pxrr@letcs\pxrr@po@FS
+     {pxrr@po@TR@\pxrr@po@FS @\@nameuse{pxrr@po@C@#1}}%
+  \fi
 \ifpxrrDebug
 \typeout{->\pxrr@po@FS}%
 \fi
@@ -490,17 +644,17 @@
   }%
 }
 \def\pxrr@parse@option@exit#1\pxrr@end{%
-  \ifpxrr@truby
-    \chardef\pxrr@side\tw@
-  \fi
   \ifpxrr@in@setup\else
+    \ifpxrr@truby
+      \chardef\pxrr@side\tw@
+    \fi
     \pxrr@check@option
+    \@tempdima=\pxrr@ruby@zw\relax
+    \@tempdimb=\pxrr@or@zero\pxrr@bintr@\@tempdima
+    \edef\pxrr@bintr{\the\@tempdimb}%
+    \@tempdimb=\pxrr@or@zero\pxrr@aintr@\@tempdima
+    \edef\pxrr@aintr{\the\@tempdimb}%
   \fi
-  \@tempdima=\pxrr@ruby@zw\relax
-  \@tempdimb=\pxrr@or@zero\pxrr@bintr@\@tempdima
-  \edef\pxrr@bintr{\the\@tempdimb}%
-  \@tempdimb=\pxrr@or@zero\pxrr@aintr@\@tempdima
-  \edef\pxrr@aintr{\the\@tempdimb}%
 }
 \def\pxrr@or@zero#1{%
   \ifx#1\@empty \pxrr@zero
@@ -510,19 +664,26 @@
 \def\pxrr@po@C@@{F}
 \@namedef{pxrr@po@C@|}{V}
 \@namedef{pxrr@po@C@:}{S}
+\@namedef{pxrr@po@C@.}{S}
 \@namedef{pxrr@po@C@*}{S}
+\@namedef{pxrr@po@C@!}{S}
 \@namedef{pxrr@po@C@<}{B}
 \@namedef{pxrr@po@C@(}{B}
 \@namedef{pxrr@po@C@>}{A}
 \@namedef{pxrr@po@C@)}{A}
 \@namedef{pxrr@po@C@-}{M}
-\def\pxrr@po@C@h{M}
 \def\pxrr@po@C@c{M}
+\def\pxrr@po@C@h{M}
+\def\pxrr@po@C@H{M}
 \def\pxrr@po@C@m{M}
 \def\pxrr@po@C@g{M}
 \def\pxrr@po@C@j{M}
 \def\pxrr@po@C@P{M}
 \def\pxrr@po@C@S{M}
+\def\pxrr@po@C@e{M}
+\def\pxrr@po@C@E{M}
+\def\pxrr@po@C@f{M}
+\def\pxrr@po@C@F{M}
 \def\pxrr@po@PR@@{%
   \pxrr@parse@option@exit
 }
@@ -535,9 +696,12 @@
 \def\pxrr@po@PRbar@bb{%
   \pxrr@bprotrfalse
 }
-\def\pxrr@po@PRbar@mi{%
+\def\pxrr@po@PRbar@bs{%
   \def\pxrr@aintr@{}\pxrr@aprotrtrue
 }
+\let\pxrr@po@PRbar@mi\pxrr@po@PRbar@bs
+\let\pxrr@po@PRbar@as\pxrr@po@PRbar@bs
+\let\pxrr@po@PRbar@ai\pxrr@po@PRbar@bs
 \def\pxrr@po@PRbar@ab{%
   \pxrr@aprotrfalse
 }
@@ -552,17 +716,43 @@
 \def\pxrr@po@PRcolon@mi{%
   \let\pxrr@ascomp=:\relax
 }
+\let\pxrr@po@PRcolon@as\pxrr@po@PRcolon@mi
+\@namedef{pxrr@po@PR@.}{%
+  \csname pxrr@po@PRdot@\pxrr@po@FS\endcsname
+}
+\def\pxrr@po@PRdot@bi{%
+  \let\pxrr@bscomp=.\relax
+}
+\let\pxrr@po@PRdot@bb\pxrr@po@PRdot@bi
+\let\pxrr@po@PRdot@bs\pxrr@po@PRdot@bi
+\def\pxrr@po@PRdot@mi{%
+  \let\pxrr@ascomp=.\relax
+}
+\let\pxrr@po@PRdot@as\pxrr@po@PRdot@mi
 \@namedef{pxrr@po@PR@*}{%
   \csname pxrr@po@PRstar@\pxrr@po@FS\endcsname
 }
 \def\pxrr@po@PRstar@bi{%
-  \let\pxrr@bscomp=*\relax
+  \pxrr@bnobrtrue
 }
 \let\pxrr@po@PRstar@bb\pxrr@po@PRstar@bi
 \let\pxrr@po@PRstar@bs\pxrr@po@PRstar@bi
 \def\pxrr@po@PRstar@mi{%
-  \let\pxrr@ascomp=*\relax
+  \pxrr@anobrtrue
 }
+\let\pxrr@po@PRstar@as\pxrr@po@PRstar@mi
+\@namedef{pxrr@po@PR@!}{%
+  \csname pxrr@po@PRbang@\pxrr@po@FS\endcsname
+}
+\def\pxrr@po@PRbang@bi{%
+  \pxrr@bfintrtrue
+}
+\let\pxrr@po@PRbang@bb\pxrr@po@PRbang@bi
+\let\pxrr@po@PRbang@bs\pxrr@po@PRbang@bi
+\def\pxrr@po@PRbang@mi{%
+  \pxrr@afintrtrue
+}
+\let\pxrr@po@PRbang@as\pxrr@po@PRbang@mi
 \@namedef{pxrr@po@PR@<}{%
   \def\pxrr@bintr@{\pxrr@big@intr}\pxrr@bprotrtrue
 }
@@ -575,11 +765,14 @@
 \@namedef{pxrr@po@PR@)}{%
   \def\pxrr@aintr@{\pxrr@small@intr}\pxrr@aprotrtrue
 }
-\def\pxrr@po@PR@h{%
-  \pxrr@atheadtrue
-}
 \def\pxrr@po@PR@c{%
-  \pxrr@atheadfalse
+  \chardef\pxrr@athead\z@
+}
+\def\pxrr@po@PR@h{%
+  \chardef\pxrr@athead\@ne
+}
+\def\pxrr@po@PR@H{%
+  \chardef\pxrr@athead\tw@
 }
 \def\pxrr@po@PR@m{%
   \let\pxrr@mode=m%
@@ -596,10 +789,23 @@
 \def\pxrr@po@PR@S{%
   \chardef\pxrr@side\@ne
 }
+\def\pxrr@po@PR@E{%
+  \chardef\pxrr@evensp\z@
+}
+\def\pxrr@po@PR@e{%
+  \chardef\pxrr@evensp\@ne
+}
+\def\pxrr@po@PR@F{%
+  \chardef\pxrr@fullsize\z@
+}
+\def\pxrr@po@PR@f{%
+  \chardef\pxrr@fullsize\@ne
+}
 \def\pxrr@po@TR@bi@F{fi}
 \def\pxrr@po@TR@bb@F{fi}
 \def\pxrr@po@TR@bs@F{fi}
 \def\pxrr@po@TR@mi@F{fi}
+\def\pxrr@po@TR@as@F{fi}
 \def\pxrr@po@TR@ai@F{fi}
 \def\pxrr@po@TR@ab@F{fi}
 \def\pxrr@po@TR@fi@F{fi}
@@ -607,12 +813,14 @@
 \def\pxrr@po@TR@bb@V{bs}
 \def\pxrr@po@TR@bs@V{ab}
 \def\pxrr@po@TR@mi@V{ab}
+\def\pxrr@po@TR@as@V{ab}
 \def\pxrr@po@TR@ai@V{ab}
 \def\pxrr@po@TR@ab@V{fi}
-\def\pxrr@po@TR@bi@S{mi}
-\def\pxrr@po@TR@bb@S{mi}
-\def\pxrr@po@TR@bs@S{mi}
-\def\pxrr@po@TR@mi@S{ai}
+\def\pxrr@po@TR@bi@S{bs}
+\def\pxrr@po@TR@bb@S{bs}
+\def\pxrr@po@TR@bs@S{bs}
+\def\pxrr@po@TR@mi@S{as}
+\def\pxrr@po@TR@as@S{as}
 \def\pxrr@po@TR@bi@B{bs}
 \def\pxrr@po@TR@bi@M{mi}
 \def\pxrr@po@TR@bb@M{mi}
@@ -622,6 +830,7 @@
 \def\pxrr@po@TR@bb@A{fi}
 \def\pxrr@po@TR@bs@A{fi}
 \def\pxrr@po@TR@mi@A{fi}
+\def\pxrr@po@TR@as@A{fi}
 \def\pxrr@po@TR@ai@A{fi}
 \def\pxrr@check@option{%
   \ifpxrr@bprotr\else
@@ -655,18 +864,24 @@
       \fi
     \fi
   \fi
-  \ifpxrr@athead
-    \ifydir
-      \pxrr@atheadfalse
+  \ifnum\pxrr@athead>\z@
+    \ifpxrr@in@tate\else
+      \pxrr@athead\z@
     \fi
     \if g\pxrr@mode
-      \pxrr@atheadfalse
+      \pxrr@athead\z@
     \fi
-    \ifpxrr@athead\else
-      \ifpxrr@d@athead\else
+    \ifnum\pxrr@athead=\z@
+      \ifnum\pxrr@d@athead>\z@
         \pxrr@warn@bad@athead
       \fi
     \fi
+  \fi
+  \ifpxrr@abody
+    \chardef\pxrr@evensp\z@
+  \fi
+  \if g\pxrr@mode\else
+    \chardef\pxrr@evensp\@ne
   \fi
 }
 \let\pxrr@ruby@fsize\pxrr@zeropt
@@ -675,19 +890,22 @@
 \let\pxrr@ruby@raise\pxrr@zeropt
 \let\pxrr@ruby@lower\pxrr@zeropt
 \def\pxrr@htratio{0}
+\let\pxrr@iiskip\pxrr@zeropt
+\let\pxrr@iaiskip\pxrr@zeropt
 \def\pxrr@assign@fsize{%
   \@tempdima=\f@size\p@
   \@tempdima\pxrr@size@ratio\@tempdima
   \edef\pxrr@ruby@fsize{\the\@tempdima}%
-  \@tempdima=1zw\relax
-  \edef\pxrr@body@zw{\the\@tempdima}%
+  \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
     \pxrr@use@ruby@font
-    \@tempdima=1zw\relax
-    \xdef\pxrr@gtempa{\the\@tempdima}%
+    \pxrr@get@zwidth\pxrr@gtempa
+    \global\let\pxrr@gtempa\pxrr@gtempa
   \endgroup
   \let\pxrr@ruby@zw\pxrr@gtempa
-  \iftdir
+  \pxrr@get@iiskip\pxrr@iiskip
+  \pxrr@get@iaiskip\pxrr@iaiskip
+  \ifpxrr@in@tate
     \let\pxrr@htratio\pxrr@thtratio
   \else
     \let\pxrr@htratio\pxrr@yhtratio
@@ -815,23 +1033,87 @@
   \let\pxrr@inter\pxrr@inter@save
   \let\pxrr@post\pxrr@post@save
 }
-\def\pxrr@add@protect#1{%
-  \expandafter\pxrr@add@protect@a
-    \csname\expandafter\@gobble\string#1\space\endcsname#1%
+\let\pxrr@trans@res\@empty
+\def\pxrr@transform@kana#1{%
+  \let\pxrr@trans@res\@empty
+  \def\pxrr@transform@kana@end\pxrr@end{%
+    \let#1\pxrr@trans@res
+  }%
+  \expandafter\pxrr@transform@kana@loop@a#1\pxrr@end
 }
-\def\pxrr@add@protect@a#1#2{%
-  \let#1=#2%
-  \def#2{\pxrr@check@protect\protect#1}%
+\def\pxrr@transform@kana@loop@a{%
+  \futurelet\pxrr@tempa\pxrr@transform@kana@loop@b
 }
-\def\pxrr@check@protect{%
-  \ifx\protect\@typeset@protect
-    \expandafter\@gobble
+\def\pxrr@transform@kana@loop@b{%
+  \ifx\pxrr@tempa\pxrr@end
+    \let\pxrr@tempb\pxrr@transform@kana@end
+  \else\ifx\pxrr@tempa\bgroup
+    \let\pxrr@tempb\pxrr@transform@kana@loop@c
+  \else\ifx\pxrr@tempa\@sptoken
+    \let\pxrr@tempb\pxrr@transform@kana@loop@d
+  \else
+    \let\pxrr@tempb\pxrr@transform@kana@loop@e
+  \fi\fi\fi
+  \pxrr@tempb
+}
+\def\pxrr@transform@kana@loop@c#1{%
+  \pxrr@appto\pxrr@trans@res{{#1}}%
+  \pxrr@transform@kana@loop@a
+}
+\expandafter\def\expandafter\pxrr@transform@kana@loop@d\space{%
+  \pxrr@appto\pxrr@trans@res{ }%
+  \pxrr@transform@kana@loop@a
+}
+\def\pxrr@transform@kana@loop@e#1{%
+  \expandafter\pxrr@transform@kana@loop@f\string#1\pxrr@nil#1%
+}
+\def\pxrr@transform@kana@loop@f#1#2\pxrr@nil#3{%
+  \@tempswafalse
+  \ifnum`#1>\@cclv
+    \begingroup\expandafter\expandafter\expandafter\endgroup
+    \expandafter\ifx\csname pxrr@nonsmall/#3\endcsname\relax\else
+      \@tempswatrue
+    \fi
   \fi
+  \if@tempswa
+    \edef\pxrr@tempa{%
+      \noexpand\pxrr@appto\noexpand\pxrr@trans@res
+       {\csname pxrr@nonsmall/#3\endcsname}%
+    }%
+    \pxrr@tempa
+  \else
+    \pxrr@appto\pxrr@trans@res{#3}%
+  \fi
+  \pxrr@transform@kana@loop@a
+}
+\def\pxrr@assign@nonsmall#1/#2\pxrr@nil{%
+  \pxrr@get@jchar@token\pxrr@tempa{\pxrr@jc{#1}}%
+  \pxrr@get@jchar@token\pxrr@tempb{\pxrr@jc{#2}}%
+  \expandafter\edef\csname pxrr@nonsmall/\pxrr@tempa\endcsname
+   {\pxrr@tempb}%
+}
+\@tfor\pxrr@tempc:=%
+    {2421:3041/2422:3042}{2423:3043/2424:3044}%
+    {2425:3045/2426:3046}{2427:3047/2428:3048}%
+    {2429:3049/242A:304A}{2443:3063/2444:3064}%
+    {2463:3083/2464:3084}{2465:3085/2466:3086}%
+    {2467:3087/2468:3088}{246E:308E/246F:308F}%
+    {2521:30A1/2522:30A2}{2523:30A3/2524:30A4}%
+    {2525:30A5/2526:30A6}{2527:30A7/2528:30A8}%
+    {2529:30A9/252A:30AA}{2543:30C3/2544:30C4}%
+    {2563:30E3/2564:30E4}{2565:30E5/2566:30E6}%
+    {2567:30E7/2568:30E8}{256E:30EE/256F:30EF}%
+  \do{%
+  \expandafter\pxrr@assign@nonsmall\pxrr@tempc\pxrr@nil
 }
 \newif\ifpxrr@protr
 \newif\ifpxrr@any@protr
 \def\pxrr@epsilon{0.01pt}
-\def\pxrr@compose@block#1#2#3{%
+\def\pxrr@compose@block{%
+  \let\pxrr@compose@block@do\pxrr@compose@oneside@block@do
+  \pxrr@compose@block@pre
+}
+\def\pxrr@compose@oneside@block@do#1#2#3{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
     \pxrr@use@ruby@font
@@ -841,12 +1123,19 @@
   \advance\@tempdima-\wd\pxrr@boxa
   \ifdim\pxrr@epsilon<\@tempdima
     \pxrr@protrtrue
+    \let\pxrr@locate@temp#1%
+    \ifnum\pxrr@athead>\@ne
+      \ifnum\pxrr@locate@temp=\pxrr@locate@inner
+        \let\pxrr@locate@temp\pxrr@locate@head
+      \fi
+    \fi
     \pxrr@decompose{#2}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\wd\pxrr@boxr}%
+    \pxrr@evenspace@int\pxrr@locate@temp\pxrr@boxa\relax
+     {\wd\pxrr@boxr}%
   \else\ifdim-\pxrr@epsilon>\@tempdima
     \pxrr@protrfalse
-    \ifpxrr@athead\else
+    \ifnum\pxrr@athead=\z@
       \pxrr@decompose{#3}%
       \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
       \pxrr@evenspace@int{#1}\pxrr@boxr
@@ -878,7 +1167,11 @@
     \pxrr@any@protrtrue
   \fi
 }
-\def\pxrr@compose@twoside@block#1#2#3#4{%
+\def\pxrr@compose@twoside@block{%
+  \let\pxrr@compose@block@do\pxrr@compose@twoside@block@do
+  \pxrr@compose@block@pre
+}
+\def\pxrr@compose@twoside@block@do#1#2#3#4{%
   \setbox\pxrr@boxa\hbox{#2}%
   \setbox\pxrr@boxr\hbox{%
     \pxrr@use@ruby@font
@@ -934,6 +1227,45 @@
     \box\pxrr@boxa
   }%
 }
+\def\pxrr@compose@block@pre{%
+  \pxrr@ifnum{\pxrr@fullsize>\z@}{%
+    \pxrr@compose@block@pre@a
+  }{%
+    \pxrr@compose@block@pre@c
+  }%
+}
+\def\pxrr@compose@block@pre@a#1#2#3{%
+  \def\pxrr@compose@block@tempa{#3}%
+  \pxrr@transform@kana\pxrr@compose@block@tempa
+  \expandafter\pxrr@compose@block@pre@b
+   \expandafter{\pxrr@compose@block@tempa}{#1}{#2}%
+}
+\def\pxrr@compose@block@pre@b#1#2#3{%
+  \pxrr@compose@block@pre@c{#2}{#3}{#1}%
+}
+\def\pxrr@compose@block@pre@c{%
+  \pxrr@ifnum{\pxrr@evensp=\z@}{%
+    \pxrr@compose@block@pre@d
+  }{%
+    \pxrr@compose@block@do
+  }%
+}
+\def\pxrr@compose@block@pre@d#1#2{%
+  \pxrr@compose@block@do{#1}{{#2}}%
+}
+\def\pxrr@add@protect#1{%
+  \expandafter\pxrr@add@protect@a
+    \csname\expandafter\@gobble\string#1\space\endcsname#1%
+}
+\def\pxrr@add@protect@a#1#2{%
+  \let#1=#2%
+  \def#2{\pxrr@check@protect\protect#1}%
+}
+\def\pxrr@check@protect{%
+  \ifx\protect\@typeset@protect
+    \expandafter\@gobble
+  \fi
+}
 \let\pxrr@body@input\@empty
 \def\pxrr@prepare@fallback#1{%
   \pxrr@fatal@errorfalse
@@ -945,6 +1277,143 @@
 \def\pxrr@if@alive{%
   \ifpxrr@fatal@error \expandafter\@gobble
   \else \expandafter\@firstofone
+  \fi
+}
+\def\pxrr@end@kinsoku{0}
+\def\pxrr@ruby@scan#1#2{%
+  \def\pxrr@tempc{%
+    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
+    \pxrr@do@proc{#1}{#2}%
+  }%
+  \pxrr@check@kinsoku\pxrr@tempc
+}
+\def\pxrr@truby@scan#1#2#3{%
+  \def\pxrr@tempc{%
+    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
+    \pxrr@do@proc{#1}{#2}{#3}%
+  }%
+  \pxrr@check@kinsoku\pxrr@tempc
+}
+\def\pxrr@check@kinsoku#1{%
+  \let\pxrr@tempb#1%
+  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
+}
+\def\pxrr@check@kinsoku@a{%
+  \pxrr@check@char\pxrr@tempa
+  \ifpxrr@abody\else
+    \ifnum\pxrr@cntr=\@ne
+      \pxrr@cntr\tw@
+    \fi
+  \fi
+  \ifcase\pxrr@cntr
+    \pxrr@cntr\z@
+    \expandafter\pxrr@tempb
+  \or
+    \pxrr@cntr\@MM
+    \expandafter\pxrr@tempb
+  \else
+    \expandafter\pxrr@check@kinsoku@b
+  \fi
+}
+\def\pxrr@check@kinsoku@b#1{%
+  \pxrr@check@kinsoku@c#1#1%
+}
+\def\pxrr@check@kinsoku@c#1{%
+  \pxrr@cntr\prebreakpenalty`#1\relax
+  \pxrr@tempb
+}
+\def\pxrr@tempa#1#2\pxrr@nil{%
+  \def\pxrr@check@char##1{%
+    \ifcat\noexpand##1\relax
+      \pxrr@cntr\z@
+    \else\ifcat\noexpand##1\noexpand~%
+      \pxrr@cntr\z@
+    \else\ifcat\noexpand##1A%
+      \pxrr@cntr\@ne
+    \else\ifcat\noexpand##10%
+      \pxrr@cntr\@ne
+    \else
+      \pxrr@cntr\z@
+      \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
+    \fi\fi\fi\fi
+  }%
+  \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
+    \ifcat @##1@%
+      \pxrr@cntr\tw@
+    \fi
+  }%
+}
+\expandafter\pxrr@tempa\string\kanji\pxrr@nil
+\let\pxrr@auto@penalty\z@
+\let\pxrr@auto@icspace\pxrr@zeropt
+\let\pxrr@intr@amount\pxrr@zeropt
+\def\pxrr@intrude@setauto@j{%
+  \ifpxrr@bnobr
+    \let\pxrr@auto@penalty\@MM
+    \let\pxrr@auto@icspace\pxrr@zeropt
+  \else
+    \let\pxrr@auto@penalty\z@
+    \if :\pxrr@bscomp
+      \let\pxrr@auto@icspace\pxrr@iaiskip
+    \else\if .\pxrr@bscomp
+      \let\pxrr@auto@icspace\pxrr@zeropt
+    \else
+      \let\pxrr@auto@icspace\pxrr@iiskip
+    \fi\fi
+  \fi
+}
+\def\pxrr@intrude@setauto@a{%
+  \if :\pxrr@bscomp\else
+    \pxrr@bnobrtrue
+  \fi
+  \ifpxrr@bnobr
+    \let\pxrr@auto@penalty\@MM
+    \let\pxrr@auto@icspace\pxrr@zeropt
+  \else
+    \let\pxrr@auto@penalty\z@
+    \let\pxrr@auto@icspace\pxrr@iaiskip
+  \fi
+}
+\def\pxrr@intrude@head{%
+  \ifpxrr@ghost\else
+    \let\pxrr@intr@amount\pxrr@bspace
+    \ifdim\pxrr@bintr<\pxrr@intr@amount\relax
+      \let\pxrr@intr@amount\pxrr@bintr
+    \fi
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+    \ifpxrr@par@head
+      \ifpxrr@bfintr
+        \hskip-\pxrr@intr@amount\relax
+      \fi
+    \else
+      \penalty\pxrr@auto@penalty\relax
+      \hskip-\pxrr@intr@amount\relax
+      \hskip\pxrr@auto@icspace\relax
+    \fi
+  \fi
+}
+\def\pxrr@intrude@end{%
+  \ifpxrr@ghost\else
+    \let\pxrr@intr@amount\pxrr@aspace
+    \ifdim\pxrr@aintr<\pxrr@intr@amount\relax
+      \let\pxrr@intr@amount\pxrr@aintr
+    \fi
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+    \ifnum\pxrr@auto@penalty<\@MM
+      \let\pxrr@auto@penalty\pxrr@end@kinsoku
+    \fi
+    \penalty\pxrr@auto@penalty\relax
+    \hskip-\pxrr@intr@amount\relax
+    \hskip\pxrr@auto@icspace\relax
+    \penalty\@MM
   \fi
 }
 \AtBeginDocument{%
@@ -1048,71 +1517,6 @@
   }%
   \pxrr@ruby@exit
 }
-\def\pxrr@end@kinsoku{0}
-\def\pxrr@ruby@scan#1#2{%
-  \def\pxrr@tempc{%
-    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
-    \pxrr@do@proc{#1}{#2}%
-  }%
-  \pxrr@check@kinsoku\pxrr@tempc
-}
-\def\pxrr@truby@scan#1#2#3{%
-  \def\pxrr@tempc{%
-    \edef\pxrr@end@kinsoku{\the\pxrr@cntr}%
-    \pxrr@do@proc{#1}{#2}{#3}%
-  }%
-  \pxrr@check@kinsoku\pxrr@tempc
-}
-\def\pxrr@check@kinsoku#1{%
-  \let\pxrr@tempb#1%
-  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
-}
-\def\pxrr@check@kinsoku@a{%
-  \pxrr@check@char\pxrr@tempa
-  \ifpxrr@abody\else
-    \ifnum\pxrr@cntr=\@ne
-      \pxrr@cntr\tw@
-    \fi
-  \fi
-  \ifcase\pxrr@cntr
-    \pxrr@cntr\z@
-    \expandafter\pxrr@tempb
-  \or
-    \pxrr@cntr\@MM
-    \expandafter\pxrr@tempb
-  \else
-    \expandafter\pxrr@check@kinsoku@b
-  \fi
-}
-\def\pxrr@check@kinsoku@b#1{%
-  \pxrr@check@kinsoku@c#1#1%
-}
-\def\pxrr@check@kinsoku@c#1{%
-  \pxrr@cntr\prebreakpenalty`#1\relax
-  \pxrr@tempb
-}
-\def\pxrr@tempa#1#2\pxrr@nil{%
-  \def\pxrr@check@char##1{%
-    \ifcat\noexpand##1\relax
-      \pxrr@cntr\z@
-    \else\ifcat\noexpand##1\noexpand~%
-      \pxrr@cntr\z@
-    \else\ifcat\noexpand##1A%
-      \pxrr@cntr\@ne
-    \else\ifcat\noexpand##10%
-      \pxrr@cntr\@ne
-    \else
-      \pxrr@cntr\z@
-      \expandafter\pxrr@check@char@a\meaning##1#2\pxrr@nil
-    \fi\fi\fi\fi
-  }%
-  \def\pxrr@check@char@a##1#2##2\pxrr@nil{%
-    \ifcat @##1@%
-      \pxrr@cntr\tw@
-    \fi
-  }%
-}
-\expandafter\pxrr@tempa\string\kanji\pxrr@nil
 \def\pxrr@ruby@check@g{%
   \ifnum\pxrr@body@count=\pxrr@ruby@count\relax
     \ifnum\pxrr@body@count=\@ne\else
@@ -1157,48 +1561,7 @@
   #3%
 }
 \def\pxrr@inter@mono{%
-  \hskip\kanjiskip
-}
-\def\pxrr@intrude@head{%
-  \ifpxrr@ghost\else
-    \ifpxrr@par@head\else
-      \if *\pxrr@bscomp
-        \penalty\@M
-      \else\if :\pxrr@bscomp
-        \hskip\xkanjiskip
-      \else\ifpxrr@abody\else
-        \hskip\kanjiskip
-      \fi\fi\fi
-      \pxrr@dima\pxrr@bspace\relax
-      \ifdim\pxrr@bintr<\pxrr@dima
-        \pxrr@dima\pxrr@bintr\relax
-      \fi
-      \hskip-\pxrr@dima
-    \fi
-  \fi
-}
-\def\pxrr@intrude@end{%
-  \ifpxrr@ghost\else
-    \pxrr@dima\pxrr@aspace\relax
-    \ifdim\pxrr@aintr<\pxrr@dima
-      \pxrr@dima\pxrr@aintr\relax
-    \fi
-    \if *\pxrr@ascomp
-      \penalty\@M
-      \hskip-\pxrr@dima
-    \else\if :\pxrr@ascomp
-      \penalty\pxrr@end@kinsoku
-      \hskip-\pxrr@dima
-      \hskip\xkanjiskip
-    \else
-      \penalty\pxrr@end@kinsoku
-      \ifpxrr@abody\else
-        \hskip-\pxrr@dima
-      \fi
-      \hskip\kanjiskip
-    \fi\fi
-    \penalty\@MM
-  \fi
+  \hskip\pxrr@iiskip\relax
 }
 \def\pxrr@takeout@any@protr{%
   \ifpxrr@any@protr
@@ -1300,21 +1663,12 @@
   \ifpxrr@bprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@head
   \fi
-  \ifpxrr@abody
-    \def\pxrr@pre##1##2{%
-      \pxrr@compose@block\pxrr@locate@sing@{{##1}}{##2}%
-      \pxrr@intrude@head
-      \unhbox\pxrr@boxr
-      \pxrr@intrude@end
-    }%
-  \else
-    \def\pxrr@pre##1##2{%
-      \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
-      \pxrr@intrude@head
-      \unhbox\pxrr@boxr
-      \pxrr@intrude@end
-    }%
-  \fi
+  \def\pxrr@pre##1##2{%
+    \pxrr@compose@block\pxrr@locate@sing@{##1}{##2}%
+    \pxrr@intrude@head
+    \unhbox\pxrr@boxr
+    \pxrr@intrude@end
+  }%
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
   \pxrr@whole@list
@@ -1341,17 +1695,25 @@
     pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
     pxrr@body@zw = \pxrr@body@zw^^J%
     pxrr@ruby@zw = \pxrr@ruby@zw^^J%
+    pxrr@iiskip = \pxrr@iiskip^^J%
+    pxrr@iaiskip = \pxrr@iaiskip^^J%
     pxrr@htratio = \pxrr@htratio^^J%
     pxrr@ruby@raise = \pxrr@ruby@raise^^J%
     pxrr@ruby@lower = \pxrr@ruby@lower^^J%
     ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
     ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
     pxrr@side = \the\pxrr@side^^J%
+    pxrr@evensp = \the\pxrr@evensp^^J%
+    pxrr@fullsize = \the\pxrr@fullsize^^J%
     pxrr@bscomp = \meaning\pxrr@bscomp^^J%
     pxrr@ascomp = \meaning\pxrr@ascomp^^J%
+    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
+    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
+    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
+    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
     pxrr@bintr = \pxrr@bintr^^J%
     pxrr@aintr = \pxrr@aintr^^J%
-    ifpxrr@athead = \meaning\ifpxrr@athead^^J%
+    pxrr@athead = \the\pxrr@athead^^J%
     pxrr@mode = \meaning\pxrr@mode^^J%
     pxrr@body@list = \meaning\pxrr@body@list^^J%
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
@@ -1380,7 +1742,7 @@
   }%
 }
 \newif\ifpxrr@ghost
-\chardef\pxrr@zspace=\jis"2121\relax
+\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
 \def\pxrr@jprologue{%
   \ifpxrr@jghost
     \pxrr@zspace
