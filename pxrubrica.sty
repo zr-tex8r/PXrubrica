@@ -1688,59 +1688,6 @@
   \unhbox\pxrr@boxr
   \pxrr@intrude@end
 }
-\def\pxrr@debug@show@input{%
-  \typeout{----\pxrr@pkgname\space input:^^J%
-    ifpxrr@abody = \meaning\ifpxrr@abody^^J%
-    ifpxrr@truby = \meaning\ifpxrr@truby^^J%
-    pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
-    pxrr@body@zw = \pxrr@body@zw^^J%
-    pxrr@ruby@zw = \pxrr@ruby@zw^^J%
-    pxrr@iiskip = \pxrr@iiskip^^J%
-    pxrr@iaiskip = \pxrr@iaiskip^^J%
-    pxrr@htratio = \pxrr@htratio^^J%
-    pxrr@ruby@raise = \pxrr@ruby@raise^^J%
-    pxrr@ruby@lower = \pxrr@ruby@lower^^J%
-    ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
-    ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
-    pxrr@side = \the\pxrr@side^^J%
-    pxrr@evensp = \the\pxrr@evensp^^J%
-    pxrr@fullsize = \the\pxrr@fullsize^^J%
-    pxrr@bscomp = \meaning\pxrr@bscomp^^J%
-    pxrr@ascomp = \meaning\pxrr@ascomp^^J%
-    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
-    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
-    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
-    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
-    pxrr@bintr = \pxrr@bintr^^J%
-    pxrr@aintr = \pxrr@aintr^^J%
-    pxrr@athead = \the\pxrr@athead^^J%
-    pxrr@mode = \meaning\pxrr@mode^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
-    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
-    ----
-  }%
-}
-\def\pxrr@debug@show@recomp{%
-  \typeout{----\pxrr@pkgname\space recomp:^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@body@count = \pxrr@body@count^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@ruby@count = \pxrr@ruby@count^^J%
-    pxrr@res = \meaning\pxrr@res^^J%
-    ----
-  }%
-}
-\def\pxrr@debug@show@concat{%
-  \typeout{----\pxrr@pkgname\space concat:^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@whole@list = \meaning\pxrr@whole@list^^J%
-    ----
-  }%
-}
 \newif\ifpxrr@ghost
 \pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
 \def\pxrr@jprologue{%
@@ -1805,6 +1752,59 @@
   \ifpxrr@aghost
     \pxrr@aghost
   \fi
+}
+\def\pxrr@debug@show@input{%
+  \typeout{----\pxrr@pkgname\space input:^^J%
+    ifpxrr@abody = \meaning\ifpxrr@abody^^J%
+    ifpxrr@truby = \meaning\ifpxrr@truby^^J%
+    pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
+    pxrr@body@zw = \pxrr@body@zw^^J%
+    pxrr@ruby@zw = \pxrr@ruby@zw^^J%
+    pxrr@iiskip = \pxrr@iiskip^^J%
+    pxrr@iaiskip = \pxrr@iaiskip^^J%
+    pxrr@htratio = \pxrr@htratio^^J%
+    pxrr@ruby@raise = \pxrr@ruby@raise^^J%
+    pxrr@ruby@lower = \pxrr@ruby@lower^^J%
+    ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
+    ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
+    pxrr@side = \the\pxrr@side^^J%
+    pxrr@evensp = \the\pxrr@evensp^^J%
+    pxrr@fullsize = \the\pxrr@fullsize^^J%
+    pxrr@bscomp = \meaning\pxrr@bscomp^^J%
+    pxrr@ascomp = \meaning\pxrr@ascomp^^J%
+    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
+    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
+    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
+    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
+    pxrr@bintr = \pxrr@bintr^^J%
+    pxrr@aintr = \pxrr@aintr^^J%
+    pxrr@athead = \the\pxrr@athead^^J%
+    pxrr@mode = \meaning\pxrr@mode^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
+    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
+    ----
+  }%
+}
+\def\pxrr@debug@show@recomp{%
+  \typeout{----\pxrr@pkgname\space recomp:^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@body@count = \pxrr@body@count^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@ruby@count = \pxrr@ruby@count^^J%
+    pxrr@res = \meaning\pxrr@res^^J%
+    ----
+  }%
+}
+\def\pxrr@debug@show@concat{%
+  \typeout{----\pxrr@pkgname\space concat:^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@whole@list = \meaning\pxrr@whole@list^^J%
+    ----
+  }%
 }
 \endinput
 %%

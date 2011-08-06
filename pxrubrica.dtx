@@ -146,35 +146,56 @@
 %   \begin{tabular}[t]{ll}
 %     \texttt{*} & 行分割禁止 \\
 %     \texttt{!} & 段落頭で進入許可
-%   \end{tabular}\par
-%   空白挿入量の既定値は、和文ルビ（|\ruby|）では和文間空白、
-%   欧文ルビ（|\aruby|）の場合はゼロである。
-%   |*| 無指定の場合の行分割の可否（ペナルティ）は {p\TeX} の標準の
-%   動作に従う。
-%   |!| 無指定の場合、段落冒頭では\jmeta{前進入設定}の設定に関わらず
-%   進入が抑止される。
-%   （以上の説明はゴースト処理無効の場合。）
+%   \end{tabular}
 % \end{quote}
+%
+% \begin{itemize}
+% \item 空白挿入量の既定値は和文間空白である。
+% \item |*| 無指定の場合の行分割の可否は {p\LaTeX} の標準の
+%   動作に従う。
+% \item |!| 無指定の場合、段落冒頭では\jmeta{前進入設定}の設定に
+%   関わらず進入が抑止される。
+% \item ゴースト処理が有効の場合はここの設定は無視される。
+% \end{itemize}
 %
 % \jmeta{モード}は以下の値の何れか。
 % \begin{quote}
-%   \newcommand*\fro[1]{($<$\,\textit{#1})}
-%   \begin{tabular}[t]{lll}
-%     \texttt{-} & （無指定）\\
-%     \texttt{h} & \fro{head}      & 肩付き\\
+%   \newcommand*\fro[1]{{\scriptsize($<$\,\textit{#1})}}
+%   \begin{tabular}[t]{l@{ }ll}
+%     \texttt{-} & &（無指定）\\
 %     \texttt{c} & \fro{center}    & 中付き\\
-%     \texttt{P} & \fro{primary}   & 上側配置\\
-%     \texttt{S} & \fro{secondary} & 下側配置\\
-%   \end{tabular}\qquad
-%   \begin{tabular}[t]{lll}
+%     \texttt{h} & \fro{head}      & 肩付き\\
+%     \texttt{H} &                 & 拡張肩付き\\
 %     \texttt{m} & \fro{mono}      & モノルビ\\
 %     \texttt{g} & \fro{group}     & グループルビ\\
 %     \texttt{j} & \fro{jukugo}    & 熟語ルビ
-%   \end{tabular}\\
-%   \texttt{P} は親文字列の上側（横組）／右側（縦組）、
-%   \texttt{S} は親文字列の下側（横組）／左側（縦組）に
-%   ルビを付す指定。
+%   \end{tabular}\qquad
+%   \begin{tabular}[t]{l@{ }ll}
+%     \texttt{P} & \fro{primary}    & 上側配置\\
+%     \texttt{S} & \fro{secondary}  & 下側配置\\
+%     \texttt{e} & \fro{even-space} & 親文字均等割り有効 \\
+%     \texttt{E} &                  & 親文字均等割り無効 \\
+%     \texttt{f} & \fro{full-size}  & 小書き文字変換有効 \\
+%     \texttt{F} &                  & 小書き文字変換無効 
+%   \end{tabular}
 % \end{quote}
+%
+% \begin{itemize}
+% \item 肩付き（|h|）の場合、ルビが短い場合にのみ、ルビ文字列と親文字列
+%   の頭を揃えて配置される。
+%   拡張肩付き（|H|）の場合、常に頭を揃えて配置される。
+% \item |P| は親文字列の上側（横組）／右側（縦組）、
+%   |S| は親文字列の下側（横組）／左側（縦組）にルビを付す指定。
+% \item |e| 指定時は、ルビが長い場合に親文字列をルビの長さに合わせて
+%   均等割りで配置する。
+%   |E| 指定時は、空きを入れずに中央揃えで配置する。
+%   なお、ルビが短い場合のルビ文字列の均等割りは常に有効である。
+% \item |f| 指定時は、ルビ文字列中の（|{ }| の外にある）小書き仮名
+%   （ぁ\,ぃ\,ぅ\,ぇ\,ぉ\,っ\,ゃ\,ゅ\,ょ\,ゎ、
+%   およびその片仮名）を対応の非小書き仮名
+%   に変換する。
+%   |F| 指定はこの機能を無効にする。
+% \end{itemize}
 %
 % \jmeta{後補助設定}は以下の値の何れか。
 % \begin{quote}
@@ -185,17 +206,19 @@
 %   \begin{tabular}[t]{ll}
 %     \texttt{*} & 行分割禁止 \\
 %     \texttt{!} & 段落末で進入許可
-%   \end{tabular}\par
-%   空白挿入量の既定値は、和文ルビでは和文間空白、
-%   欧文ルビの場合はゼロである。
-%   |!| 無指定の場合、段落末尾では進入が抑止される。
-%   |*| 無指定の場合の行分割の可否（ペナルティ）は {p\TeX} の
+%   \end{tabular}
+% \end{quote}
+%
+% \begin{itemize}
+% \item 空白挿入量の既定値は和文間空白である。
+% \item |*| 無指定の場合の行分割の可否は {p\LaTeX} の
 %   標準の動作に従うのが原則だが、直後にあるものが文字でない場合、
-%   正しく動作しない可能性がある。
+%   正しく動作しない（禁則が破れる）可能性がある。
 %   従って、不適切な行分割が起こりうる場合は適宜 |*| を指定する
 %   必要がある（なお、段落末尾で |*| を指定してはならない）。
-%   （以上の説明はゴースト処理無効の場合。）
-% \end{quote}
+% \item |!| 無指定の場合、段落末尾では進入が抑止される。
+% \item ゴースト処理が有効の場合はここの設定は無視される。
+% \end{itemize}
 %
 % \jmeta{後進入設定}は以下の値。
 % \begin{quote}
@@ -226,9 +249,19 @@
 % 欧文ルビの命令。
 % すなわち、欧文文字列の上側（横組）／右側（縦組）にルビを付す。
 %
-% \jmeta{オプション}の指定方法は |\ruby| と同じだが、
-% 欧文ルビは常に（単純）グループルビとなるので、
-% |m|、|g|、|j| の指定は無視される。
+% 欧文ルビは和文ルビと比べて以下の点が異なる。
+% \begin{itemize}
+% \item 常にグループルビと扱われる。
+%   （|m|、|g|、|j| の指定は無効。）
+% \item 親文字列の均等割りは常に無効である。
+%   （|e| 指定は無効。）
+% \item ルビ付き文字と前後の文字との間の空き調整や行分割可否は
+%   両者がともに欧文であるという想定で行われる。
+%   従って、既定では空き調整量はゼロ、行分割は禁止となる。
+% \item 空き調整を和欧文間空白（|:|）にした場合は、
+%   |*| が指定されるあるいは自動の禁則処理が働くのでない限り、
+%   行分割が許可される。
+% \end{itemize}
 % 
 % \item |\truby[|\jmeta{オプション}|]{|\jmeta{親文字}^^A
 % |}{|\jmeta{上側ルビ文字}|}{|\jmeta{下側ルビ文字}|}|
@@ -284,7 +317,7 @@
 %   親文字とルビ文字の唯一のグループが対応する。
 %   例えば、
 %\begin{quote}\begin{verbatim}
-%\ruby[m]{五月雨}{さみだれ}
+%\ruby[g]{五月雨}{さみだれ}
 %\end{verbatim}\end{quote}
 %   は、「五月雨+さみだれ」の1つのブロックからなる。
 % \end{itemize}
@@ -307,7 +340,8 @@
 % 
 % 「欧文ゴースト処理」も対象が欧文であることと除いて同じである。
 % （こちらは、「複合語記号（compound word mark）」というゼロ幅
-% 不可視の欧文文字を用いる。）
+% 不可視の欧文文字を用いる。
+% ルビ付文字列全体が単一欧文文字のように扱われる。）
 % なお、「ゴースト（ghost）」というのはOmegaの用語で、
 % 「不可視であるが（何らかの性質において）特定の可視の文字と
 % 同等の役割をもつオブジェクト」のことである。
@@ -315,8 +349,10 @@
 % ゴースト処理を有効にすると次のようなメリットがある。
 %
 % \begin{itemize}
-% \item 和欧文間空白が自動的に挿入されるので、ルビ命令の
-%   オプションの |:| が不要になる。
+% \item 和欧文間空白が自動的に挿入される。
+% \item 行分割禁止（禁則処理）が常に正しく機能する。
+% \item 特殊な状況（例えば段落末）でも異常動作を起こしにくい。
+% \item （実装が単純化され、バグ混入の余地が少なくなる。）
 % \end{itemize}
 %
 % ただし、次のような重要なデメリットがある。
@@ -331,6 +367,10 @@
 % 有効にするには、|\rubyusejghost|（和文）
 % ／|\rubyuseaghost|（欧文）を実行する。
 %
+% なお、\jmeta{前補助設定}／\jmeta{後補助設定}で指定される機能は、
+% ゴースト処理が有効の場合には無効化される。
+% これらの機能の目的が自動処理が失敗するのを捕逸するためだからである。
+%
 % \subsection{パラメタ設定命令}
 %
 % 基本的設定。
@@ -340,9 +380,19 @@
 % \item |\rubysetup{|\jmeta{オプション}|}|
 %
 % オプションの既定値設定。
-% これ自体の既定値は
-% 「突出許可、進入無し、中付き、熟語ルビ、上側配置」である。
-% ［既定 = \texttt{\vb cjP\vb}］
+% ［既定 = \texttt{\vb cjPeF\vb}］
+% \begin{itemize}
+% \item これ自体の既定値は
+%   「突出許可、進入無し、中付き、熟語ルビ、上側配置、
+%   親文字均等割り有効、小書き文字変換無効」である。
+% \item \jmeta{前補助設定}／\jmeta{後補助設定}の既定値は変更
+%   できない。
+%   |\rubysetup| でこれらのオプション文字を指定しても
+%   無視される。
+% \item |\rubysetup| での設定は累積する。
+%   例えば、初期状態から、|\rubysetup{hmf}| と |\rubysetup{<->}| を
+%   実行した場合、既定値設定は |<hmPef>| となる。
+% \end{itemize}
 %
 % \item |\rubyfontsetup{|\jmeta{命令}|}|
 %
@@ -424,7 +474,7 @@
 %
 % \end{itemize}
 %
-% \subsection{拡張機能}
+% \section{拡張機能\<（未実装）}
 %
 % 「行分割の有無により親文字とルビ文字の相対位置が変化する」
 % ような処理は、{\TeX}での実現は非常に難しい。
@@ -861,8 +911,9 @@
 % \begin{macro}{\ifpxrr@d@athead}
 % 肩付き／中付きの設定。
 % |\rubysetup| の |c|／|h|／|H| の設定。
-% 整数定数：0 = 中付き（|c|）；
+% 0 = 中付き（|c|）；
 % 1 = 肩付き（|h|）；2 = 拡張肩付き（|H|）。
+% 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@d@athead=0
 %    \end{macrocode}
@@ -889,8 +940,8 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@d@evensp}
-% 親文字列が短い場合に均等割りを行うか。
-% 0 = 行わない；1 = 行う。
+% 親文字列均等割りの設定。
+% 0 = 無効；1 = 有効。
 % |\rubysetup| の |e|／|E| の設定。
 % 整数定数。
 %    \begin{macrocode}
@@ -899,6 +950,8 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@d@fullsize}
+% 小書き文字変換の設定。
+% 0 = 無効；1 = 有効。
 % |\rubysetup| の |f|／|F| の設定。
 % 整数定数。
 %    \begin{macrocode}
@@ -974,7 +1027,8 @@
 % \begin{macro}{\pxrr@athead}
 % 肩付き／中付きの設定。
 % |\ruby| の |c|／|h|／|H| の設定。
-% 整数定数（値の意味は |\pxrr@d@athead| と同じ）。
+% 値の意味は |\pxrr@d@athead| と同じ。
+% 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@athead=0
 %    \end{macrocode}
@@ -1009,8 +1063,8 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@evensp}
-% 親文字列が短い場合に均等割りを行うか。
-% 0 = 行わない；1 = 行う。
+% 親文字列均等割りの設定。
+% 0 = 無効；1 = 有効。
 % |\ruby| の |e|／|E| の設定。
 % 整数定数。
 %    \begin{macrocode}
@@ -1019,6 +1073,8 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@fullsize}
+% 小書き文字変換の設定。
+% 0 = 無効；1 = 有効。
 % |\ruby| の |f|／|F| の設定。
 % 整数定数。
 %    \begin{macrocode}
@@ -1591,7 +1647,8 @@
 %
 % \begin{macro}{\pxrr@jc}
 % 和文の「複合コード」を内部コードに変換する（展開可能）。
-% 「複合コード」は「\jmeta{JISコード16進4桁}|:|\jmeta{Unicode16進4桁}」
+% 「複合コード」は
+% 「\jmeta{JISコード16進4桁}|:|\jmeta{Unicode\,16進4桁}」
 % の形式。
 %    \begin{macrocode}
 \def\pxrr@jc#1{%
@@ -1670,6 +1727,9 @@
 %    \begin{macrocode}
 \ifpxrr@in@ptex
   \def\pxrr@get@iiskip#1{%
+%    \end{macrocode}
+% 以下では |\kanjiskip| 挿入が有効であるかを検査している。
+%    \begin{macrocode}
     \pxrr@x@swafalse
     \begingroup
       \inhibitxspcode\pxrr@x@K\thr@@
@@ -1680,6 +1740,10 @@
         \aftergroup\pxrr@x@swatrue
       \fi
     \endgroup
+%    \end{macrocode}
+% 以下では |\kanjiskip| 挿入が有効ならば |\kanjiskip| の値、
+% 無効ならばゼロを返す。
+%    \begin{macrocode}
     \edef#1{%
       \ifpxrr@x@swa \the\kanjiskip
       \else \pxrr@zeropt
@@ -2442,6 +2506,7 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@use@ruby@font}
+% ルビ用のフォントに切り替える。
 %    \begin{macrocode}
 \def\pxrr@use@ruby@font{%
   \pxrr@without@macro@trace{%
@@ -3898,62 +3963,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%    \begin{macrocode}
-\def\pxrr@debug@show@input{%
-  \typeout{----\pxrr@pkgname\space input:^^J%
-    ifpxrr@abody = \meaning\ifpxrr@abody^^J%
-    ifpxrr@truby = \meaning\ifpxrr@truby^^J%
-    pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
-    pxrr@body@zw = \pxrr@body@zw^^J%
-    pxrr@ruby@zw = \pxrr@ruby@zw^^J%
-    pxrr@iiskip = \pxrr@iiskip^^J%
-    pxrr@iaiskip = \pxrr@iaiskip^^J%
-    pxrr@htratio = \pxrr@htratio^^J%
-    pxrr@ruby@raise = \pxrr@ruby@raise^^J%
-    pxrr@ruby@lower = \pxrr@ruby@lower^^J%
-    ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
-    ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
-    pxrr@side = \the\pxrr@side^^J%
-    pxrr@evensp = \the\pxrr@evensp^^J%
-    pxrr@fullsize = \the\pxrr@fullsize^^J%
-    pxrr@bscomp = \meaning\pxrr@bscomp^^J%
-    pxrr@ascomp = \meaning\pxrr@ascomp^^J%
-    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
-    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
-    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
-    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
-    pxrr@bintr = \pxrr@bintr^^J%
-    pxrr@aintr = \pxrr@aintr^^J%
-    pxrr@athead = \the\pxrr@athead^^J%
-    pxrr@mode = \meaning\pxrr@mode^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
-    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
-    ----
-  }%
-}
-\def\pxrr@debug@show@recomp{%
-  \typeout{----\pxrr@pkgname\space recomp:^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@body@count = \pxrr@body@count^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@ruby@count = \pxrr@ruby@count^^J%
-    pxrr@res = \meaning\pxrr@res^^J%
-    ----
-  }%
-}
-\def\pxrr@debug@show@concat{%
-  \typeout{----\pxrr@pkgname\space concat:^^J%
-    pxrr@body@list = \meaning\pxrr@body@list^^J%
-    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
-    pxrr@whole@list = \meaning\pxrr@whole@list^^J%
-    ----
-  }%
-}
-%    \end{macrocode}
-%
 % \subsubsection{前処理}
 %
 % ゴースト処理する。そのため、展開不能命令が…。
@@ -4102,6 +4111,63 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \subsection{デバッグ用出力}
+%
+%    \begin{macrocode}
+\def\pxrr@debug@show@input{%
+  \typeout{----\pxrr@pkgname\space input:^^J%
+    ifpxrr@abody = \meaning\ifpxrr@abody^^J%
+    ifpxrr@truby = \meaning\ifpxrr@truby^^J%
+    pxrr@ruby@fsize = \pxrr@ruby@fsize^^J%
+    pxrr@body@zw = \pxrr@body@zw^^J%
+    pxrr@ruby@zw = \pxrr@ruby@zw^^J%
+    pxrr@iiskip = \pxrr@iiskip^^J%
+    pxrr@iaiskip = \pxrr@iaiskip^^J%
+    pxrr@htratio = \pxrr@htratio^^J%
+    pxrr@ruby@raise = \pxrr@ruby@raise^^J%
+    pxrr@ruby@lower = \pxrr@ruby@lower^^J%
+    ifpxrr@bprotr = \meaning\ifpxrr@bprotr^^J%
+    ifpxrr@aprotr = \meaning\ifpxrr@aprotr^^J%
+    pxrr@side = \the\pxrr@side^^J%
+    pxrr@evensp = \the\pxrr@evensp^^J%
+    pxrr@fullsize = \the\pxrr@fullsize^^J%
+    pxrr@bscomp = \meaning\pxrr@bscomp^^J%
+    pxrr@ascomp = \meaning\pxrr@ascomp^^J%
+    ifpxrr@bnobr = \meaning\ifpxrr@bnobr^^J%
+    ifpxrr@anobr = \meaning\ifpxrr@anobr^^J%
+    ifpxrr@bfintr = \meaning\ifpxrr@bfintr^^J%
+    ifpxrr@afintr = \meaning\ifpxrr@afintr^^J%
+    pxrr@bintr = \pxrr@bintr^^J%
+    pxrr@aintr = \pxrr@aintr^^J%
+    pxrr@athead = \the\pxrr@athead^^J%
+    pxrr@mode = \meaning\pxrr@mode^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@ruby@count = \@nameuse{pxrr@ruby@count}^^J%
+    pxrr@end@kinsoku = \pxrr@end@kinsoku^^J%
+    ----
+  }%
+}
+\def\pxrr@debug@show@recomp{%
+  \typeout{----\pxrr@pkgname\space recomp:^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@body@count = \pxrr@body@count^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@ruby@count = \pxrr@ruby@count^^J%
+    pxrr@res = \meaning\pxrr@res^^J%
+    ----
+  }%
+}
+\def\pxrr@debug@show@concat{%
+  \typeout{----\pxrr@pkgname\space concat:^^J%
+    pxrr@body@list = \meaning\pxrr@body@list^^J%
+    pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
+    pxrr@whole@list = \meaning\pxrr@whole@list^^J%
+    ----
+  }%
+}
+%    \end{macrocode}
 %
 % \Finale
 %
