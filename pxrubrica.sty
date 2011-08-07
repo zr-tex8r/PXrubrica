@@ -1407,13 +1407,29 @@
     \else
       \pxrr@intrude@setauto@j
     \fi
-    \ifnum\pxrr@auto@penalty<\@MM
+    \ifnum\pxrr@auto@penalty=\z@
       \let\pxrr@auto@penalty\pxrr@end@kinsoku
     \fi
-    \penalty\pxrr@auto@penalty\relax
-    \hskip-\pxrr@intr@amount\relax
-    \hskip\pxrr@auto@icspace\relax
-    \penalty\@MM
+    \ifpxrr@afintr
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\pxrr@auto@penalty\relax
+      \fi
+      \kern-\pxrr@intr@amount\relax
+      \hskip\pxrr@auto@icspace\relax
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\@MM
+      \fi
+    \else
+      \@tempskipa-\pxrr@intr@amount\relax
+      \advance\@tempskipa\pxrr@auto@icspace\relax
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\pxrr@auto@penalty\relax
+      \fi
+      \hskip\@tempskipa
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\@MM
+      \fi
+    \fi
   \fi
 }
 \AtBeginDocument{%

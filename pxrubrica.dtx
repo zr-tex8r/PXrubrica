@@ -3433,17 +3433,42 @@
 % 直後の文字の前禁則ペナルティが、挿入されるグルーの前に
 % 入るようにする。
 %    \begin{macrocode}
-    \ifnum\pxrr@auto@penalty<\@MM
+    \ifnum\pxrr@auto@penalty=\z@
       \let\pxrr@auto@penalty\pxrr@end@kinsoku
     \fi
-    \penalty\pxrr@auto@penalty\relax
-    \hskip-\pxrr@intr@amount\relax
-    \hskip\pxrr@auto@icspace\relax
+    \ifpxrr@afintr
 %    \end{macrocode}
-% 本物の前禁則ペナルティ（負かも知れない）はここに加算される。
-% ここで行分割してはいけないのでペナルティ値を 20000 にする。
+% 段落末尾での進入を許す場合。
 %    \begin{macrocode}
-    \penalty\@MM
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\pxrr@auto@penalty\relax
+      \fi
+      \kern-\pxrr@intr@amount\relax
+%    \end{macrocode}
+% 段落末尾では次のグル―を消滅させる（前のカーンは残る）。
+% そのため、禁則ペナルティがある（段落末尾ではあり得ない）場合にのみ
+% その次のペナルティ20000を置く。
+% 本物の禁則ペナルティはこれに加算されるが、合計値は 10000 以上になる
+% のでこの位置での行分割が禁止される。
+%    \begin{macrocode}
+      \hskip\pxrr@auto@icspace\relax
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\@MM
+      \fi
+    \else
+%    \end{macrocode}
+% 段落末尾での進入を許さない場合。
+%    \begin{macrocode}
+      \@tempskipa-\pxrr@intr@amount\relax
+      \advance\@tempskipa\pxrr@auto@icspace\relax
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\pxrr@auto@penalty\relax
+      \fi
+      \hskip\@tempskipa
+      \ifnum\pxrr@auto@penalty=\z@\else
+        \penalty\@MM
+      \fi
+    \fi
   \fi
 }
 %    \end{macrocode}
