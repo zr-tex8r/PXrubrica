@@ -37,7 +37,7 @@
 %%   Right brace   \}     Tilde         \~}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pxrubrica}
-  [2011/07/27 v0.1+ PX Japanese-style ruby]
+  [2012/04/30 v1.0 PX Japanese-style ruby]
 \RequirePackage{keyval}
 \def\pxrr@pkgname{pxrubrica}
 \def\pxrr@error{%
@@ -201,6 +201,32 @@
   \tracingmacros\z@
   #1%
   \tracingmacros\pxrr@tracingmacros
+}
+\def\pxrr@hbox#1{%
+  \hbox{%
+    \color@begingroup
+      #1%
+    \color@endgroup
+  }%
+}
+\def\pxrr@hbox@to#1#{%
+  \pxrr@hbox@to@a{#1}%
+}
+\def\pxrr@hbox@to@a#1#2{%
+  \hbox to#1{%
+    \color@begingroup
+      #2%
+    \color@endgroup
+  }%
+}
+\AtBeginDocument{%
+  \ifx\color@begingroup\relax
+    \ifx\color@endgroup\relax
+      \let\pxrr@hbox\hbox
+      \let\pxrr@hbox@to\hb@xt@
+      \let\pxrr@takeout@any@protr\pxrr@takeout@any@protr@nocolor
+    \fi
+  \fi
 }
 \mathchardef\pxrr@invscale@ca=259
 \def\pxrr@invscale#1#2{%
@@ -938,7 +964,7 @@
 \chardef\pxrr@locate@head=0
 \chardef\pxrr@locate@end=2
 \def\pxrr@evenspace#1#2#3#4#5{%
-  \setbox#2\hbox{#5}\@tempdima\wd#2%
+  \setbox#2\pxrr@hbox{#5}\@tempdima\wd#2%
   \edef\pxrr@natwd{\the\@tempdima}%
   \pxrr@decompose{#5}%
   \pxrr@evenspace@int{#1}{#2}{#3}{#4}%
@@ -975,7 +1001,7 @@
   \def\pxrr@inter##1{\pxrr@hfilx\pxrr@sprop@y@ ##1}%
   \def\pxrr@post{\pxrr@hfilx\pxrr@sprop@z@}%
   \def\pxrr@makebox@res{%
-    \setbox#2=\hb@xt@#4{#3\pxrr@res}%
+    \setbox#2=\pxrr@hbox@to#4{#3\pxrr@res}%
   }%
   \pxrr@makebox@res
   \pxrr@dima\wd#2%
@@ -1114,8 +1140,8 @@
   \pxrr@compose@block@pre
 }
 \def\pxrr@compose@oneside@block@do#1#2#3{%
-  \setbox\pxrr@boxa\hbox{#2}%
-  \setbox\pxrr@boxr\hbox{%
+  \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
   }%
@@ -1172,12 +1198,12 @@
   \pxrr@compose@block@pre
 }
 \def\pxrr@compose@twoside@block@do#1#2#3#4{%
-  \setbox\pxrr@boxa\hbox{#2}%
-  \setbox\pxrr@boxr\hbox{%
+  \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
   }%
-  \setbox\pxrr@boxb\hbox{%
+  \setbox\pxrr@boxb\pxrr@hbox{%
     \pxrr@use@ruby@font
     #4%
   }%
@@ -1579,10 +1605,18 @@
 \def\pxrr@inter@mono{%
   \hskip\pxrr@iiskip\relax
 }
-\def\pxrr@takeout@any@protr{%
+\def\pxrr@takeout@any@protr@nocolor{%
   \ifpxrr@any@protr
     \aftergroup\pxrr@any@protrtrue
   \fi
+}
+\def\pxrr@takeout@any@protr{%
+  \ifpxrr@any@protr
+    \aftergroup\pxrr@takeout@any@protr@a
+  \fi
+}
+\def\pxrr@takeout@any@protr@a{%
+  \aftergroup\pxrr@any@protrtrue
 }
 \def\pxrr@ruby@main@m{%
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list
@@ -1630,7 +1664,7 @@
     }%
   }%
   \let\pxrr@post\@empty
-  \setbox\pxrr@boxr\hbox{\pxrr@whole@list}%
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
   \if j\pxrr@mode
     \ifpxrr@any@protr
       \pxrr@ruby@redo@j
@@ -1663,7 +1697,7 @@
   }%
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
-  \setbox\pxrr@boxr\hbox{\pxrr@whole@list}%
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
 }
 \def\pxrr@ruby@main@g{%
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list

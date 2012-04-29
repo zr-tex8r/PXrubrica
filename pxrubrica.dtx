@@ -27,7 +27,7 @@
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
 %</driver>
-  [2011/07/27 v0.1+ PX Japanese-style ruby]
+  [2012/04/30 v1.0 PX Japanese-style ruby]
 %<*driver>
 \documentclass{jsarticle}
 \usepackage{doc}
@@ -132,8 +132,8 @@
 %     \texttt{\vb} & 前進入無し\\
 %   \end{tabular}\qquad
 %   \begin{tabular}[t]{ll}
-%     \texttt{(} & 前進入大\\
-%     \texttt{<} & 前進入小
+%     \texttt{<} & 前進入大\\
+%     \texttt{(} & 前進入小
 %   \end{tabular}
 % \end{quote}
 %
@@ -227,8 +227,8 @@
 %     \texttt{\vb} & 後進入無し\\
 %   \end{tabular}\qquad
 %   \begin{tabular}[t]{ll}
-%     \texttt{)} & 後進入大\\
-%     \texttt{>} & 後進入小
+%     \texttt{>} & 後進入大\\
+%     \texttt{)} & 後進入小
 %   \end{tabular}
 % \end{quote}
 %
@@ -288,7 +288,7 @@
 % 文字とみなされる）。
 % 例えば、ルビ文字列
 %\begin{quote}\begin{verbatim}
-%{じゆく|ご}
+%じゆく|ご
 %\end{verbatim}\end{quote}
 % は2つのグループからなり、最初のものは3文字、後のものは
 % 1文字からなる。
@@ -298,7 +298,7 @@
 % （本文書ではこの単位のことを《文字》と記す）。
 % 例えば
 %\begin{quote}\begin{verbatim}
-%{ベクタ{\<（ー）\<}}
+%ベクタ{\<（ー）\<}
 %\end{verbatim}\end{quote}
 % は1つのグループからなり、それは4つの《文字》からなる。
 %
@@ -323,7 +323,7 @@
 % \end{itemize}
 % 
 % 拡張機能では、親文字列が複数グループをもつような使用法が
-% 存在する（詳しくは後述）。
+% 存在する予定である。
 %
 % \subsection{ゴースト処理}
 %
@@ -474,13 +474,15 @@
 %
 % \end{itemize}
 %
-% \section{拡張機能\<（未実装）}
+% \section{将来の拡張機能\<（未実装）}
+%
+% （この節では、まだ実装されていないが、
+% 実現できればよいと考えている機能について述べる。）
 %
 % 「行分割の有無により親文字とルビ文字の相対位置が変化する」
 % ような処理は、{\TeX}での実現は非常に難しい。
 % これを{$\varepsilon$-p\TeX}の拡張機能を用いて何とか
 % 実現したい。
-% できたらいいな。
 %
 % \begin{itemize}
 %
@@ -1255,6 +1257,45 @@
   \tracingmacros\pxrr@tracingmacros
 }
 %    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@hbox}
+% \begin{macro}{\pxrr@hbox@to}
+% color パッケージ対応の |\hbox| と |\hb@xt@|（= |\hbox| |to|）。
+%    \begin{macrocode}
+\def\pxrr@hbox#1{%
+  \hbox{%
+    \color@begingroup
+      #1%
+    \color@endgroup
+  }%
+}
+\def\pxrr@hbox@to#1#{%
+  \pxrr@hbox@to@a{#1}%
+}
+\def\pxrr@hbox@to@a#1#2{%
+  \hbox to#1{%
+    \color@begingroup
+      #2%
+    \color@endgroup
+  }%
+}
+%    \end{macrocode}
+% color パッケージ不使用の場合は、
+% 本来の |\hbox| と |\hb@xt@| に戻しておく。
+% これと同期して |\pxrr@takeout@any@protr| の動作も変更する。
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \ifx\color@begingroup\relax
+    \ifx\color@endgroup\relax
+      \let\pxrr@hbox\hbox
+      \let\pxrr@hbox@to\hb@xt@
+      \let\pxrr@takeout@any@protr\pxrr@takeout@any@protr@nocolor
+    \fi
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 %
 % \subsubsection{数値計算}
@@ -2560,7 +2601,7 @@
 %    \end{macrocode}
 % \jmeta{テキスト}の自然長を計測し、|\pxrr@natwd| に格納する。
 %    \begin{macrocode}
-  \setbox#2\hbox{#5}\@tempdima\wd#2%
+  \setbox#2\pxrr@hbox{#5}\@tempdima\wd#2%
   \edef\pxrr@natwd{\the\@tempdima}%
 %    \end{macrocode}
 % \jmeta{テキスト}をリスト解析する
@@ -2621,7 +2662,7 @@
   \def\pxrr@inter##1{\pxrr@hfilx\pxrr@sprop@y@ ##1}%
   \def\pxrr@post{\pxrr@hfilx\pxrr@sprop@z@}%
   \def\pxrr@makebox@res{%
-    \setbox#2=\hb@xt@#4{#3\pxrr@res}%
+    \setbox#2=\pxrr@hbox@to#4{#3\pxrr@res}%
   }%
   \pxrr@makebox@res
 %    \end{macrocode}
@@ -2852,8 +2893,8 @@
 % こちらが本体。
 %    \begin{macrocode}
 \def\pxrr@compose@oneside@block@do#1#2#3{%
-  \setbox\pxrr@boxa\hbox{#2}%
-  \setbox\pxrr@boxr\hbox{%
+  \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
   }%
@@ -2940,12 +2981,12 @@
   \pxrr@compose@block@pre
 }
 \def\pxrr@compose@twoside@block@do#1#2#3#4{%
-  \setbox\pxrr@boxa\hbox{#2}%
-  \setbox\pxrr@boxr\hbox{%
+  \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
   }%
-  \setbox\pxrr@boxb\hbox{%
+  \setbox\pxrr@boxb\pxrr@hbox{%
     \pxrr@use@ruby@font
     #4%
   }%
@@ -3807,12 +3848,29 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@takeout@any@protr}
-% |\ifpxrr@any@protr| の値をグループの外に出す。
+% |\ifpxrr@any@protr| の値を |\pxrr@hbox| の外に出す。
+% \Note
+% color 不使用時は |\hbox| による 1 段のグループだけ処理すれば
+% よいが、color 使用時は |\color@begingroup|〜|\color@endgroup|
+% によるグループが生じるので、2 段分の処理が必要。
+%
+% color 不使用時の定義。
 %    \begin{macrocode}
-\def\pxrr@takeout@any@protr{%
+\def\pxrr@takeout@any@protr@nocolor{%
   \ifpxrr@any@protr
     \aftergroup\pxrr@any@protrtrue
   \fi
+}
+%    \end{macrocode}
+% color 使用時の定義。
+%    \begin{macrocode}
+\def\pxrr@takeout@any@protr{%
+  \ifpxrr@any@protr
+    \aftergroup\pxrr@takeout@any@protr@a
+  \fi
+}
+\def\pxrr@takeout@any@protr@a{%
+  \aftergroup\pxrr@any@protrtrue
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3882,7 +3940,7 @@
     }%
   }%
   \let\pxrr@post\@empty
-  \setbox\pxrr@boxr\hbox{\pxrr@whole@list}%
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
 %    \end{macrocode}
 % 熟語ルビ指定の場合、|\ifpxrr@any@protr| が真である場合は再調整する。
 %    \begin{macrocode}
@@ -3926,7 +3984,7 @@
   }%
   \let\pxrr@inter\@undefined
   \let\pxrr@post\@empty
-  \setbox\pxrr@boxr\hbox{\pxrr@whole@list}%
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
 }
 %    \end{macrocode}
 % \end{macro}

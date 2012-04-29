@@ -1,5 +1,5 @@
 ==================================================
-== PXrubrica バンドル v0.1  <2011/07/23>        ==
+== PXrubrica バンドル v1.0  <2012/04/30>        ==
 ==           八登 崇之 Takayuki YATO; aka."ZR"）==
 ==================================================
 (This file is encoded in UTF-8.
@@ -19,7 +19,7 @@ JIS 規格「JIS X 4051」および W3C 技術ノート「日本語組版処理�
 
 ■ 構成物
 
-    pxrublica.sty: 本体パッケージ
+    pxrubrica.sty: 本体パッケージ
     pxrubrica.pdf: pxrubrica.sty の説明書
     pxrubrica.dtx: DocStrip ソースファイル
     pxrubrica.ins: DocStrip インストーラファイル
@@ -46,7 +46,7 @@ JIS 規格「JIS X 4051」および W3C 技術ノート「日本語組版処理�
     ある。(DVI → PDF 変換は dvipdfmx で行った)
 
 ==================================================
-== PXrubrica Package Bundle v0.1  <2011/07/23>  ==
+== PXrubrica Package Bundle v1.0  <2011/09/04>  ==
 ==                     Takayuki YATO (aka."ZR"）==
 ==================================================
 
