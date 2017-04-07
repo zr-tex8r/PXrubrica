@@ -1,0 +1,166 @@
+\documentclass[a4paper]{article}
+\usepackage{ifthen,ifxetex,ifluatex}
+\ifthenelse{\boolean{xetex}}{
+  \usepackage{xeCJK}
+  \setCJKmainfont[Scale=0.92]{IPAMincho}
+  \setCJKsansfont[Scale=0.92]{IPAGothic}
+  \newcommand{\mcfamily}{\rmfamily}
+  \newcommand{\gtfamily}{\sffamily}
+}{\ifthenelse{\boolean{luatex}}{
+  \usepackage{luatexja-fontspec}
+  \setmainjfont[Scale=0.92]{IPAMincho}
+  \setsansjfont[Scale=0.92]{IPAGothic}
+}{}}
+\usepackage[scale=0.8]{geometry}
+\usepackage{setspace}
+\usepackage{pxrubrica}
+\newcommand*{\vb}{\symbol{`\|}}
+\newcommand*{\Opt}[1]{\texttt{#1}}
+\newcommand*{\PKN}[1]{\textsf{#1}}
+\newcommand*{\Eg}{E.\,g.\mbox{}}
+\newcommand*{\eg}{e.\,g.\mbox{}}
+\newcommand*{\ie}{i.\,e.\mbox{}}
+\newcommand*{\myfileversion}{1.0}
+\newcommand*{\myfiledate}{2011/09/04}
+\newsavebox{\myexample}
+\rubysetup{f}
+\begin{document}
+
+\title{The \PKN{pxrubrica} package}
+\author{Takayuki YATO\quad (aka ``ZR'')}
+\date{\myfileversion \quad[\myfiledate]}
+\maketitle
+
+\setstretch{1.5}
+
+\section{Package Loading}
+
+There is no options available.
+
+\begin{quote}\small\begin{verbatim}
+\usepackage{pxrubrica}
+\end{verbatim}\end{quote}
+
+\section{Basic Usage}
+
+\subsection{Very Basic}
+
+\begin{itemize}
+\item Mono ruby (\Opt{m} option): one ruby block per one kanji.\\
+\Eg\quad
+\verb+\ruby[m]{鷹}{たか}+ $\rightarrow$ \ruby[m]{鷹}{たか}\quad
+\verb+\ruby[m]{鶯}{うぐいす}+ $\rightarrow$ \ruby[m]{鶯}{うぐいす}
+\item Group ruby (\Opt{g} option): one ruby block per kanji sequence.\\
+\Eg\quad
+\verb+\ruby[g]{雲雀}{ひばり}+ $\rightarrow$ \ruby[g]{雲雀}{ひばり}\quad
+\verb+\ruby[g]{不如帰}{ほととぎす}+ $\rightarrow$ \ruby[g]{不如帰}{ほととぎす}
+\item Jukugo ruby (\Opt{j} option): one ruby block per kanji, but read as whole.\\
+\Eg\quad
+\verb+\ruby[j]{孔雀}{く|じゃく}+ $\rightarrow$ \ruby[j]{孔雀}{く|じゃく}\quad
+\verb+\ruby[j]{七面鳥}{しち|めん|ちょう}+ $\rightarrow$ \ruby[j]{七面鳥}{しち|めん|ちょう}
+\item A \verb+|+ symbol in a ruby string denotes the boundary of reading for each kanji
+(\ie\ 孔 = く and 雀 = じゃく).
+It is not needed in group ruby.
+\item Comparison of typeset results:
+\begin{quote}\begin{tabular}{ll@{\ }l@{\ }c*3{@{\quad}c}}
+Mono & (\verb+\ruby[m]{小鳩}{こ|ばと}+) & $\rightarrow$
+  & \ruby[m]{小鳩}{こ|ばと}
+  & \ruby[m]{鶺鴒}{せき|れい}
+  & \ruby[m]{雷鳥}{らい|ちょう}
+  & \ruby[m]{燕}{つばめ}
+\\
+Group & (\verb+\ruby[g]{小鳩}{こばと}+) & $\rightarrow$
+  & \ruby[g]{小鳩}{こばと}
+  & \ruby[g]{鶺鴒}{せきれい}
+  & \ruby[g]{雷鳥}{らいちょう}
+  & \ruby[g]{燕}{つばめ}
+\\
+Jukugo & (\verb+\ruby[j]{小鳩}{こ|ばと}+) & $\rightarrow$
+  & \ruby[j]{小鳩}{こ|ばと}
+  & \ruby[j]{鶺鴒}{せき|れい}
+  & \ruby[j]{雷鳥}{らい|ちょう}
+  & \ruby[j]{燕}{つばめ}
+\end{tabular}\end{quote}
+Usually When a jukugo has per-character reading then jukugo ruby
+(\Opt{j}) is preferred, otherwise (\Opt{g}) is.
+If you particularly intend to show the per-character reading
+for a jukugo, you might use the \Opt{m} option.
+Note that all of \Opt{m}, \Opt{g} and \Opt{j} lead to
+the same result for ruby to a single kanji.
+\item You can give a default value of option
+using the \verb+\rubysetup+ command;
+\verb+\rubysetup{g}\ruby{軍鶏}{しゃも}+ is
+equivalent to \verb+\ruby[g]{軍鶏}{しゃも}+.
+The ``default of default'' is \Opt{|cjPeF|}.
+\end{itemize}
+
+\subsection{Intrusion/Protrusion}
+
+\begin{itemize}
+\item Control of ruby intrusion:
+\begin{center}\begin{tabular}{ll@{\ }l@{\ }c*2{@{\quad}c}}
+No intrusion & \verb+この\ruby[|-|]{鵲}{かささぎ}の+ & $\rightarrow$
+ & この\ruby[|-|]{鵲}{かささぎ}の
+ & この\ruby[|-|]{鸛}{こうのとり}の
+ & この\ruby[|-|]{鵜}{う}の
+\\
+Small intrusion & \verb+この\ruby[(-)]{鵲}{かささぎ}の+ & $\rightarrow$
+ & この\ruby[(-)]{鵲}{かささぎ}の
+ & この\ruby[(-)]{鸛}{こうのとり}の
+ & この\ruby[(-)]{鵜}{う}の
+\\
+Big intrusion & \verb+この\ruby[<->]{鵲}{かささぎ}の+ & $\rightarrow$
+ & この\ruby[<->]{鵲}{かささぎ}の
+ & この\ruby[<->]{鸛}{こうのとり}の
+ & この\ruby[<->]{鵜}{う}の
+\end{tabular}\end{center}
+\item If you require ``ruby output may intrude to kana but not to kanji,''
+then you might want to do ``\verb+この\ruby[<-|]{鵲}{かささぎ}等+''
+to get ``この\ruby[<-|]{鵲}{かささぎ}等.''
+\item To specify a basic mode (\Opt{m}/\Opt{g}/\Opt{j})
+and intrusion at a time, you can use option strings
+such as \Opt{|g|} and \Opt{|m>}.
+In fact, the symbol \Opt{-} works as placeholder
+for basic mode and means the use of default value.
+\item Control of ruby protrusion:
+the string \Opt{||} supresses the protrusion.
+\begin{quote}
+\begin{lrbox}{\myexample}
+\small$\leftarrow$ \verb+\ruby[||->]{雀}{すずめ}+
+\end{lrbox}
+\fbox{\parbox{.42\linewidth}{%
+\ruby[||->]{雀}{すずめ}の…
+\quad \usebox{\myexample}%
+\rule{0pt}{12pt}\\
+インコの
+}}\quad vs.\quad
+\begin{lrbox}{\myexample}
+\small$\leftarrow$ \verb+\ruby[|->]{雀}{すずめ}+
+\end{lrbox}
+\fbox{\parbox{.42\linewidth}{%
+\ruby[|->]{雀}{すずめ}の…
+\quad \usebox{\myexample}%
+\rule{0pt}{12pt}\\
+インコの
+}}
+\end{quote}
+\end{itemize}
+
+\subsection{More Commands}
+
+\begin{itemize}
+\item \verb+\aruby+: attaches ruby to an alphabet (non-CJK) string.
+\par\noindent\Eg\quad
+\verb+\aruby{Get out}{ゲラウッ}!+ $\rightarrow$
+  \aruby{Get out}{ゲラウッ}!
+\item \verb+\rubyfontsetup+: specifies the font used for ruby output.
+For example, when you want to attach mincho-font ruby
+to gothic-font kanji string you can do as follows:
+\par\noindent
+{\small
+\verb+\rubyfontsetup{\mcfamily}この{\gtfamily \ruby[j]{明朝体}{みん|ちょう|たい}}+}
+$\rightarrow$
+{\rubyfontsetup{\mcfamily}この{\gtfamily \ruby[j]{明朝体}{みん|ちょう|たい}}}
+\end{itemize}
+
+\end{document}

@@ -89,6 +89,11 @@
     Feature of movable group ruby is disabled%
   }\pxrr@eh@fatal
 }
+\def\pxrr@warn@load@order#1{%
+  \pxrr@warn{%
+    This package should be loaded after '#1'%
+  }%
+}
 \def\pxrr@interror#1{%
   \pxrr@fatal@error{INTERNAL ERROR (#1)}%
   \pxrr@eh@fatal
@@ -420,13 +425,40 @@
 }{%
   \pxrr@csletcs{ifpxrr@in@xetex}{iffalse}%
 }
+\@ifpackageloaded{xeCJK}{%
+  \pxrr@csletcs{ifpxrr@in@xecjk}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@xecjk}{iffalse}%
+  \AtBeginDocument{%
+    \@ifpackageloaded{xeCJK}{%
+      \pxrr@warn@load@order{xeCJK}%
+    }{}%
+  }%
+}
+\pxrr@ifprimitive\luatexrevision{%
+  \pxrr@csletcs{ifpxrr@in@luatex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@luatex}{iffalse}%
+}
+\@ifpackageloaded{luatexja-core}{%
+  \pxrr@csletcs{ifpxrr@in@luatexja}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@luatexja}{iffalse}%
+  \AtBeginDocument{%
+    \@ifpackageloaded{luatexja-core}{%
+      \pxrr@warn@load@order{LuaTeX-ja}%
+    }{}%
+  }%
+}
 \ifpxrr@in@xetex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else\ifpxrr@in@luatex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
 \else\ifpxrr@in@uptex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
 \else
   \pxrr@csletcs{ifpxrr@in@unicode}{iffalse}%
-\fi\fi
+\fi\fi\fi
 \def\pxrr@jc#1{%
   \pxrr@jc@a#1\pxrr@nil
 }
@@ -453,20 +485,27 @@
 \else
   \pxrr@csletcs{ifpxrr@in@tate}{iffalse}
 \fi
-\def\pxrr@get@jchar@token#1#2{%
-  \begingroup
-    \kansujichar\@ne=#2\relax
-    \xdef\pxrr@x@gtempa{\kansuji\@ne}%
-  \endgroup
-  \let#1\pxrr@x@gtempa
-}
-\ifpxrr@in@unicode\else
-  \ifpxrr@in@ptex\else
-    \def\pxrr@get@jchar@token#1#2{%
-      \def#1{?}%
-    }
-  \fi
-\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@jchar@token#1#2{%
+    \begingroup
+      \kansujichar\@ne=#2\relax
+      \xdef\pxrr@x@gtempa{\kansuji\@ne}%
+    \endgroup
+    \let#1\pxrr@x@gtempa
+  }
+\else\ifpxrr@in@unicode
+  \def\pxrr@get@jchar@token#1#2{%
+    \begingroup
+      \lccode`\?=#2\relax
+      \lowercase{\xdef\pxrr@x@gtempa{?}}%
+    \endgroup
+    \let#1\pxrr@x@gtempa
+  }
+\else
+  \def\pxrr@get@jchar@token#1#2{%
+    \def#1{?}%
+  }
+\fi\fi
 \pxrr@jchardef\pxrr@x@K=\pxrr@jc{306C:4E00}
 \ifpxrr@in@ptex
   \def\pxrr@get@iiskip#1{%
@@ -486,11 +525,20 @@
       \fi
     }%
   }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@iiskip#1{%
+    \edef#1{%
+      \ifnum\ltjgetparameter{autospacing}=\@ne
+        \ltjgetparameter{kanjiskip}%
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
 \else
   \def\pxrr@get@iiskip#1{%
     \let#1\pxrr@zeropt
   }
-\fi
+\fi\fi
 \ifpxrr@in@ptex
   \def\pxrr@get@iaiskip#1{%
     \pxrr@x@swafalse
@@ -509,22 +557,68 @@
       \fi
     }%
   }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@iaiskip#1{%
+    \edef#1{%
+      \ifnum\ltjgetparameter{autoxspacing}=\@ne
+        \ltjgetparameter{xkanjiskip}%
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
 \else
   \def\pxrr@get@iaiskip#1{%
-    \let#1\pxrr@zeropt
-  }
-\fi
+    \begingroup
+      \setbox\z@\hbox{M\pxrr@x@K}%
+      \setbox\tw@\hbox{M\vrule\@width\z@\relax\pxrr@x@K}%
+      \@tempdima\wd\z@ \advance\@tempdima-\wd\tw@
+      \@tempdimb\@tempdima \divide\@tempdimb\thr@@
+      \xdef\pxrr@x@gtempa{\the\@tempdima\space minus \the\@tempdimb}%
+    \endgroup
+    \let#1=\pxrr@x@gtempa
+  }%
+\fi\fi
 \ifpxrr@in@ptex
   \def\pxrr@get@zwidth#1{%
     \@tempdima=1zw\relax
     \edef#1{\the\@tempdima}%
   }
-\else
+\else\if\ifx\zw\@undefined T\else F\fi F% if defined
   \def\pxrr@get@zwidth#1{%
-    \@tempdima=1em\relax
+    \@tempdima=1\zw\relax
     \edef#1{\the\@tempdima}%
   }
-\fi
+\else\if\ifx\jsZw\@undefined T\else F\fi F% if defined
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1\jsZw\relax
+    \edef#1{\the\@tempdima}%
+  }
+\else\ifnum\pxrr@x@K>\@cclv
+  \def\pxrr@get@zwidth#1{%
+    \setbox\tw@\hbox{\pxrr@x@K}%
+    \@tempdima\wd\tw@
+    \ifdim\@tempdima>\z@\else \@tempdima\f@size\p@ \fi
+    \edef#1{\the\@tempdima}%
+  }
+\else
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima\f@size\p@\relax
+    \edef#1{\the\@tempdima}%
+  }
+\fi\fi\fi\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\prebreakpenalty`#2\relax
+  }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\ltjgetparameter{prebreakpenalty}{`#2}\relax
+  }
+\else
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\z@
+  }
+\fi\fi
 \newif\ifpxrr@in@setup \pxrr@in@setupfalse
 \newcommand*\rubysetup[1]{%
   \pxrr@in@setuptrue
@@ -1331,7 +1425,7 @@
   \pxrr@check@kinsoku@c#1#1%
 }
 \def\pxrr@check@kinsoku@c#1{%
-  \pxrr@cntr\prebreakpenalty`#1\relax
+  \pxrr@get@prebreakpenalty\pxrr@cntr{#1}%
   \pxrr@tempb
 }
 \def\pxrr@tempa#1#2\pxrr@nil{%

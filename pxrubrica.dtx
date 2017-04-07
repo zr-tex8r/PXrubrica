@@ -44,6 +44,10 @@
 \newcommand*{\pad}{\hspace{0pt plus 10pt}\linebreak[0]}
 \newcommand*{\Means}{：\ }
 \newcommand*{\Note}{\par\noindent ※\ }
+\providecommand*{\pTeX}{p\TeX}
+\providecommand*{\upTeX}{u\pTeX}
+\providecommand*{\XeTeX}{XeTeX}
+\providecommand*{\LuaTeX}{Lua\TeX}
 \inhibitxspcode`／=0
 \begin{document}
   \DocInput{pxrubrica.dtx}
@@ -705,6 +709,19 @@
   \pxrr@fatal@error{%
     Feature of movable group ruby is disabled%
   }\pxrr@eh@fatal
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@warn@load@order}
+% Unicode {\TeX}用の日本語組版パッケージ（Lua{\TeX}-ja等）は
+% このパッケージより前に読み込むべきだが、後で読み込まれている
+% ことが判明した場合。
+%    \begin{macrocode}
+\def\pxrr@warn@load@order#1{%
+  \pxrr@warn{%
+    This package should be loaded after '#1'%
+  }%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1631,7 +1648,7 @@
 % \end{macro}
 %
 % \begin{macro}{\ifpxrr@in@ptex}
-% エンジンが {p\TeX} 系（{up\TeX} 系を含む）であるか。
+% エンジンが{\pTeX}系（{\upTeX}系を含む）であるか。
 % |\kansuji| のプリミティブテストで判定する。
 %    \begin{macrocode}
 \pxrr@ifprimitive\kansuji{%
@@ -1643,7 +1660,7 @@
 % \end{macro}
 %
 % \begin{macro}{\ifpxrr@in@uptex}
-% エンジンが {up\TeX} 系であるか。
+% エンジンが{\upTeX}系であるか。
 % |\enablecjktoken| のプリミティブテストで判定する。
 %    \begin{macrocode}
 \pxrr@ifprimitive\enablecjktoken{%
@@ -1655,7 +1672,7 @@
 % \end{macro}
 %
 % \begin{macro}{\ifpxrr@in@xetex}
-% エンジンが {XeTeX} 系であるか。
+% エンジンが{\XeTeX}系であるか。
 % |\XeTeXrevision| のプリミティブテストで判定する。
 %    \begin{macrocode}
 \pxrr@ifprimitive\XeTeXrevision{%
@@ -1666,16 +1683,65 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\ifpxrr@in@xecjk}
+% \PKN{xeCJK}パッケージが使用されているか。
+%    \begin{macrocode}
+\@ifpackageloaded{xeCJK}{%
+  \pxrr@csletcs{ifpxrr@in@xecjk}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@xecjk}{iffalse}%
+%    \end{macrocode}
+% ここで未読込でかつプリアンブル末尾で読み込まれている場合は警告する。
+%    \begin{macrocode}
+  \AtBeginDocument{%
+    \@ifpackageloaded{xeCJK}{%
+      \pxrr@warn@load@order{xeCJK}%
+    }{}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@luatex}
+% エンジンが{\LuaTeX}系であるか。
+% |\luatexrevision| のプリミティブテストで判定する。
+%    \begin{macrocode}
+\pxrr@ifprimitive\luatexrevision{%
+  \pxrr@csletcs{ifpxrr@in@luatex}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@luatex}{iffalse}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@in@luatexja}
+% \PKN{LuaTeX-ja}パッケージが使用されているか。
+%    \begin{macrocode}
+\@ifpackageloaded{luatexja-core}{%
+  \pxrr@csletcs{ifpxrr@in@luatexja}{iftrue}%
+}{%
+  \pxrr@csletcs{ifpxrr@in@luatexja}{iffalse}%
+  \AtBeginDocument{%
+    \@ifpackageloaded{luatexja-core}{%
+      \pxrr@warn@load@order{LuaTeX-ja}%
+    }{}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\ifpxrr@in@unicode}
 % 「和文」内部コードがUnicodeであるか。
 %    \begin{macrocode}
 \ifpxrr@in@xetex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
+\else\ifpxrr@in@luatex
+  \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
 \else\ifpxrr@in@uptex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
 \else
   \pxrr@csletcs{ifpxrr@in@unicode}{iffalse}%
-\fi\fi
+\fi\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1730,21 +1796,36 @@
 % \begin{macro}{\pxrr@get@jchar@token}
 % |\pxrr@get@jchar@token\CS{|\jmeta{整数}|}|\Means
 % 内部文字コードが\jmeta{整数}である和文文字のトークンを得る。
+%
+% {\pTeX}系の場合。|\kansuji| トリックを利用する。
 %    \begin{macrocode}
-\def\pxrr@get@jchar@token#1#2{%
-  \begingroup
-    \kansujichar\@ne=#2\relax
-    \xdef\pxrr@x@gtempa{\kansuji\@ne}%
-  \endgroup
-  \let#1\pxrr@x@gtempa
-}
-\ifpxrr@in@unicode\else
-  \ifpxrr@in@ptex\else
-    \def\pxrr@get@jchar@token#1#2{%
-      \def#1{?}%
-    }
-  \fi
-\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@jchar@token#1#2{%
+    \begingroup
+      \kansujichar\@ne=#2\relax
+      \xdef\pxrr@x@gtempa{\kansuji\@ne}%
+    \endgroup
+    \let#1\pxrr@x@gtempa
+  }
+%    \end{macrocode}
+% Unicode対応{\TeX}の場合。|\lowercase| トリックを利用する。
+%    \begin{macrocode}
+\else\ifpxrr@in@unicode
+  \def\pxrr@get@jchar@token#1#2{%
+    \begingroup
+      \lccode`\?=#2\relax
+      \lowercase{\xdef\pxrr@x@gtempa{?}}%
+    \endgroup
+    \let#1\pxrr@x@gtempa
+  }
+%    \end{macrocode}
+% それ以外ではダミー定義。
+%    \begin{macrocode}
+\else
+  \def\pxrr@get@jchar@token#1#2{%
+    \def#1{?}%
+  }
+\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1758,6 +1839,8 @@
 % \begin{macro}{\pxrr@get@iiskip}
 % |\pxrr@get@iiskip\CS|\Means
 % 現在の実効の和文間空白の量を取得する。
+%
+% {\pTeX}系の場合。
 %    \begin{macrocode}
 \ifpxrr@in@ptex
   \def\pxrr@get@iiskip#1{%
@@ -1784,17 +1867,36 @@
       \fi
     }%
   }
+%    \end{macrocode}
+%
+% \PKN{LuaTeX-ja}使用の場合。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@iiskip#1{%
+    \edef#1{%
+      \ifnum\ltjgetparameter{autospacing}=\@ne
+        \ltjgetparameter{kanjiskip}%
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+%    \end{macrocode}
+%
+% それ以外の場合はゼロとする。
+%    \begin{macrocode}
 \else
   \def\pxrr@get@iiskip#1{%
     \let#1\pxrr@zeropt
   }
-\fi
+\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\pxrr@get@iaiskip}
 % |\pxrr@get@iaiskip\CS|\Means
 % 現在の実効の和欧文間空白の量を取得する。
+%
+% {\pTeX}系の場合。
 %    \begin{macrocode}
 \ifpxrr@in@ptex
   \def\pxrr@get@iaiskip#1{%
@@ -1814,29 +1916,118 @@
       \fi
     }%
   }
+%    \end{macrocode}
+%
+% \PKN{LuaTeX-ja}使用の場合。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@iaiskip#1{%
+    \edef#1{%
+      \ifnum\ltjgetparameter{autoxspacing}=\@ne
+        \ltjgetparameter{xkanjiskip}%
+      \else \pxrr@zeropt
+      \fi
+    }%
+  }
+%    \end{macrocode}
+%
+% それ以外の場合は実際の組版結果から判断する。
+%    \begin{macrocode}
 \else
   \def\pxrr@get@iaiskip#1{%
-    \let#1\pxrr@zeropt
-  }
-\fi
+    \begingroup
+      \setbox\z@\hbox{M\pxrr@x@K}%
+      \setbox\tw@\hbox{M\vrule\@width\z@\relax\pxrr@x@K}%
+      \@tempdima\wd\z@ \advance\@tempdima-\wd\tw@
+      \@tempdimb\@tempdima \divide\@tempdimb\thr@@
+      \xdef\pxrr@x@gtempa{\the\@tempdima\space minus \the\@tempdimb}%
+    \endgroup
+    \let#1=\pxrr@x@gtempa
+  }%
+\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\pxrr@get@zwidth}
 % |\pxrr@get@zwidth\CS|\Means
 % 現在の和文フォントの全角幅を取得する。
+%
+% {\pTeX}の場合、|1zw| でよい。
 %    \begin{macrocode}
 \ifpxrr@in@ptex
   \def\pxrr@get@zwidth#1{%
     \@tempdima=1zw\relax
     \edef#1{\the\@tempdima}%
   }
-\else
+%    \end{macrocode}
+%
+% |\zw| が定義されている場合は |1\zw| とする。
+%    \begin{macrocode}
+\else\if\ifx\zw\@undefined T\else F\fi F% if defined
   \def\pxrr@get@zwidth#1{%
-    \@tempdima=1em\relax
+    \@tempdima=1\zw\relax
     \edef#1{\the\@tempdima}%
   }
-\fi
+%    \end{macrocode}
+%
+% |\jsZw| が定義されている場合は |1\jsZw| とする。
+%    \begin{macrocode}
+\else\if\ifx\jsZw\@undefined T\else F\fi F% if defined
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima=1\jsZw\relax
+    \edef#1{\the\@tempdima}%
+  }
+%    \end{macrocode}
+%
+% それ以外で、|\pxrr@x@K| が有効な場合は実際の組版結果から判断する。
+%    \begin{macrocode}
+\else\ifnum\pxrr@x@K>\@cclv
+  \def\pxrr@get@zwidth#1{%
+    \setbox\tw@\hbox{\pxrr@x@K}%
+    \@tempdima\wd\tw@
+    \ifdim\@tempdima>\z@\else \@tempdima\f@size\p@ \fi
+    \edef#1{\the\@tempdima}%
+  }
+%    \end{macrocode}
+%
+% それ以外の場合は要求サイズと等しいとする。
+%    \begin{macrocode}
+\else
+  \def\pxrr@get@zwidth#1{%
+    \@tempdima\f@size\p@\relax
+    \edef#1{\the\@tempdima}%
+  }
+\fi\fi\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@prebreakpenalty}
+% |\pxrr@get@prebreakpenalty\CS{|\jmeta{文字}|}|\Means
+% 文字の前禁則ペナルティ値を整数レジスタに代入する。
+%
+% {\pTeX}の場合、|\prebreakpenalty| を使う。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\prebreakpenalty`#2\relax
+  }
+%    \end{macrocode}
+%
+% \PKN{LuaTeX-ja}使用時は、prebreakpenalty プロパティを読み出す。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\ltjgetparameter{prebreakpenalty}{`#2}\relax
+  }
+%    \end{macrocode}
+%
+% それ以外の場合はゼロとして扱う。
+%    \begin{macrocode}
+\else
+  \def\pxrr@get@prebreakpenalty#1#2{%
+    #1=\z@
+  }
+\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3255,7 +3446,7 @@
   \pxrr@check@kinsoku@c#1#1%
 }
 \def\pxrr@check@kinsoku@c#1{%
-  \pxrr@cntr\prebreakpenalty`#1\relax
+  \pxrr@get@prebreakpenalty\pxrr@cntr{#1}%
   \pxrr@tempb
 }
 %    \end{macrocode}
