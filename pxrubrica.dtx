@@ -27,7 +27,7 @@
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
 %</driver>
-  [2012/04/30 v1.0 PX Japanese-style ruby]
+  [2014/12/23 v1.0a PX Japanese-style ruby]
 %<*driver>
 \documentclass{jsarticle}
 \usepackage{doc}
@@ -3456,7 +3456,7 @@
 \def\pxrr@intrude@end{%
   \ifpxrr@ghost\else
 %    \end{macrocode}
-% 実効の進入幅は |\pxrr@bintr| と |\pxrr@bspace| の小さい方。
+% 実効の進入幅は |\pxrr@aintr| と |\pxrr@aspace| の小さい方。
 %    \begin{macrocode}
     \let\pxrr@intr@amount\pxrr@aspace
     \ifdim\pxrr@aintr<\pxrr@intr@amount\relax
@@ -3465,6 +3465,8 @@
 %    \end{macrocode}
 % |\pxrr@auto@*| の設定法は和文ルビと欧文ルビで処理が異なる。
 %    \begin{macrocode}
+    \pxrr@csletcs{ifpxrr@bnobr}{ifpxrr@anobr}%
+    \let\pxrr@bscomp\pxrr@ascomp
     \ifpxrr@abody
       \pxrr@intrude@setauto@a
     \else

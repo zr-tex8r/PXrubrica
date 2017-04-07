@@ -37,7 +37,7 @@
 %%   Right brace   \}     Tilde         \~}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pxrubrica}
-  [2012/04/30 v1.0 PX Japanese-style ruby]
+  [2014/12/23 v1.0a PX Japanese-style ruby]
 \RequirePackage{keyval}
 \def\pxrr@pkgname{pxrubrica}
 \def\pxrr@error{%
@@ -1428,6 +1428,8 @@
     \ifdim\pxrr@aintr<\pxrr@intr@amount\relax
       \let\pxrr@intr@amount\pxrr@aintr
     \fi
+    \pxrr@csletcs{ifpxrr@bnobr}{ifpxrr@anobr}%
+    \let\pxrr@bscomp\pxrr@ascomp
     \ifpxrr@abody
       \pxrr@intrude@setauto@a
     \else
