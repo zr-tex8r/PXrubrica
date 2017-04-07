@@ -1937,6 +1937,7 @@
 %    \begin{macrocode}
 \newcommand*\rubyuseaghost{%
   \pxrr@aghosttrue
+  \pxrr@setup@aghost
 }
 \newcommand*\rubynouseaghost{%
   \pxrr@aghostfalse
@@ -4100,23 +4101,24 @@
 % （グループ内で |\usefont{T1}{lmr}{m}{n}| を呼んでおくと、
 % 大域的に |\T1/lmr/m/n/2.5| が定義される。）
 %    \begin{macrocode}
-\ifpxrr@aghost
+\def\pxrr@setup@aghost{%
+  \global\let\pxrr@setup@aghost\relax
   \IfFileExists{t1lmr.fd}{%
     \begingroup
-      \fontsize{2.5}{0}\usefont{T1}{lmr}{m}{n}
+      \fontsize{2.5}{0}\usefont{T1}{lmr}{m}{n}%
     \endgroup
-    \pxrr@letcs\pxrr@aghostfont{T1/lmr/m/n/2.5}%
-    \chardef\pxrr@aghostchar=23 % compwordmark
-    \def\pxrr@aghost{{\pxrr@aghostfont\pxrr@aghostchar}}%
-    \xspcode\pxrr@aghostchar=3 %
+    \global\pxrr@letcs\pxrr@aghostfont{T1/lmr/m/n/2.5}%
+    \global\chardef\pxrr@aghostchar=23 % compwordmark
+    \gdef\pxrr@aghost{{\pxrr@aghostfont\pxrr@aghostchar}}%
+    \global\xspcode\pxrr@aghostchar=3 %
   }{%else
     \pxrr@warn{Ghost embedding for \string\aruby\space
       is disabled,\MessageBreak
       since package lmodern is missing}%
-    \pxrr@aghostfalse
-    \let\pxrr@aghosttrue\relax
+    \global\pxrr@aghostfalse
+    \global\let\pxrr@aghosttrue\relax
   }%
-\fi
+}
 %    \end{macrocode}
 % \end{macro}
 %
