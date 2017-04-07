@@ -3429,15 +3429,37 @@
         \hskip-\pxrr@intr@amount\relax
       \fi
 %    \end{macrocode}
-% 段落冒頭でない場合、ペナルティ、字間空きのグル―、進入用のグル―を
+% 段落冒頭でない場合、字間空きのグル―、進入用のグル―を
 % 順番に入れる。
+% \Note ペナルティは |\pxrr@put@head@penalty| で既に入れている。
 %    \begin{macrocode}
     \else
-      \penalty\pxrr@auto@penalty\relax
+%     \penalty\pxrr@auto@penalty\relax
       \hskip-\pxrr@intr@amount\relax
       \hskip\pxrr@auto@icspace\relax
     \fi
   \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@put@head@penalty}
+% 前側に補助指定で定められた値のペナルティを置く。
+% 現在位置に既にペナルティがある場合は合算する。
+%    \begin{macrocode}
+\def\pxrr@put@head@penalty{%
+  \ifpxrr@ghost\else \ifpxrr@par@head\else
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+    \ifnum\pxrr@auto@penalty=\z@\else
+      \pxrr@cnta\lastpenalty \unpenalty
+      \advance\pxrr@cnta\pxrr@auto@penalty\relax
+      \penalty\pxrr@cnta
+    \fi
+  \fi\fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3878,6 +3900,7 @@
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list
   \let\pxrr@whole@list\pxrr@res
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
   \pxrr@any@protrfalse
 \ifpxrrDebug
 \pxrr@debug@show@recomp
@@ -3995,6 +4018,7 @@
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list
   \let\pxrr@whole@list\pxrr@res
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
 \ifpxrrDebug
 \pxrr@debug@show@recomp
 \fi
@@ -4026,6 +4050,7 @@
 %    \begin{macrocode}
 \def\pxrr@ruby@main@tg{%
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
   \let\pxrr@locate@sing@\pxrr@locate@inner
   \ifpxrr@aprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@end

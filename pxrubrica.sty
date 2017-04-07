@@ -1402,11 +1402,24 @@
         \hskip-\pxrr@intr@amount\relax
       \fi
     \else
-      \penalty\pxrr@auto@penalty\relax
       \hskip-\pxrr@intr@amount\relax
       \hskip\pxrr@auto@icspace\relax
     \fi
   \fi
+}
+\def\pxrr@put@head@penalty{%
+  \ifpxrr@ghost\else \ifpxrr@par@head\else
+    \ifpxrr@abody
+      \pxrr@intrude@setauto@a
+    \else
+      \pxrr@intrude@setauto@j
+    \fi
+    \ifnum\pxrr@auto@penalty=\z@\else
+      \pxrr@cnta\lastpenalty \unpenalty
+      \advance\pxrr@cnta\pxrr@auto@penalty\relax
+      \penalty\pxrr@cnta
+    \fi
+  \fi\fi
 }
 \def\pxrr@intrude@end{%
   \ifpxrr@ghost\else
@@ -1610,6 +1623,7 @@
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list
   \let\pxrr@whole@list\pxrr@res
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
   \pxrr@any@protrfalse
 \ifpxrrDebug
 \pxrr@debug@show@recomp
@@ -1691,6 +1705,7 @@
   \pxrr@zip@list\pxrr@body@list\pxrr@ruby@list
   \let\pxrr@whole@list\pxrr@res
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
 \ifpxrrDebug
 \pxrr@debug@show@recomp
 \fi
@@ -1713,6 +1728,7 @@
 }
 \def\pxrr@ruby@main@tg{%
   \pxrr@check@par@head
+  \pxrr@put@head@penalty
   \let\pxrr@locate@sing@\pxrr@locate@inner
   \ifpxrr@aprotr\else
     \let\pxrr@locate@sing@\pxrr@locate@end
