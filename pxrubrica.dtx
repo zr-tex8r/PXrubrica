@@ -929,7 +929,7 @@
 % \end{macro}
 % \end{macro}
 %
-% \begin{macro}{\ifpxrr@d@athead}
+% \begin{macro}{\pxrr@d@athead}
 % 肩付き／中付きの設定。
 % |\rubysetup| の |c|／|h|／|H| の設定。
 % 0 = 中付き（|c|）；
@@ -2635,13 +2635,13 @@
 % 横組みでは不可なので中付きに変更する。
 %    \begin{macrocode}
     \ifpxrr@in@tate\else
-      \pxrr@athead\z@
+      \chardef\pxrr@athead\z@
     \fi
 %    \end{macrocode}
 % グループルビでは不可なので中付きに変更する。
 %    \begin{macrocode}
     \if g\pxrr@mode
-      \pxrr@athead\z@
+      \chardef\pxrr@athead\z@
     \fi
 %    \end{macrocode}
 % 以上の2つの場合について、明示指定であれば警告を出す。
@@ -3110,7 +3110,7 @@
 %
 % \begin{macro}{\pxrr@compose@block}
 % |\pxrr@compose@block{|\jmeta{パターン}|}{|^^A
-%r \jmeta{親文字ブロック}|}{|\jmeta{ルビ文字ブロック}|}|\Means
+% \jmeta{親文字ブロック}|}{|\jmeta{ルビ文字ブロック}|}|\Means
 % 1つのブロックの組版処理。
 % \jmeta{パターン}は |\pxrr@evenspace| と同じ意味。
 % 突出があるかを |\ifpxrr@protr| に返し、前と後の突出の量を
