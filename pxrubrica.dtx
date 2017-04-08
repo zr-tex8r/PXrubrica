@@ -1055,12 +1055,29 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\ifpxrr@athead@iven}
+% 肩付き／中付きの設定が明示的であるか。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@athead@given \pxrr@athead@givenfalse
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@mode}
 % モノルビ（|m|）・グループルビ（|g|）・熟語ルビ（|j|）のいずれか。
 % |\ruby| のオプションの設定値。
 % オプション文字への暗黙文字トークン。
 %    \begin{macrocode}
 \let\pxrr@mode=\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@mode@given}
+% 基本モードの設定が明示的であるか。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@mode@given \pxrr@mode@givenfalse
+\newif\ifpxrr@afintr \pxrr@afintrfalse
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2309,6 +2326,11 @@
   \pxrr@bfintrfalse
   \pxrr@afintrfalse
 %    \end{macrocode}
+% 明示フラグを偽にする。
+%    \begin{macrocode}
+  \pxrr@mode@givenfalse
+  \pxrr@athead@givenfalse
+%    \end{macrocode}
 % 有限状態機械を開始させる。
 % 入力の末尾に |@| を加えている。
 % |\pxrr@end| はエラー時の脱出に用いる。
@@ -2498,21 +2520,27 @@
 }
 \def\pxrr@po@PR@c{%
   \chardef\pxrr@athead\z@
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@h{%
   \chardef\pxrr@athead\@ne
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@H{%
   \chardef\pxrr@athead\tw@
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@m{%
   \let\pxrr@mode=m%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@g{%
   \let\pxrr@mode=g%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@j{%
   \let\pxrr@mode=j%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@P{%
   \chardef\pxrr@side\z@
@@ -2603,26 +2631,27 @@
     \pxrr@fatal@bad@intr
   \fi
 %    \end{macrocode}
-% モノルビ（|m|）・熟語ルビ（|j|）に関する検査。
+% 欧文ルビではモノルビ（|m|）・熟語ルビ（|j|）は指定不可なので、
+% グループルビに変更する。
+% この時に明示指定である場合は警告を出す。
 %    \begin{macrocode}
   \if g\pxrr@mode\else
-%    \end{macrocode}
-% 欧文ルビでは不可なのでグループルビに変更する。
-%    \begin{macrocode}
     \ifpxrr@abody
       \let\pxrr@mode=g\relax
+      \ifpxrr@mode@given
+        \pxrr@warn@must@group
+      \fi
     \fi
+  \fi
 %    \end{macrocode}
-% 両側ルビでは不可なのでグループルビに変更する。
+% 両側ルビではモノルビ（|m|）・熟語ルビ（|j|）は指定不可なので、
+% グループルビに変更する。
+% この時に明示指定である場合は警告を出す。
 %    \begin{macrocode}
+  \if g\pxrr@mode\else
     \ifnum\pxrr@side=\tw@
       \let\pxrr@mode=g\relax
-    \fi
-%    \end{macrocode}
-% 以上の2つの場合について、明示指定であれば警告を出す。
-%    \begin{macrocode}
-    \if g\pxrr@mode
-      \if g\pxrr@d@mode
+      \ifpxrr@mode@given
         \pxrr@warn@must@group
       \fi
     \fi
@@ -2647,7 +2676,7 @@
 % 以上の2つの場合について、明示指定であれば警告を出す。
 %    \begin{macrocode}
     \ifnum\pxrr@athead=\z@
-      \ifnum\pxrr@d@athead>\z@
+      \ifpxrr@athead@given
         \pxrr@warn@bad@athead
       \fi
     \fi
@@ -4531,6 +4560,8 @@
     pxrr@aintr = \pxrr@aintr^^J%
     pxrr@athead = \the\pxrr@athead^^J%
     pxrr@mode = \meaning\pxrr@mode^^J%
+    ifpxrr@athead@given = \meaning\ifpxrr@athead@given^^J%
+    ifpxrr@mode@given = \meaning\ifpxrr@mode@given^^J%
     pxrr@body@list = \meaning\pxrr@body@list^^J%
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
     pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%
