@@ -3066,18 +3066,20 @@
 % 突出があるかを |\ifpxrr@protr| に返し、前と後の突出の量を
 % それぞれ |\pxrr@bspace| と |\pxrr@aspace| に返す。
 %    \begin{macrocode}
-\def\pxrr@compose@block{%
+\def\pxrr@compose@block#1#2#3{%
 %    \end{macrocode}
 % 本体の前に加工処理を介入させる。
+% \Note |\pxrr@compose@block@pre| は2つのルビ引数を取る。
 % |\pxrr@compose@block@do| に本体マクロを |\let| する。
 %    \begin{macrocode}
   \let\pxrr@compose@block@do\pxrr@compose@oneside@block@do
-  \pxrr@compose@block@pre
+  \pxrr@compose@block@pre{#1}{#2}{#3}{}%
 }
 %    \end{macrocode}
 % こちらが本体。
 %    \begin{macrocode}
-\def\pxrr@compose@oneside@block@do#1#2#3{%
+% #4は空
+\def\pxrr@compose@oneside@block@do#1#2#3#4{%
   \setbox\pxrr@boxa\pxrr@hbox{#2}%
   \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
@@ -3240,7 +3242,10 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@compose@block@pre}
-% 親文字列の加工を行う。
+% |\pxrr@compose@block@pre{|\jmeta{パターン}|}{|^^A
+%r \jmeta{親文字}|}{|\jmeta{ルビ1}|}{|\jmeta{ルビ2}|}|\Means
+% 親文字列・ルビ文字列の加工を行う。
+% \Note 両側ルビ対応のため、ルビ用引数が2つある。
 %    \begin{macrocode}
 \def\pxrr@compose@block@pre{%
 %    \end{macrocode}
@@ -3249,27 +3254,49 @@
   \pxrr@ifnum{\pxrr@fullsize>\z@}{%
     \pxrr@compose@block@pre@a
   }{%
-    \pxrr@compose@block@pre@c
+    \pxrr@compose@block@pre@d
   }%
 }
-\def\pxrr@compose@block@pre@a#1#2#3{%
-  \def\pxrr@compose@block@tempa{#3}%
+% {パターン}{親文字}{ルビ1}{ルビ2}
+\def\pxrr@compose@block@pre@a#1#2#3#4{%
+  \def\pxrr@compose@block@tempa{#4}%
   \pxrr@transform@kana\pxrr@compose@block@tempa
   \expandafter\pxrr@compose@block@pre@b
-   \expandafter{\pxrr@compose@block@tempa}{#1}{#2}%
+   \expandafter{\pxrr@compose@block@tempa}{#1}{#2}{#3}%
 }
-\def\pxrr@compose@block@pre@b#1#2#3{%
-  \pxrr@compose@block@pre@c{#2}{#3}{#1}%
+% {ルビ2}{パターン}{親文字}{ルビ1}
+\def\pxrr@compose@block@pre@b#1#2#3#4{%
+  \def\pxrr@compose@block@tempa{#4}%
+  \pxrr@transform@kana\pxrr@compose@block@tempa
+  \expandafter\pxrr@compose@block@pre@c
+   \expandafter{\pxrr@compose@block@tempa}{#1}{#2}{#3}%
 }
-\def\pxrr@compose@block@pre@c{%
+% {ルビ1}{ルビ2}{パターン}{親文字}
+\def\pxrr@compose@block@pre@c#1#2#3#4{%
+  \pxrr@compose@block@pre@d{#3}{#4}{#1}{#2}%
+}
+\def\pxrr@compose@block@pre@d{%
   \pxrr@ifnum{\pxrr@evensp=\z@}{%
-    \pxrr@compose@block@pre@d
+    \pxrr@compose@block@pre@e
+  }{%
+    \pxrr@compose@block@pre@f
+  }%
+}
+% {パターン}{親文字}
+\def\pxrr@compose@block@pre@e#1#2{%
+  \pxrr@compose@block@pre@f{#1}{{#2}}%
+}
+\chardef\pxrr@revensp=1
+\def\pxrr@compose@block@pre@f{%
+  \pxrr@ifnum{\pxrr@revensp=\z@}{%
+    \pxrr@compose@block@pre@g
   }{%
     \pxrr@compose@block@do
   }%
 }
-\def\pxrr@compose@block@pre@d#1#2{%
-  \pxrr@compose@block@do{#1}{{#2}}%
+% {パターン}{親文字}{ルビ1}{ルビ2}
+\def\pxrr@compose@block@pre@g#1#2#3#4{%
+  \pxrr@compose@block@do{#1}{#2}{{#3}}{{#4}}%
 }
 %    \end{macrocode}
 % \end{macro}
