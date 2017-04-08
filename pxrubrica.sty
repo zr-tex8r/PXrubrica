@@ -119,7 +119,8 @@
 \newif\ifpxrr@aghost \pxrr@aghostfalse
 \def\pxrr@inter@gap{0}
 \newif\ifpxrr@edge@adjust \pxrr@edge@adjustfalse
-\newif\ifpxrr@break@jukugo \pxrr@edge@adjustfalse
+\newif\ifpxrr@break@jukugo \pxrr@break@jukugofalse
+\newif\ifpxrr@safe@mode \pxrr@safe@modefalse
 \newif\ifpxrr@d@bprotr \pxrr@d@bprotrtrue
 \newif\ifpxrr@d@aprotr \pxrr@d@aprotrtrue
 \def\pxrr@d@bintr{}
@@ -144,6 +145,7 @@
 \newif\ifpxrr@abody
 \chardef\pxrr@side=0
 \chardef\pxrr@evensp=1
+\chardef\pxrr@revensp=1
 \chardef\pxrr@fullsize=1
 \newif\ifpxrr@ok
 \newcount\pxrr@cnta
@@ -451,6 +453,20 @@
   }%
 }
 \ifpxrr@in@xetex
+\else\ifpxrr@in@luatex
+\else\ifpxrr@in@ptex
+\else
+  \pxrr@ifprimitive\pdftexrevision{%
+    \pxrr@warn{%
+      The engine in use seems to be pdfTeX,\MessageBreak
+      so safe mode is turned on%
+    }%
+    \AtEndOfPackage{%
+      \rubysafemode
+    }%
+  }
+\fi\fi\fi
+\ifpxrr@in@xetex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
 \else\ifpxrr@in@luatex
   \pxrr@csletcs{ifpxrr@in@unicode}{iftrue}%
@@ -680,6 +696,12 @@
 }
 \newcommand*\rubynobreakjukugo{%
   \pxrr@break@jukugofalse
+}
+\newcommand*\rubysafemode{%
+  \pxrr@safe@modetrue
+}
+\newcommand*\rubynosafemode{%
+  \pxrr@safe@modefalse
 }
 \newcommand*\rubystretchprop[3]{%
   \edef\pxrr@sprop@x{#1}%
@@ -1365,7 +1387,6 @@
 \def\pxrr@compose@block@pre@e#1#2{%
   \pxrr@compose@block@pre@f{#1}{{#2}}%
 }
-\chardef\pxrr@revensp=0
 \def\pxrr@compose@block@pre@f{%
   \pxrr@ifnum{\pxrr@revensp=\z@}{%
     \pxrr@compose@block@pre@g
@@ -1640,6 +1661,9 @@
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
   \pxrr@if@alive{%
     \if g\pxrr@mode
       \pxrr@ruby@check@g
@@ -1665,11 +1689,20 @@
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
   \pxrr@if@alive{%
     \pxrr@ruby@check@tg
     \pxrr@if@alive{\pxrr@ruby@main@tg}%
   }%
   \pxrr@ruby@exit
+}
+\def\pxrr@setup@safe@mode{%
+  \let\pxrr@mode=g%
+  \chardef\pxrr@evensp\z@
+  \chardef\pxrr@revensp\z@
+  \chardef\pxrr@fullsize\z@
 }
 \def\pxrr@ruby@check@g{%
   \ifnum\pxrr@body@count=\pxrr@ruby@count\relax

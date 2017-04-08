@@ -892,7 +892,16 @@
 % （|\ruby[no]breakjukugo|）。
 % スイッチ。
 %    \begin{macrocode}
-\newif\ifpxrr@break@jukugo \pxrr@edge@adjustfalse
+\newif\ifpxrr@break@jukugo \pxrr@break@jukugofalse
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@safe@mode}
+% 安全モードであるか。
+% （|\ruby[no]safemode|）。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@safe@mode \pxrr@safe@modefalse
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1081,6 +1090,16 @@
 % 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@evensp=1
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@revensp}
+% ルビ文字列均等割りの設定。
+% 0 = 無効；1 = 有効。
+% 整数定数。
+% \Note 通常は有効だが、安全モードでは無効になる。
+%    \begin{macrocode}
+\chardef\pxrr@revensp=1
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1730,6 +1749,23 @@
 %    \end{macrocode}
 % \end{macro}
 %
+%    \begin{macrocode}
+\ifpxrr@in@xetex
+\else\ifpxrr@in@luatex
+\else\ifpxrr@in@ptex
+\else
+  \pxrr@ifprimitive\pdftexrevision{%
+    \pxrr@warn{%
+      The engine in use seems to be pdfTeX,\MessageBreak
+      so safe mode is turned on%
+    }%
+    \AtEndOfPackage{%
+      \rubysafemode
+    }%
+  }
+\fi\fi\fi
+%    \end{macrocode}
+%
 % \begin{macro}{\ifpxrr@in@unicode}
 % 「和文」内部コードがUnicodeであるか。
 %    \begin{macrocode}
@@ -2160,6 +2196,20 @@
 }
 \newcommand*\rubynobreakjukugo{%
   \pxrr@break@jukugofalse
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\rubysafemode}
+% \begin{macro}{\rubynosafemode}
+% 対応するスイッチを設定する。
+%    \begin{macrocode}
+\newcommand*\rubysafemode{%
+  \pxrr@safe@modetrue
+}
+\newcommand*\rubynosafemode{%
+  \pxrr@safe@modefalse
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3286,7 +3336,6 @@
 \def\pxrr@compose@block@pre@e#1#2{%
   \pxrr@compose@block@pre@f{#1}{{#2}}%
 }
-\chardef\pxrr@revensp=1
 \def\pxrr@compose@block@pre@f{%
   \pxrr@ifnum{\pxrr@revensp=\z@}{%
     \pxrr@compose@block@pre@g
@@ -3907,6 +3956,9 @@
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
 %    \end{macrocode}
 % 入力検査を行い、パスした場合は組版処理に進む。
 %    \begin{macrocode}
@@ -3956,6 +4008,9 @@
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
 %    \end{macrocode}
 % 入力検査を行い、パスした場合は組版処理に進む。
 %    \begin{macrocode}
@@ -3967,6 +4022,18 @@
 % 後処理を行う。
 %    \begin{macrocode}
   \pxrr@ruby@exit
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@setup@safe@mode}
+% 安全モード用の設定。
+%    \begin{macrocode}
+\def\pxrr@setup@safe@mode{%
+  \let\pxrr@mode=g%
+  \chardef\pxrr@evensp\z@
+  \chardef\pxrr@revensp\z@
+  \chardef\pxrr@fullsize\z@
 }
 %    \end{macrocode}
 % \end{macro}
