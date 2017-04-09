@@ -40,9 +40,17 @@ Then move the files as follows (in a system compliant to TDS 1.1):
 
 And rehash your TEXMF trees if necessary.
 
+### LICENSE
+
+This package is distributed under the MIT License.
+
 Revision History
 ----------------
 
+  * Version 1.1  〈2017/04/10〉
+      - Support for XeTeX/LuaTeX.
+      - Improve the process of two-side ruby.
+      - Bug fix.
   * Version 1.0a <2014/12/23>
       - Bug hix.
   * Version 1.0  <2012/04/30>

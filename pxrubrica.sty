@@ -22,7 +22,7 @@
 %% in the same archive or directory.)
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pxrubrica}
-  [2014/12/23 v1.0b-pre PX Japanese-style ruby]
+  [2017/04/10 v1.1 PX Japanese-style ruby]
 \RequirePackage{keyval}
 \def\pxrr@pkgname{pxrubrica}
 \def\pxrr@error{%
@@ -141,7 +141,10 @@
 \newif\ifpxrr@bfintr \pxrr@bfintrfalse
 \newif\ifpxrr@afintr \pxrr@afintrfalse
 \chardef\pxrr@athead=0
+\newif\ifpxrr@athead@given \pxrr@athead@givenfalse
 \let\pxrr@mode=\@undefined
+\newif\ifpxrr@mode@given \pxrr@mode@givenfalse
+\newif\ifpxrr@afintr \pxrr@afintrfalse
 \newif\ifpxrr@abody
 \chardef\pxrr@side=0
 \chardef\pxrr@evensp=1
@@ -747,6 +750,8 @@
   \pxrr@anobrfalse
   \pxrr@bfintrfalse
   \pxrr@afintrfalse
+  \pxrr@mode@givenfalse
+  \pxrr@athead@givenfalse
   \def\pxrr@po@FS{bi}%
   \expandafter\pxrr@parse@option@loop\pxrr@tempa @\pxrr@end
 }
@@ -895,21 +900,27 @@
 }
 \def\pxrr@po@PR@c{%
   \chardef\pxrr@athead\z@
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@h{%
   \chardef\pxrr@athead\@ne
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@H{%
   \chardef\pxrr@athead\tw@
+  \pxrr@athead@giventrue
 }
 \def\pxrr@po@PR@m{%
   \let\pxrr@mode=m%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@g{%
   \let\pxrr@mode=g%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@j{%
   \let\pxrr@mode=j%
+  \pxrr@mode@giventrue
 }
 \def\pxrr@po@PR@P{%
   \chardef\pxrr@side\z@
@@ -982,25 +993,28 @@
   \if g\pxrr@mode\else
     \ifpxrr@abody
       \let\pxrr@mode=g\relax
+      \ifpxrr@mode@given
+        \pxrr@warn@must@group
+      \fi
     \fi
+  \fi
+  \if g\pxrr@mode\else
     \ifnum\pxrr@side=\tw@
       \let\pxrr@mode=g\relax
-    \fi
-    \if g\pxrr@mode
-      \if g\pxrr@d@mode
+      \ifpxrr@mode@given
         \pxrr@warn@must@group
       \fi
     \fi
   \fi
   \ifnum\pxrr@athead>\z@
     \ifpxrr@in@tate\else
-      \pxrr@athead\z@
+      \chardef\pxrr@athead\z@
     \fi
     \if g\pxrr@mode
-      \pxrr@athead\z@
+      \chardef\pxrr@athead\z@
     \fi
     \ifnum\pxrr@athead=\z@
-      \ifnum\pxrr@d@athead>\z@
+      \ifpxrr@athead@given
         \pxrr@warn@bad@athead
       \fi
     \fi
@@ -1979,6 +1993,8 @@
     pxrr@aintr = \pxrr@aintr^^J%
     pxrr@athead = \the\pxrr@athead^^J%
     pxrr@mode = \meaning\pxrr@mode^^J%
+    ifpxrr@athead@given = \meaning\ifpxrr@athead@given^^J%
+    ifpxrr@mode@given = \meaning\ifpxrr@mode@given^^J%
     pxrr@body@list = \meaning\pxrr@body@list^^J%
     pxrr@body@count = \@nameuse{pxrr@body@count}^^J%
     pxrr@ruby@list = \meaning\pxrr@ruby@list^^J%

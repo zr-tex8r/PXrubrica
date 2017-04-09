@@ -12,7 +12,7 @@ JIS 規格「JIS X 4051」および W3C 技術ノート「[日本語組版処理
 ### 前提環境
 
   * フォーマット： LaTeX
-  * エンジン： pTeX （派生エンジン含む）
+  * エンジン： pTeX／upTeX／LuaTeX／XeTeX
   * DVI ウェア： pTeX 対応のもの
 
 ### 構成物
@@ -38,12 +38,20 @@ JIS 規格「JIS X 4051」および W3C 技術ノート「[日本語組版処理
   - `*.dtx`/`*.ins` → $TEXMF/source/platex/pxrubrica/
   - `*.pdf`/`*.tex` → $TEXMF/doc/platex/pxrubrica/
 
+### ライセンス
+
+MITライセンスの下で配布される。
+
 更新履歴
 --------
 
-  * Version 1.0a <2014/12/23>
+  * Version 1.1  〈2017/04/10〉
+      - XeTeX／LuaTeX のサポート。
+      - 両側ルビの処理を改良。
       - バグ修正
-  * Version 1.0  <2012/04/30>
+  * Version 1.0a 〈2014/12/23〉
+      - バグ修正
+  * Version 1.0  〈2012/04/30〉
       - 最初の公開版
 
 --------------------
