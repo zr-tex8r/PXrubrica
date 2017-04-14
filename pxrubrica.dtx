@@ -1692,6 +1692,29 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@unite@group}
+% |\pxrr@unite@group\CS|\Means
+% リストの要素を連結して1要素のリストに組み直す。
+% すなわち、|\CS| が
+% \begin{quote}\small
+% |\CS| = |\pxrr@pre{|\jmeta{X1}|}\pxrr@inter{|\jmeta{X2}|}|^^A
+% $\cdots$|\pxrr@inter{|\jmeta{Xn}|}\pxrr@post|
+% \end{quote}
+% の時に、|\CS| を以下の内容で置き換える。
+% \begin{quote}\small
+% |\pxrr@pre{|\jmeta{X1}\jmeta{X2}$\cdots$\jmeta{Xn}|}\pxrr@post|
+% \end{quote}
+%    \begin{macrocode}
+\def\pxrr@unite@group#1{%
+  \expandafter\pxrr@concat@list\expandafter{#1}%
+  \expandafter\pxrr@unite@group@a\pxrr@res\pxrr@end#1%
+}
+\def\pxrr@unite@group@a#1\pxrr@end#2{%
+  \def#2{\pxrr@pre{#1}\pxrr@post}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@zip@single}
 % |\pxrr@zip@single\CSa\CSb|\Means
 % \begin{quote}\small
@@ -4211,12 +4234,19 @@
   \pxrr@decompbar{#2}%
   \let\pxrr@ruby@list\pxrr@res
   \edef\pxrr@ruby@count{\the\pxrr@cntr}%
+  \let\pxrr@sruby@list\relax
 %    \end{macrocode}
 % 親文字入力をグループ列に分解する。
 %    \begin{macrocode}
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+%    \end{macrocode}
+% 安全モードに関する処理を行う。
+%    \begin{macrocode}
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
 %    \end{macrocode}
 % モードが“選択的”である場合、“普通の”モード
 % （|m|・|j|・|g|）に帰着させる。
@@ -4227,9 +4257,6 @@
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
-  \ifpxrr@safe@mode
-    \pxrr@setup@safe@mode
-  \fi
 %    \end{macrocode}
 % 入力検査を行い、パスした場合は組版処理に進む。
 %    \begin{macrocode}
@@ -4288,15 +4315,18 @@
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+%    \end{macrocode}
+% 安全モードに関する処理を行う。
+%    \begin{macrocode}
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
   \if\pxrr@mode@is@switching
     \pxrr@resolve@mode
   \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
-  \ifpxrr@safe@mode
-    \pxrr@setup@safe@mode
-  \fi
 %    \end{macrocode}
 % 入力検査を行い、パスした場合は組版処理に進む。
 %    \begin{macrocode}
@@ -4321,7 +4351,22 @@
 % 安全モード用の設定。
 %    \begin{macrocode}
 \def\pxrr@setup@safe@mode{%
-  \let\pxrr@mode=g%
+%    \end{macrocode}
+% 単純グループルビに強制的に変更する。
+% これに応じて、親文字列とルビ文字列のグループを1つに集成する。
+%    \begin{macrocode}
+  \let\pxrr@mode=g\relax
+  \pxrr@unite@group\pxrr@body@list
+  \def\pxrr@body@count{1}%
+  \pxrr@unite@group\pxrr@ruby@list
+  \def\pxrr@ruby@count{1}%
+  \ifx\pxrr@sruby@list\relax\else
+    \pxrr@unite@group\pxrr@sruby@list
+    \def\pxrr@sruby@count{1}%
+  \fi
+%    \end{macrocode}
+% “文字単位のスキャン”が必要な機能を無効にする。
+%    \begin{macrocode}
   \chardef\pxrr@evensp\z@
   \chardef\pxrr@revensp\z@
   \chardef\pxrr@fullsize\z@

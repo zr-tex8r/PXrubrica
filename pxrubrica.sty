@@ -433,6 +433,13 @@
   \let\pxrr@post\relax
   #1%
 }
+\def\pxrr@unite@group#1{%
+  \expandafter\pxrr@concat@list\expandafter{#1}%
+  \expandafter\pxrr@unite@group@a\pxrr@res\pxrr@end#1%
+}
+\def\pxrr@unite@group@a#1\pxrr@end#2{%
+  \def#2{\pxrr@pre{#1}\pxrr@post}%
+}
 \def\pxrr@zip@single#1#2{%
   \expandafter\pxrr@zip@single@a\expandafter#1#2\pxrr@end
 }
@@ -1800,18 +1807,19 @@
   \pxrr@decompbar{#2}%
   \let\pxrr@ruby@list\pxrr@res
   \edef\pxrr@ruby@count{\the\pxrr@cntr}%
+  \let\pxrr@sruby@list\relax
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
   \if\pxrr@mode@is@switching
     \pxrr@resolve@mode
   \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
-  \ifpxrr@safe@mode
-    \pxrr@setup@safe@mode
-  \fi
   \pxrr@if@alive{%
     \if g\pxrr@mode
       \pxrr@ruby@check@g
@@ -1843,15 +1851,15 @@
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+  \ifpxrr@safe@mode
+    \pxrr@setup@safe@mode
+  \fi
   \if\pxrr@mode@is@switching
     \pxrr@resolve@mode
   \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
-  \ifpxrr@safe@mode
-    \pxrr@setup@safe@mode
-  \fi
   \pxrr@if@alive{%
     \if g\pxrr@mode
       \pxrr@ruby@check@tg
@@ -1864,7 +1872,15 @@
   \pxrr@ruby@exit
 }
 \def\pxrr@setup@safe@mode{%
-  \let\pxrr@mode=g%
+  \let\pxrr@mode=g\relax
+  \pxrr@unite@group\pxrr@body@list
+  \def\pxrr@body@count{1}%
+  \pxrr@unite@group\pxrr@ruby@list
+  \def\pxrr@ruby@count{1}%
+  \ifx\pxrr@sruby@list\relax\else
+    \pxrr@unite@group\pxrr@sruby@list
+    \def\pxrr@sruby@count{1}%
+  \fi
   \chardef\pxrr@evensp\z@
   \chardef\pxrr@revensp\z@
   \chardef\pxrr@fullsize\z@
