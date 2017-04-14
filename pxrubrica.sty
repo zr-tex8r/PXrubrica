@@ -22,7 +22,7 @@
 %% in the same archive or directory.)
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pxrubrica}
-  [2017/04/20 v1.2 PX Japanese-style ruby]
+  [2017/04/30 v1.3-pre PX Japanese-style ruby]
 \RequirePackage{keyval}
 \def\pxrr@pkgname{pxrubrica}
 \def\pxrr@error{%
@@ -1142,7 +1142,7 @@
 \let\pxrr@iaiskip\pxrr@zeropt
 \def\pxrr@assign@fsize{%
   \@tempdima=\f@size\p@
-  \@tempdima\pxrr@size@ratio\@tempdima
+  \@tempdima\pxrr@c@size@ratio\@tempdima
   \edef\pxrr@ruby@fsize{\the\@tempdima}%
   \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
@@ -1164,7 +1164,7 @@
   \advance\@tempdimb-\pxrr@htratio\@tempdimb
   \advance\@tempdima\@tempdimb
   \@tempdimb\pxrr@body@zw\relax
-  \advance\@tempdima\pxrr@inter@gap\@tempdimb
+  \advance\@tempdima\pxrr@c@inter@gap\@tempdimb
   \edef\pxrr@ruby@raise{\the\@tempdima}%
   \@tempdima\pxrr@body@zw\relax
   \advance\@tempdima-\pxrr@htratio\@tempdima
@@ -1172,14 +1172,14 @@
   \@tempdimb\pxrr@htratio\@tempdimb
   \advance\@tempdima\@tempdimb
   \@tempdimb\pxrr@body@zw\relax
-  \advance\@tempdima\pxrr@inter@gap\@tempdimb
+  \advance\@tempdima\pxrr@c@inter@gap\@tempdimb
   \edef\pxrr@ruby@lower{\the\@tempdima}%
 }
 \def\pxrr@use@ruby@font{%
   \pxrr@without@macro@trace{%
     \let\rubyfontsize\pxrr@ruby@fsize
     \fontsize{\pxrr@ruby@fsize}{\z@}\selectfont
-    \pxrr@ruby@font
+    \pxrr@c@ruby@font
   }%
 }
 \chardef\pxrr@locate@inner=1
@@ -1834,8 +1834,14 @@
   \else F%
   \fi\fi T%
 }
+\def\pxrr@bind@param{%
+  \let\pxrr@c@ruby@font\pxrr@ruby@font
+  \let\pxrr@c@size@ratio\pxrr@size@ratio
+  \let\pxrr@c@inter@gap\pxrr@inter@gap
+}
 \def\pxrr@ruby@proc#1#2{%
   \pxrr@prepare@fallback{#1}%
+  \pxrr@bind@param
   \pxrr@assign@fsize
   \pxrr@parse@option\pxrr@option
   \pxrr@decompbar{#2}%
@@ -1873,6 +1879,7 @@
 }
 \def\pxrr@truby@proc#1#2#3{%
   \pxrr@prepare@fallback{#1}%
+  \pxrr@bind@param
   \pxrr@assign@fsize
   \pxrr@parse@option\pxrr@option
   \def\pxrr@all@input{{#1}{#2}{#3}}%

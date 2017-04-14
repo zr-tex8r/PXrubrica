@@ -20,7 +20,7 @@
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
 %</driver>
-  [2017/04/20 v1.2 PX Japanese-style ruby]
+  [2017/04/30 v1.3-pre PX Japanese-style ruby]
 %<*driver>
 \documentclass{jsarticle}
 \usepackage{doc}
@@ -3071,7 +3071,7 @@
 %    \begin{macrocode}
 \def\pxrr@assign@fsize{%
   \@tempdima=\f@size\p@
-  \@tempdima\pxrr@size@ratio\@tempdima
+  \@tempdima\pxrr@c@size@ratio\@tempdima
   \edef\pxrr@ruby@fsize{\the\@tempdima}%
   \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
@@ -3099,7 +3099,7 @@
   \advance\@tempdimb-\pxrr@htratio\@tempdimb
   \advance\@tempdima\@tempdimb
   \@tempdimb\pxrr@body@zw\relax
-  \advance\@tempdima\pxrr@inter@gap\@tempdimb
+  \advance\@tempdima\pxrr@c@inter@gap\@tempdimb
   \edef\pxrr@ruby@raise{\the\@tempdima}%
 %    \end{macrocode}
 % |\pxrr@ruby@lower| の値を計算する。
@@ -3110,7 +3110,7 @@
   \@tempdimb\pxrr@htratio\@tempdimb
   \advance\@tempdima\@tempdimb
   \@tempdimb\pxrr@body@zw\relax
-  \advance\@tempdima\pxrr@inter@gap\@tempdimb
+  \advance\@tempdima\pxrr@c@inter@gap\@tempdimb
   \edef\pxrr@ruby@lower{\the\@tempdima}%
 }
 %    \end{macrocode}
@@ -3123,7 +3123,7 @@
   \pxrr@without@macro@trace{%
     \let\rubyfontsize\pxrr@ruby@fsize
     \fontsize{\pxrr@ruby@fsize}{\z@}\selectfont
-    \pxrr@ruby@font
+    \pxrr@c@ruby@font
   }%
 }
 %    \end{macrocode}
@@ -4392,6 +4392,17 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@bind@param}
+% “呼出時変数”へのコピーを行う。
+%    \begin{macrocode}
+\def\pxrr@bind@param{%
+  \let\pxrr@c@ruby@font\pxrr@ruby@font
+  \let\pxrr@c@size@ratio\pxrr@size@ratio
+  \let\pxrr@c@inter@gap\pxrr@inter@gap
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@ruby@proc}
 % |\pxrr@ruby@proc{|\jmeta{親文字列}|}{|\jmeta{ルビ文字列}|}|\Means
 % これが手続の本体となる。
@@ -4401,6 +4412,7 @@
 %    \end{macrocode}
 % フォントサイズの変数を設定して、
 %    \begin{macrocode}
+  \pxrr@bind@param
   \pxrr@assign@fsize
 %    \end{macrocode}
 % オプションを解析する。
@@ -4471,6 +4483,7 @@
 %    \end{macrocode}
 % フォントサイズの変数を設定して、
 %    \begin{macrocode}
+  \pxrr@bind@param
   \pxrr@assign@fsize
 %    \end{macrocode}
 % オプションを解析する。
