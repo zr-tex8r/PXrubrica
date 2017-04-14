@@ -692,7 +692,19 @@
 %    \begin{macrocode}
 \def\pxrr@fatal@bad@mono{%
   \pxrr@fatal@error{%
-    Mono-ruby must have a single group%
+    Mono-ruby body must have a single group%
+  }\pxrr@eh@fatal
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@fatal@bad@switching}
+% 選択的ルビの親文字列が2つ以上のグループを持つ場合。
+%    \begin{macrocode}
+\def\pxrr@fatal@bad@switching{%
+  \pxrr@fatal@error{%
+    The body of Switching-ruby (M/J) must\MessageBreak
+    have a single group%
   }\pxrr@eh@fatal
 }
 %    \end{macrocode}
@@ -1140,6 +1152,91 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \subsection{変数}
+%
+% \begin{macro}{\pxrr@body@list}
+% 親文字列のために使うリスト。
+%    \begin{macrocode}
+\let\pxrr@body@list\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@body@count}
+% |\pxrr@body@list| の長さ。
+% 整数値マクロ。
+%    \begin{macrocode}
+\let\pxrr@body@count\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ruby@list}
+% ルビ文字列のために使うリスト。
+%    \begin{macrocode}
+\let\pxrr@ruby@list\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ruby@count}
+% |\pxrr@ruby@list| の長さ。
+% 整数値マクロ。
+%    \begin{macrocode}
+\let\pxrr@ruby@count\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@sruby@list}
+% 2つ目のルビ文字列のために使うリスト。
+%    \begin{macrocode}
+\let\pxrr@sruby@list\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@sruby@count}
+% |\pxrr@sruby@list| の長さ。
+% 整数値マクロ。
+%    \begin{macrocode}
+\let\pxrr@sruby@count\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@whole@list}
+% 親文字とルビのリストをzipしたリスト。
+%    \begin{macrocode}
+\let\pxrr@whole@list\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@bspace}
+% ルビが親文字から前側にはみだす長さ。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@bspace\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@aspace}
+% ルビが親文字から後側にはみだす長さ。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@aspace\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@natwd}
+% |\pxrr@evenspace@int| のパラメタ。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@natwd\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@all@input}
+% 両側ルビの処理で使われる一時変数。
+%    \begin{macrocode}
+\let\pxrr@all@input\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{補助手続}
 %
 % \subsubsection{雑多な定義}
@@ -1189,6 +1286,14 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@token}
+% |\futurelet| 用の一時変数。
+% \Note if-トークンなどの“危険”なトークンになりうるので使い回さない。
+%    \begin{macrocode}
+\let\pxrr@token\relax
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@zero}
 % 整数定数のゼロ。
 % |\z@| と異なり、「単位付寸法」の係数として使用可能。
@@ -1228,18 +1333,6 @@
 %    \begin{macrocode}
 \def\pxrr@ifx#1{%
   \ifx#1\expandafter\@firstoftwo
-  \else\expandafter\@secondoftwo
-  \fi
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@ifnum}
-% |\pxrr@ifnum{|\jmeta{引数}|}|\jmeta{真}|}{|\jmeta{偽}|}|\Means
-% |\ifnum|\jmeta{引数} を行うテスト。
-%    \begin{macrocode}
-\def\pxrr@ifnum#1{%
-  \ifnum#1\expandafter\@firstoftwo
   \else\expandafter\@secondoftwo
   \fi
 }
@@ -1320,11 +1413,12 @@
 % マクロ展開のトレースを無効にした状態で\jmeta{テキスト}を実行する。
 %    \begin{macrocode}
 \def\pxrr@without@macro@trace#1{%
-  \chardef\pxrr@tracingmacros=\tracingmacros
+  \chardef\pxrr@tracingmacros@save=\tracingmacros
   \tracingmacros\z@
   #1%
-  \tracingmacros\pxrr@tracingmacros
+  \tracingmacros\pxrr@tracingmacros@save
 }
+\chardef\pxrr@tracingmacros@save=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -1405,9 +1499,9 @@
       \else
         \@tempdimb=\@tempcntb\@ne
       \fi}%
-    \xdef\pxrr@gtmpa{\the\@tempdimb}%
+    \xdef\pxrr@gtempa{\the\@tempdimb}%
   \endgroup
-  #1=\pxrr@gtmpa\relax
+  #1=\pxrr@gtempa\relax
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1495,13 +1589,13 @@
   \pxrr@decompose@loopa#1\pxrr@end
 }
 \def\pxrr@decompose@loopa{%
-  \futurelet\pxrr@tempa\pxrr@decompose@loopb
+  \futurelet\pxrr@token\pxrr@decompose@loopb
 }
 \def\pxrr@decompose@loopb{%
-  \pxrr@ifx{\pxrr@tempa\pxrr@end}{%
+  \pxrr@ifx{\pxrr@token\pxrr@end}{%
     \pxrr@appto\pxrr@res{\pxrr@post}%
   }{%
-    \pxrr@setok{\pxrr@ifx{\pxrr@tempa\bgroup}}%
+    \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
     \pxrr@decompose@loopc
   }%
 }
@@ -1779,6 +1873,8 @@
 %
 % この小節のマクロ内で使われる変数。
 %    \begin{macrocode}
+\let\pxrr@x@tempa\@empty
+\let\pxrr@x@tempb\@empty
 \let\pxrr@x@gtempa\@empty
 \newif\ifpxrr@x@swa
 %    \end{macrocode}
@@ -2443,7 +2539,7 @@
   \pxrr@csletcs{ifpxrr@aprotr}{ifpxrr@d@aprotr}%
   \let\pxrr@bintr@\pxrr@d@bintr
   \let\pxrr@aintr@\pxrr@d@aintr
-  \let\pxrr@athead@\pxrr@d@athead
+  \let\pxrr@athead\pxrr@d@athead
   \let\pxrr@mode\pxrr@d@mode
   \let\pxrr@side\pxrr@d@side
   \let\pxrr@evensp\pxrr@d@evensp
@@ -2936,8 +3032,8 @@
   \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
     \pxrr@use@ruby@font
-    \pxrr@get@zwidth\pxrr@gtempa
-    \global\let\pxrr@gtempa\pxrr@gtempa
+    \pxrr@get@zwidth\pxrr@ruby@zw
+    \global\let\pxrr@gtempa\pxrr@ruby@zw
   \endgroup
   \let\pxrr@ruby@zw\pxrr@gtempa
   \pxrr@get@iiskip\pxrr@iiskip
@@ -3006,6 +3102,7 @@
 %
 % \begin{macro}{\pxrr@evenspace}
 % \begin{macro}{\pxrr@evenspace@int}
+% \begin{macro}{\pxrr@makebox@res}
 % |\pxrr@evenspace{|\jmeta{パターン}|}\CS{|\jmeta{フォント}|}|^^A
 % |{|\jmeta{幅}|}{|\jmeta{テキスト}|}|\Means
 % \jmeta{テキスト}を指定の\jmeta{幅}に対する
@@ -3115,7 +3212,9 @@
   \let\pxrr@sprop@y@#2%
   \let\pxrr@sprop@z@#3%
 }
+\let\pxrr@makebox@res\@undefined
 %    \end{macrocode}
+% \end{macro}
 % \end{macro}
 % \end{macro}
 %
@@ -3174,6 +3273,9 @@
   \let\pxrr@inter@save\pxrr@inter
   \let\pxrr@post@save\pxrr@post
 }
+\let\pxrr@pre@save\@undefined
+\let\pxrr@inter@save\@undefined
+\let\pxrr@post@save\@undefined
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3210,14 +3312,14 @@
   \expandafter\pxrr@transform@kana@loop@a#1\pxrr@end
 }
 \def\pxrr@transform@kana@loop@a{%
-  \futurelet\pxrr@tempa\pxrr@transform@kana@loop@b
+  \futurelet\pxrr@token\pxrr@transform@kana@loop@b
 }
 \def\pxrr@transform@kana@loop@b{%
-  \ifx\pxrr@tempa\pxrr@end
+  \ifx\pxrr@token\pxrr@end
     \let\pxrr@tempb\pxrr@transform@kana@end
-  \else\ifx\pxrr@tempa\bgroup
+  \else\ifx\pxrr@token\bgroup
     \let\pxrr@tempb\pxrr@transform@kana@loop@c
-  \else\ifx\pxrr@tempa\@sptoken
+  \else\ifx\pxrr@token\@sptoken
     \let\pxrr@tempb\pxrr@transform@kana@loop@d
   \else
     \let\pxrr@tempb\pxrr@transform@kana@loop@e
@@ -3605,7 +3707,7 @@
 %    \end{macrocode}
 % |f| 指定時は小書き仮名の変換を施す。
 %    \begin{macrocode}
-  \pxrr@ifnum{\pxrr@fullsize>\z@}{%
+  \pxrr@cond\ifnum\pxrr@fullsize>\z@\fi{%
     \pxrr@compose@block@pre@a
   }{%
     \pxrr@compose@block@pre@d
@@ -3630,7 +3732,7 @@
   \pxrr@compose@block@pre@d{#3}{#4}{#1}{#2}%
 }
 \def\pxrr@compose@block@pre@d{%
-  \pxrr@ifnum{\pxrr@evensp=\z@}{%
+  \pxrr@cond\ifnum\pxrr@evensp=\z@\fi{%
     \pxrr@compose@block@pre@e
   }{%
     \pxrr@compose@block@pre@f
@@ -3641,7 +3743,7 @@
   \pxrr@compose@block@pre@f{#1}{{#2}}%
 }
 \def\pxrr@compose@block@pre@f{%
-  \pxrr@ifnum{\pxrr@revensp=\z@}{%
+  \pxrr@cond\ifnum\pxrr@revensp=\z@\fi{%
     \pxrr@compose@block@pre@g
   }{%
     \pxrr@compose@block@do
@@ -3651,6 +3753,7 @@
 \def\pxrr@compose@block@pre@g#1#2#3#4{%
   \pxrr@compose@block@do{#1}{#2}{{#3}}{{#4}}%
 }
+\let\pxrr@compose@block@tempa\@undefined
 %    \end{macrocode}
 % \end{macro}
 %
@@ -3793,10 +3896,10 @@
 %    \begin{macrocode}
 \def\pxrr@check@kinsoku#1{%
   \let\pxrr@tempb#1%
-  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
+  \futurelet\pxrr@token\pxrr@check@kinsoku@a
 }
 \def\pxrr@check@kinsoku@a{%
-  \pxrr@check@char\pxrr@tempa
+  \pxrr@check@char\pxrr@token
 %    \end{macrocode}
 % 和文ルビの場合は、欧文通常文字も和文通常文字と同じ扱いにする。
 %    \begin{macrocode}
@@ -4440,7 +4543,7 @@
       \chardef\pxrr@evensp\@ne
     \fi
   \else
-    \pxrr@fatal@bad@modesw
+    \pxrr@fatal@bad@switching
   \fi
 }
 %    \end{macrocode}
@@ -4857,6 +4960,13 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@ruby@main@mg}
+% 未実装（呼出もない）。
+%    \begin{macrocode}
+\let\pxrr@ruby@main@mg\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsubsection{前処理}
 %
 % ゴースト処理する。そのため、展開不能命令が…。
@@ -4916,6 +5026,9 @@
 % （グループ内で |\usefont{T1}{lmr}{m}{n}| を呼んでおくと、
 % 大域的に |\T1/lmr/m/n/2.5| が定義される。）
 %    \begin{macrocode}
+\chardef\pxrr@aghostchar=23 % compwordmark
+\let\pxrr@aghost\relax
+\let\pxrr@aghostfont\relax
 \def\pxrr@setup@aghost{%
   \global\let\pxrr@setup@aghost\relax
   \IfFileExists{t1lmr.fd}{%
@@ -4923,7 +5036,6 @@
       \fontsize{2.5}{0}\usefont{T1}{lmr}{m}{n}%
     \endgroup
     \global\pxrr@letcs\pxrr@aghostfont{T1/lmr/m/n/2.5}%
-    \global\chardef\pxrr@aghostchar=23 % compwordmark
     \gdef\pxrr@aghost{{\pxrr@aghostfont\pxrr@aghostchar}}%
     \global\xspcode\pxrr@aghostchar=3 %
   }{%else

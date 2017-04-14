@@ -79,7 +79,13 @@
 }
 \def\pxrr@fatal@bad@mono{%
   \pxrr@fatal@error{%
-    Mono-ruby must have a single group%
+    Mono-ruby body must have a single group%
+  }\pxrr@eh@fatal
+}
+\def\pxrr@fatal@bad@switching{%
+  \pxrr@fatal@error{%
+    The body of Switching-ruby (M/J) must\MessageBreak
+    have a single group%
   }\pxrr@eh@fatal
 }
 \def\pxrr@fatal@bad@movable{%
@@ -153,6 +159,17 @@
 \chardef\pxrr@evensp=1
 \chardef\pxrr@revensp=1
 \chardef\pxrr@fullsize=1
+\let\pxrr@body@list\@undefined
+\let\pxrr@body@count\@undefined
+\let\pxrr@ruby@list\@undefined
+\let\pxrr@ruby@count\@undefined
+\let\pxrr@sruby@list\@undefined
+\let\pxrr@sruby@count\@undefined
+\let\pxrr@whole@list\@undefined
+\let\pxrr@bspace\@undefined
+\let\pxrr@aspace\@undefined
+\let\pxrr@natwd\@undefined
+\let\pxrr@all@input\@undefined
 \newif\ifpxrr@ok
 \newcount\pxrr@cnta
 \newcount\pxrr@cntr
@@ -160,6 +177,7 @@
 \newbox\pxrr@boxa
 \newbox\pxrr@boxb
 \newbox\pxrr@boxr
+\let\pxrr@token\relax
 \chardef\pxrr@zero=0
 \def\pxrr@zeropt{0pt}
 \def\pxrr@hfilx#1{%
@@ -168,11 +186,6 @@
 \let\pxrr@res\@empty
 \def\pxrr@ifx#1{%
   \ifx#1\expandafter\@firstoftwo
-  \else\expandafter\@secondoftwo
-  \fi
-}
-\def\pxrr@ifnum#1{%
-  \ifnum#1\expandafter\@firstoftwo
   \else\expandafter\@secondoftwo
   \fi
 }
@@ -200,11 +213,12 @@
 \def\pxrr@nil{\noexpand\pxrr@nil}
 \def\pxrr@end{\noexpand\pxrr@end}
 \def\pxrr@without@macro@trace#1{%
-  \chardef\pxrr@tracingmacros=\tracingmacros
+  \chardef\pxrr@tracingmacros@save=\tracingmacros
   \tracingmacros\z@
   #1%
-  \tracingmacros\pxrr@tracingmacros
+  \tracingmacros\pxrr@tracingmacros@save
 }
+\chardef\pxrr@tracingmacros@save=0
 \def\pxrr@hbox#1{%
   \hbox{%
     \color@begingroup
@@ -260,9 +274,9 @@
       \else
         \@tempdimb=\@tempcntb\@ne
       \fi}%
-    \xdef\pxrr@gtmpa{\the\@tempdimb}%
+    \xdef\pxrr@gtempa{\the\@tempdimb}%
   \endgroup
-  #1=\pxrr@gtmpa\relax
+  #1=\pxrr@gtempa\relax
 }
 \def\pxrr@interpolate#1#2#3#4#5{%
   \edef\pxrr@tempa{#1}%
@@ -302,13 +316,13 @@
   \pxrr@decompose@loopa#1\pxrr@end
 }
 \def\pxrr@decompose@loopa{%
-  \futurelet\pxrr@tempa\pxrr@decompose@loopb
+  \futurelet\pxrr@token\pxrr@decompose@loopb
 }
 \def\pxrr@decompose@loopb{%
-  \pxrr@ifx{\pxrr@tempa\pxrr@end}{%
+  \pxrr@ifx{\pxrr@token\pxrr@end}{%
     \pxrr@appto\pxrr@res{\pxrr@post}%
   }{%
-    \pxrr@setok{\pxrr@ifx{\pxrr@tempa\bgroup}}%
+    \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
     \pxrr@decompose@loopc
   }%
 }
@@ -466,6 +480,8 @@
 \def\pxrr@tzip@single@c#1\pxrr@end#2\pxrr@end#3\pxrr@end{%
   \def\pxrr@res{\pxrr@pre{#1}{#2}{#3}\pxrr@post}%
 }
+\let\pxrr@x@tempa\@empty
+\let\pxrr@x@tempb\@empty
 \let\pxrr@x@gtempa\@empty
 \newif\ifpxrr@x@swa
 \def\pxrr@ifprimitive#1{%
@@ -807,7 +823,7 @@
   \pxrr@csletcs{ifpxrr@aprotr}{ifpxrr@d@aprotr}%
   \let\pxrr@bintr@\pxrr@d@bintr
   \let\pxrr@aintr@\pxrr@d@aintr
-  \let\pxrr@athead@\pxrr@d@athead
+  \let\pxrr@athead\pxrr@d@athead
   \let\pxrr@mode\pxrr@d@mode
   \let\pxrr@side\pxrr@d@side
   \let\pxrr@evensp\pxrr@d@evensp
@@ -1131,8 +1147,8 @@
   \pxrr@get@zwidth\pxrr@body@zw
   \begingroup
     \pxrr@use@ruby@font
-    \pxrr@get@zwidth\pxrr@gtempa
-    \global\let\pxrr@gtempa\pxrr@gtempa
+    \pxrr@get@zwidth\pxrr@ruby@zw
+    \global\let\pxrr@gtempa\pxrr@ruby@zw
   \endgroup
   \let\pxrr@ruby@zw\pxrr@gtempa
   \pxrr@get@iiskip\pxrr@iiskip
@@ -1227,6 +1243,7 @@
   \let\pxrr@sprop@y@#2%
   \let\pxrr@sprop@z@#3%
 }
+\let\pxrr@makebox@res\@undefined
 \def\pxrr@adjust@margin{%
   \pxrr@save@listproc
   \@tempdima\pxrr@body@zw\relax
@@ -1260,6 +1277,9 @@
   \let\pxrr@inter@save\pxrr@inter
   \let\pxrr@post@save\pxrr@post
 }
+\let\pxrr@pre@save\@undefined
+\let\pxrr@inter@save\@undefined
+\let\pxrr@post@save\@undefined
 \def\pxrr@restore@listproc{%
   \let\pxrr@pre\pxrr@pre@save
   \let\pxrr@inter\pxrr@inter@save
@@ -1274,14 +1294,14 @@
   \expandafter\pxrr@transform@kana@loop@a#1\pxrr@end
 }
 \def\pxrr@transform@kana@loop@a{%
-  \futurelet\pxrr@tempa\pxrr@transform@kana@loop@b
+  \futurelet\pxrr@token\pxrr@transform@kana@loop@b
 }
 \def\pxrr@transform@kana@loop@b{%
-  \ifx\pxrr@tempa\pxrr@end
+  \ifx\pxrr@token\pxrr@end
     \let\pxrr@tempb\pxrr@transform@kana@end
-  \else\ifx\pxrr@tempa\bgroup
+  \else\ifx\pxrr@token\bgroup
     \let\pxrr@tempb\pxrr@transform@kana@loop@c
-  \else\ifx\pxrr@tempa\@sptoken
+  \else\ifx\pxrr@token\@sptoken
     \let\pxrr@tempb\pxrr@transform@kana@loop@d
   \else
     \let\pxrr@tempb\pxrr@transform@kana@loop@e
@@ -1515,7 +1535,7 @@
   \fi
 }
 \def\pxrr@compose@block@pre{%
-  \pxrr@ifnum{\pxrr@fullsize>\z@}{%
+  \pxrr@cond\ifnum\pxrr@fullsize>\z@\fi{%
     \pxrr@compose@block@pre@a
   }{%
     \pxrr@compose@block@pre@d
@@ -1537,7 +1557,7 @@
   \pxrr@compose@block@pre@d{#3}{#4}{#1}{#2}%
 }
 \def\pxrr@compose@block@pre@d{%
-  \pxrr@ifnum{\pxrr@evensp=\z@}{%
+  \pxrr@cond\ifnum\pxrr@evensp=\z@\fi{%
     \pxrr@compose@block@pre@e
   }{%
     \pxrr@compose@block@pre@f
@@ -1547,7 +1567,7 @@
   \pxrr@compose@block@pre@f{#1}{{#2}}%
 }
 \def\pxrr@compose@block@pre@f{%
-  \pxrr@ifnum{\pxrr@revensp=\z@}{%
+  \pxrr@cond\ifnum\pxrr@revensp=\z@\fi{%
     \pxrr@compose@block@pre@g
   }{%
     \pxrr@compose@block@do
@@ -1556,6 +1576,7 @@
 \def\pxrr@compose@block@pre@g#1#2#3#4{%
   \pxrr@compose@block@do{#1}{#2}{{#3}}{{#4}}%
 }
+\let\pxrr@compose@block@tempa\@undefined
 \def\pxrr@add@protect#1{%
   \expandafter\pxrr@add@protect@a
     \csname\expandafter\@gobble\string#1\space\endcsname#1%
@@ -1599,10 +1620,10 @@
 }
 \def\pxrr@check@kinsoku#1{%
   \let\pxrr@tempb#1%
-  \futurelet\pxrr@tempa\pxrr@check@kinsoku@a
+  \futurelet\pxrr@token\pxrr@check@kinsoku@a
 }
 \def\pxrr@check@kinsoku@a{%
-  \pxrr@check@char\pxrr@tempa
+  \pxrr@check@char\pxrr@token
   \ifpxrr@abody\else
     \ifnum\pxrr@cntr=\@ne
       \pxrr@cntr\tw@
@@ -1920,7 +1941,7 @@
       \chardef\pxrr@evensp\@ne
     \fi
   \else
-    \pxrr@fatal@bad@modesw
+    \pxrr@fatal@bad@switching
   \fi
 }
 \def\pxrr@ruby@check@g{%
@@ -2190,6 +2211,7 @@
   \unhbox\pxrr@boxr
   \pxrr@intrude@end
 }
+\let\pxrr@ruby@main@mg\@undefined
 \newif\ifpxrr@ghost
 \pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
 \def\pxrr@jprologue{%
@@ -2204,6 +2226,9 @@
       \kern-\wd\pxrr@boxa
     \fi
 }
+\chardef\pxrr@aghostchar=23 % compwordmark
+\let\pxrr@aghost\relax
+\let\pxrr@aghostfont\relax
 \def\pxrr@setup@aghost{%
   \global\let\pxrr@setup@aghost\relax
   \IfFileExists{t1lmr.fd}{%
@@ -2211,7 +2236,6 @@
       \fontsize{2.5}{0}\usefont{T1}{lmr}{m}{n}%
     \endgroup
     \global\pxrr@letcs\pxrr@aghostfont{T1/lmr/m/n/2.5}%
-    \global\chardef\pxrr@aghostchar=23 % compwordmark
     \gdef\pxrr@aghost{{\pxrr@aghostfont\pxrr@aghostchar}}%
     \global\xspcode\pxrr@aghostchar=3 %
   }{%else
