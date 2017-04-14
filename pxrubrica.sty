@@ -58,6 +58,9 @@
 \def\pxrr@warn@must@group{%
   \pxrr@warn{Only group ruby is allowed here}%
 }
+\def\pxrr@warn@bad@jukugo{%
+  \pxrr@warn{Jukugo ruby is not allowed here}%
+}
 \def\pxrr@fatal@bad@intr{%
   \pxrr@fatal@error{%
     Intrusion disallowed when ghost is enabled%
@@ -374,6 +377,51 @@
   }%
 }
 \def\pxrr@zip@list@exit{%
+  \pxrr@appto\pxrr@res{\pxrr@post}%
+}
+\def\pxrr@tzip@list#1#2#3{%
+  \let\pxrr@res\@empty
+  \let\pxrr@post\relax
+  \let\pxrr@tempa#1\pxrr@appto\pxrr@tempa{{}}%
+  \let\pxrr@tempb#2\pxrr@appto\pxrr@tempb{{}}%
+  \let\pxrr@tempc#3\pxrr@appto\pxrr@tempc{{}}%
+  \pxrr@tzip@list@loopa
+}
+\def\pxrr@tzip@list@loopa{%
+  \expandafter\pxrr@tzip@list@loopb\pxrr@tempa\pxrr@end
+}
+\def\pxrr@tzip@list@loopb#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{#1{#2}}%
+    \def\pxrr@tempa{#3}%
+    \expandafter\pxrr@tzip@list@loopc\pxrr@tempb\pxrr@end
+  }%
+}
+\def\pxrr@tzip@list@loopc#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@interror{tzip}%
+    \pxrr@appto\pxrr@res{{}}%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{{#2}}%
+    \def\pxrr@tempb{#3}%
+    \expandafter\pxrr@tzip@list@loopd\pxrr@tempc\pxrr@end
+  }%
+}
+\def\pxrr@tzip@list@loopd#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@interror{tzip}%
+    \pxrr@appto\pxrr@res{{}}%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{{#2}}%
+    \def\pxrr@tempc{#3}%
+    \pxrr@tzip@list@loopa
+  }%
+}
+\def\pxrr@tzip@list@exit{%
   \pxrr@appto\pxrr@res{\pxrr@post}%
 }
 \def\pxrr@concat@list#1{%
@@ -752,6 +800,9 @@
   \pxrr@afintrfalse
   \pxrr@mode@givenfalse
   \pxrr@athead@givenfalse
+  \ifpxrr@truby
+    \let\pxrr@mode=M%
+  \fi
   \def\pxrr@po@FS{bi}%
   \expandafter\pxrr@parse@option@loop\pxrr@tempa @\pxrr@end
 }
@@ -811,6 +862,8 @@
 \def\pxrr@po@C@m{M}
 \def\pxrr@po@C@g{M}
 \def\pxrr@po@C@j{M}
+\def\pxrr@po@C@M{M}
+\def\pxrr@po@C@J{M}
 \def\pxrr@po@C@P{M}
 \def\pxrr@po@C@S{M}
 \def\pxrr@po@C@e{M}
@@ -922,6 +975,14 @@
   \let\pxrr@mode=j%
   \pxrr@mode@giventrue
 }
+\def\pxrr@po@PR@M{%
+  \let\pxrr@mode=M%
+  \pxrr@mode@giventrue
+}
+\def\pxrr@po@PR@J{%
+  \let\pxrr@mode=J%
+  \pxrr@mode@giventrue
+}
 \def\pxrr@po@PR@P{%
   \chardef\pxrr@side\z@
 }
@@ -971,6 +1032,15 @@
 \def\pxrr@po@TR@mi@A{fi}
 \def\pxrr@po@TR@as@A{fi}
 \def\pxrr@po@TR@ai@A{fi}
+\def\pxrr@mode@grand{%
+  \if      m\pxrr@mode m%
+  \else\if M\pxrr@mode m%
+  \else\if j\pxrr@mode j%
+  \else\if J\pxrr@mode j%
+  \else\if g\pxrr@mode g%
+  \else ?%
+  \fi\fi\fi\fi\fi
+}
 \def\pxrr@check@option{%
   \ifpxrr@bprotr\else
     \ifpxrr@aprotr\else
@@ -998,11 +1068,11 @@
       \fi
     \fi
   \fi
-  \if g\pxrr@mode\else
+  \if \pxrr@mode@grand j%
     \ifnum\pxrr@side=\tw@
       \let\pxrr@mode=g\relax
       \ifpxrr@mode@given
-        \pxrr@warn@must@group
+        \pxrr@warn@bad@jukugo
       \fi
     \fi
   \fi
@@ -1717,6 +1787,12 @@
     \expandafter\pxrr@do@scan
   \fi
 }
+\def\pxrr@mode@is@switching{%
+  \if      M\pxrr@mode T%
+  \else\if J\pxrr@mode T%
+  \else F%
+  \fi\fi T%
+}
 \def\pxrr@ruby@proc#1#2{%
   \pxrr@prepare@fallback{#1}%
   \pxrr@assign@fsize
@@ -1727,6 +1803,9 @@
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+  \if\pxrr@mode@is@switching
+    \pxrr@resolve@mode
+  \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
@@ -1755,6 +1834,18 @@
   \pxrr@assign@fsize
   \pxrr@parse@option\pxrr@option
   \def\pxrr@all@input{{#1}{#2}{#3}}%
+  \pxrr@decompbar{#3}%
+  \let\pxrr@sruby@list\pxrr@res
+  \edef\pxrr@sruby@count{\the\pxrr@cntr}%
+  \pxrr@decompbar{#2}%
+  \let\pxrr@ruby@list\pxrr@res
+  \edef\pxrr@ruby@count{\the\pxrr@cntr}%
+  \pxrr@decompbar{#1}%
+  \let\pxrr@body@list\pxrr@res
+  \edef\pxrr@body@count{\the\pxrr@cntr}%
+  \if\pxrr@mode@is@switching
+    \pxrr@resolve@mode
+  \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
@@ -1762,8 +1853,13 @@
     \pxrr@setup@safe@mode
   \fi
   \pxrr@if@alive{%
-    \pxrr@ruby@check@tg
-    \pxrr@if@alive{\pxrr@ruby@main@tg}%
+    \if g\pxrr@mode
+      \pxrr@ruby@check@tg
+      \pxrr@if@alive{\pxrr@ruby@main@tg}%
+    \else
+      \pxrr@ruby@check@tm
+      \pxrr@if@alive{\pxrr@ruby@main@tm}%
+    \fi
   }%
   \pxrr@ruby@exit
 }
@@ -1772,6 +1868,31 @@
   \chardef\pxrr@evensp\z@
   \chardef\pxrr@revensp\z@
   \chardef\pxrr@fullsize\z@
+}
+\def\pxrr@resolve@mode{%
+  \ifnum\pxrr@body@count=\@ne
+    \ifnum\pxrr@ruby@count=\@ne
+      \let\pxrr@pre\pxrr@decompose
+      \let\pxrr@post\relax
+      \pxrr@body@list
+      \ifnum\pxrr@cntr=\@ne\else
+        \let\pxrr@mode=g%
+      \fi
+    \fi
+    \if M\pxrr@mode \let\pxrr@mode=m\fi
+    \if J\pxrr@mode \let\pxrr@mode=j\fi
+\ifpxrrDebug
+  \pxrr@debug@show@resolve@mode
+\fi
+    \if g\pxrr@mode
+      \chardef\pxrr@athead\z@
+    \fi
+    \if g\pxrr@mode\else
+      \chardef\pxrr@evensp\@ne
+    \fi
+  \else
+    \pxrr@fatal@bad@modesw
+  \fi
 }
 \def\pxrr@ruby@check@g{%
   \ifnum\pxrr@body@count=\pxrr@ruby@count\relax
@@ -1801,6 +1922,38 @@
   \fi
 }
 \def\pxrr@ruby@check@tg{%
+  \ifnum\pxrr@body@count=\pxrr@ruby@count\relax\else
+    \pxrr@fatal@bad@length\pxrr@body@count\pxrr@ruby@count
+  \fi
+  \ifnum\pxrr@body@count=\pxrr@sruby@count\relax\else
+    \pxrr@fatal@bad@length\pxrr@body@count\pxrr@sruby@count
+  \fi
+  \pxrr@if@alive{%
+    \ifnum\pxrr@body@count=\@ne\else
+      \ifpxrr@abody
+        \pxrr@fatal@bad@movable
+      \else\ifnum\pxrr@extra=\z@
+        \pxrr@fatal@na@movable
+      \fi\fi
+    \fi
+  }%
+}
+\def\pxrr@ruby@check@tm{%
+  \ifnum\pxrr@body@count=\@ne
+    \let\pxrr@pre\pxrr@decompose
+    \let\pxrr@post\relax
+    \pxrr@body@list
+    \let\pxrr@body@list\pxrr@res
+    \edef\pxrr@body@count{\the\pxrr@cntr}%
+    \ifnum\pxrr@body@count=\pxrr@ruby@count\relax\else
+      \pxrr@fatal@bad@length\pxrr@body@count\pxrr@ruby@count
+    \fi
+    \ifnum\pxrr@body@count=\pxrr@sruby@count\relax\else
+      \pxrr@fatal@bad@length\pxrr@body@count\pxrr@sruby@count
+    \fi
+  \else
+    \pxrr@fatal@bad@mono
+  \fi
 }
 \newif\ifpxrr@par@head
 \def\pxrr@check@par@head{%
@@ -1939,6 +2092,59 @@
   \let\pxrr@post\@empty
   \pxrr@whole@list
 }
+\def\pxrr@ruby@main@tm{%
+  \pxrr@tzip@list\pxrr@body@list\pxrr@ruby@list\pxrr@sruby@list
+  \let\pxrr@whole@list\pxrr@res
+  \pxrr@check@par@head
+  \pxrr@any@protrfalse
+\ifpxrrDebug
+\pxrr@debug@show@recomp
+\fi
+  \let\pxrr@locate@head@\pxrr@locate@inner
+  \let\pxrr@locate@end@\pxrr@locate@inner
+  \let\pxrr@locate@sing@\pxrr@locate@inner
+  \ifpxrr@aprotr\else
+    \let\pxrr@locate@end@\pxrr@locate@end
+    \let\pxrr@locate@sing@\pxrr@locate@end
+  \fi
+  \ifpxrr@bprotr\else
+    \let\pxrr@locate@head@\pxrr@locate@head
+    \let\pxrr@locate@sing@\pxrr@locate@head
+  \fi
+  \def\pxrr@pre##1##2##3{%
+    \pxrr@if@last{%
+      \pxrr@compose@twoside@block\pxrr@locate@sing@
+       {##1}{##2}{##3}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+      \pxrr@takeout@any@protr
+    }{%
+      \pxrr@compose@twoside@block\pxrr@locate@head@
+       {##1}{##2}{##3}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+    }%
+  }%
+  \def\pxrr@inter##1##2##3{%
+    \pxrr@if@last{%
+      \pxrr@compose@twoside@block\pxrr@locate@end@
+       {##1}{##2}{##3}%
+      \pxrr@inter@mono
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+      \pxrr@takeout@any@protr
+    }{%
+      \pxrr@compose@twoside@block\pxrr@locate@inner
+       {##1}{##2}{##3}%
+      \pxrr@inter@mono
+      \unhbox\pxrr@boxr
+    }%
+  }%
+  \let\pxrr@post\@empty
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
+  \unhbox\pxrr@boxr
+}
 \def\pxrr@ruby@main@tg{%
   \pxrr@check@par@head
   \pxrr@put@head@penalty
@@ -2075,6 +2281,10 @@
     pxrr@whole@list = \meaning\pxrr@whole@list^^J%
     ----
   }%
+}
+\def\pxrr@debug@show@resolve@mode{%
+  \typeout{----\pxrr@pkgname\space resolve-mode:
+    \meaning\pxrr@mode}%
 }
 \endinput
 %%

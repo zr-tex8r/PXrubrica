@@ -630,11 +630,21 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@warn@must@group}
-% 欧文ルビ、あるいは両側ルビでグループルビ以外の指定が行われた場合。
+% 欧文ルビでグループルビ以外の指定が行われた場合。
 % 強制的にグループルビに変更される。
 %    \begin{macrocode}
 \def\pxrr@warn@must@group{%
   \pxrr@warn{Only group ruby is allowed here}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@warn@bad@jukugo}
+% 両側ルビで熟語ルビの指定が行われた場合。
+% 強制的に選択的モノルビ（|M|）に変更される。
+%    \begin{macrocode}
+\def\pxrr@warn@bad@jukugo{%
+  \pxrr@warn{Jukugo ruby is not allowed here}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -689,7 +699,7 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@fatal@bad@movable}
-% 欧文ルビまたは両側ルビ（必ずグループルビとなる）で
+% 欧文ルビ（必ずグループルビとなる）で
 % ルビ文字列が2つ以上のグループを持つ場合。
 %    \begin{macrocode}
 \def\pxrr@fatal@bad@movable{%
@@ -1589,6 +1599,74 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@tzip@list}
+% |\pxrr@tzip@list\CSa\CSb\CSc|\Means
+% |\CSa|、|\CSb|、|\CSc| が以下のように展開されるマクロとする：
+% \begin{quote}\small
+% |\CSa| = |\pxrr@pre{|\jmeta{X1}|}\pxrr@inter{|\jmeta{X2}|}|^^A
+% $\cdots$|\pxrr@inter{|\jmeta{Xn}|}\pxrr@post|\\
+% |\CSb| = |\pxrr@pre{|\jmeta{Y1}|}\pxrr@inter{|\jmeta{Y2}|}|^^A
+% $\cdots$|\pxrr@inter{|\jmeta{Yn}|}\pxrr@post|\\
+% |\CSc| = |\pxrr@pre{|\jmeta{Z1}|}\pxrr@inter{|\jmeta{Z2}|}|^^A
+% $\cdots$|\pxrr@inter{|\jmeta{Zn}|}\pxrr@post|
+% \end{quote}
+% この命令は |\pxrr@res| を以下の内容に定義する。
+% \begin{quote}\small
+% |\pxrr@pre{|\jmeta{X1}|}{|\jmeta{Y1}|}{|\jmeta{Z1}|}|^^A
+% |\pxrr@inter{|\jmeta{X2}|}{|\jmeta{Y2}|}{|\jmeta{Z2}|}|^^A
+% $\cdots$\\
+% |\pxrr@inter{|\jmeta{Xn}|}{|\jmeta{Yn}|}{|\jmeta{Zn}|}|^^A
+% |\pxrr@post|
+% \end{quote}
+%    \begin{macrocode}
+\def\pxrr@tzip@list#1#2#3{%
+  \let\pxrr@res\@empty
+  \let\pxrr@post\relax
+  \let\pxrr@tempa#1\pxrr@appto\pxrr@tempa{{}}%
+  \let\pxrr@tempb#2\pxrr@appto\pxrr@tempb{{}}%
+  \let\pxrr@tempc#3\pxrr@appto\pxrr@tempc{{}}%
+  \pxrr@tzip@list@loopa
+}
+\def\pxrr@tzip@list@loopa{%
+  \expandafter\pxrr@tzip@list@loopb\pxrr@tempa\pxrr@end
+}
+\def\pxrr@tzip@list@loopb#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{#1{#2}}%
+    \def\pxrr@tempa{#3}%
+    \expandafter\pxrr@tzip@list@loopc\pxrr@tempb\pxrr@end
+  }%
+}
+\def\pxrr@tzip@list@loopc#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@interror{tzip}%
+    \pxrr@appto\pxrr@res{{}}%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{{#2}}%
+    \def\pxrr@tempb{#3}%
+    \expandafter\pxrr@tzip@list@loopd\pxrr@tempc\pxrr@end
+  }%
+}
+\def\pxrr@tzip@list@loopd#1#2#3\pxrr@end{%
+  \pxrr@ifx{#1\relax}{%
+    \pxrr@interror{tzip}%
+    \pxrr@appto\pxrr@res{{}}%
+    \pxrr@tzip@list@exit
+  }{%
+    \pxrr@appto\pxrr@res{{#2}}%
+    \def\pxrr@tempc{#3}%
+    \pxrr@tzip@list@loopa
+  }%
+}
+\def\pxrr@tzip@list@exit{%
+  \pxrr@appto\pxrr@res{\pxrr@post}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@concat@list}
 % |\pxrr@concat@list\CS|\Means
 % リストの要素を連結する。
@@ -2331,6 +2409,12 @@
   \pxrr@mode@givenfalse
   \pxrr@athead@givenfalse
 %    \end{macrocode}
+% 両側ルビの場合、基本モード既定値が |M| に固定される。
+%    \begin{macrocode}
+  \ifpxrr@truby
+    \let\pxrr@mode=M%
+  \fi
+%    \end{macrocode}
 % 有限状態機械を開始させる。
 % 入力の末尾に |@| を加えている。
 % |\pxrr@end| はエラー時の脱出に用いる。
@@ -2427,6 +2511,8 @@
 \def\pxrr@po@C@m{M}
 \def\pxrr@po@C@g{M}
 \def\pxrr@po@C@j{M}
+\def\pxrr@po@C@M{M}
+\def\pxrr@po@C@J{M}
 \def\pxrr@po@C@P{M}
 \def\pxrr@po@C@S{M}
 \def\pxrr@po@C@e{M}
@@ -2542,6 +2628,14 @@
   \let\pxrr@mode=j%
   \pxrr@mode@giventrue
 }
+\def\pxrr@po@PR@M{%
+  \let\pxrr@mode=M%
+  \pxrr@mode@giventrue
+}
+\def\pxrr@po@PR@J{%
+  \let\pxrr@mode=J%
+  \pxrr@mode@giventrue
+}
 \def\pxrr@po@PR@P{%
   \chardef\pxrr@side\z@
 }
@@ -2600,6 +2694,24 @@
 %
 % \subsection{オプション整合性検査}
 %
+% \begin{macro}{\pxrr@mode@grand}
+% 基本モードの“大分類”。
+% モノ（|m|）・熟語（|j|）・グループ（|g|）の何れか。
+% つまり“選択的”設定の |M|・|J| を |m|・|j| に寄せる。
+% \Note 完全展開可能であるが、“先頭完全展開可能”でないことに注意。
+%    \begin{macrocode}
+\def\pxrr@mode@grand{%
+  \if      m\pxrr@mode m%
+  \else\if M\pxrr@mode m%
+  \else\if j\pxrr@mode j%
+  \else\if J\pxrr@mode j%
+  \else\if g\pxrr@mode g%
+  \else ?%
+  \fi\fi\fi\fi\fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@check@option}
 % |\pxrr@parse@option| の結果であるオプション設定値の整合性を検査し、
 % 必要に応じて、致命的エラーを出したり、警告を出して適切な値に
@@ -2644,15 +2756,15 @@
     \fi
   \fi
 %    \end{macrocode}
-% 両側ルビではモノルビ（|m|）・熟語ルビ（|j|）は指定不可なので、
+% 両側ルビでは熟語ルビ（|j|）は指定不可なので、
 % グループルビに変更する。
 % この時に明示指定である場合は警告を出す。
 %    \begin{macrocode}
-  \if g\pxrr@mode\else
+  \if \pxrr@mode@grand j%
     \ifnum\pxrr@side=\tw@
       \let\pxrr@mode=g\relax
       \ifpxrr@mode@given
-        \pxrr@warn@must@group
+        \pxrr@warn@bad@jukugo
       \fi
     \fi
   \fi
@@ -4065,6 +4177,20 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@mode@is@switching}
+% |\if\pxrr@mode@is@switching{|\jmeta{基本モード}|}| の形の
+% if文として使う。
+% モードが“選択的”（|M|・|J|）であるか。
+%    \begin{macrocode}
+\def\pxrr@mode@is@switching{%
+  \if      M\pxrr@mode T%
+  \else\if J\pxrr@mode T%
+  \else F%
+  \fi\fi T%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@ruby@proc}
 % |\pxrr@ruby@proc{|\jmeta{親文字列}|}{|\jmeta{ルビ文字列}|}|\Means
 % これが手続の本体となる。
@@ -4091,6 +4217,13 @@
   \pxrr@decompbar{#1}%
   \let\pxrr@body@list\pxrr@res
   \edef\pxrr@body@count{\the\pxrr@cntr}%
+%    \end{macrocode}
+% モードが“選択的”である場合、“普通の”モード
+% （|m|・|j|・|g|）に帰着させる。
+%    \begin{macrocode}
+  \if\pxrr@mode@is@switching
+    \pxrr@resolve@mode
+  \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
@@ -4139,10 +4272,25 @@
 %    \begin{macrocode}
   \pxrr@parse@option\pxrr@option
 %    \end{macrocode}
-% 両側ルビの場合、入力文字列をグループ分解せずに、そのままの引数列の
-% 形でマクロに記憶する。
+% 両側のグループルビでは |pxrr@all@input| を利用するので、
+% 入力文字列を設定する。
 %    \begin{macrocode}
   \def\pxrr@all@input{{#1}{#2}{#3}}%
+%    \end{macrocode}
+% 入力文字列のグループ分解を行う。
+%    \begin{macrocode}
+  \pxrr@decompbar{#3}%
+  \let\pxrr@sruby@list\pxrr@res
+  \edef\pxrr@sruby@count{\the\pxrr@cntr}%
+  \pxrr@decompbar{#2}%
+  \let\pxrr@ruby@list\pxrr@res
+  \edef\pxrr@ruby@count{\the\pxrr@cntr}%
+  \pxrr@decompbar{#1}%
+  \let\pxrr@body@list\pxrr@res
+  \edef\pxrr@body@count{\the\pxrr@cntr}%
+  \if\pxrr@mode@is@switching
+    \pxrr@resolve@mode
+  \fi
 \ifpxrrDebug
   \pxrr@debug@show@input
 \fi
@@ -4153,8 +4301,13 @@
 % 入力検査を行い、パスした場合は組版処理に進む。
 %    \begin{macrocode}
   \pxrr@if@alive{%
-    \pxrr@ruby@check@tg
-    \pxrr@if@alive{\pxrr@ruby@main@tg}%
+    \if g\pxrr@mode
+      \pxrr@ruby@check@tg
+      \pxrr@if@alive{\pxrr@ruby@main@tg}%
+    \else
+      \pxrr@ruby@check@tm
+      \pxrr@if@alive{\pxrr@ruby@main@tm}%
+    \fi
   }%
 %    \end{macrocode}
 % 後処理を行う。
@@ -4172,6 +4325,47 @@
   \chardef\pxrr@evensp\z@
   \chardef\pxrr@revensp\z@
   \chardef\pxrr@fullsize\z@
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@resolve@mode}
+% 基本モードが“選択的”（|M|・|J|）である場合に、状況に応じて
+% 適切な通常のモードに切り替える。
+%    \begin{macrocode}
+\def\pxrr@resolve@mode{%
+  \ifnum\pxrr@body@count=\@ne
+%    \end{macrocode}
+% ルビグループが1つで親文字が複数ある場合にはグループルビを選択し、
+%    \begin{macrocode}
+    \ifnum\pxrr@ruby@count=\@ne
+      \let\pxrr@pre\pxrr@decompose
+      \let\pxrr@post\relax
+      \pxrr@body@list
+      \ifnum\pxrr@cntr=\@ne\else
+        \let\pxrr@mode=g%
+      \fi
+    \fi
+%    \end{macrocode}
+% それ以外はモノルビ・熟語ルビを選択する。
+%    \begin{macrocode}
+    \if M\pxrr@mode \let\pxrr@mode=m\fi
+    \if J\pxrr@mode \let\pxrr@mode=j\fi
+\ifpxrrDebug
+  \pxrr@debug@show@resolve@mode
+\fi
+%    \end{macrocode}
+% |\pxrr@check@option| で行っている調整をやり直す。
+%    \begin{macrocode}
+    \if g\pxrr@mode
+      \chardef\pxrr@athead\z@
+    \fi
+    \if g\pxrr@mode\else
+      \chardef\pxrr@evensp\@ne
+    \fi
+  \else
+    \pxrr@fatal@bad@modesw
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -4230,11 +4424,49 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@ruby@check@tg}
-% 両側ルビの場合、ここで検査する内容はない。
-% （両側ルビの入力文字列はグループ分割されず、常に単一グループと
-% して扱われる。）
+% 両側のグループルビの場合。
+% ルビが2つあることを除き、片側の場合と同じ。
 %    \begin{macrocode}
 \def\pxrr@ruby@check@tg{%
+  \ifnum\pxrr@body@count=\pxrr@ruby@count\relax\else
+    \pxrr@fatal@bad@length\pxrr@body@count\pxrr@ruby@count
+  \fi
+  \ifnum\pxrr@body@count=\pxrr@sruby@count\relax\else
+    \pxrr@fatal@bad@length\pxrr@body@count\pxrr@sruby@count
+  \fi
+  \pxrr@if@alive{%
+    \ifnum\pxrr@body@count=\@ne\else
+      \ifpxrr@abody
+        \pxrr@fatal@bad@movable
+      \else\ifnum\pxrr@extra=\z@
+        \pxrr@fatal@na@movable
+      \fi\fi
+    \fi
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ruby@check@tm}
+% 両側のモノルビの場合。
+% ルビが2つあることを除き、片側の場合と同じ。
+%    \begin{macrocode}
+\def\pxrr@ruby@check@tm{%
+  \ifnum\pxrr@body@count=\@ne
+    \let\pxrr@pre\pxrr@decompose
+    \let\pxrr@post\relax
+    \pxrr@body@list
+    \let\pxrr@body@list\pxrr@res
+    \edef\pxrr@body@count{\the\pxrr@cntr}%
+    \ifnum\pxrr@body@count=\pxrr@ruby@count\relax\else
+      \pxrr@fatal@bad@length\pxrr@body@count\pxrr@ruby@count
+    \fi
+    \ifnum\pxrr@body@count=\pxrr@sruby@count\relax\else
+      \pxrr@fatal@bad@length\pxrr@body@count\pxrr@sruby@count
+    \fi
+  \else
+    \pxrr@fatal@bad@mono
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -4468,8 +4700,67 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@ruby@main@tm}
+% 両側のモノルビの場合。
+%    \begin{macrocode}
+\def\pxrr@ruby@main@tm{%
+  \pxrr@tzip@list\pxrr@body@list\pxrr@ruby@list\pxrr@sruby@list
+  \let\pxrr@whole@list\pxrr@res
+  \pxrr@check@par@head
+  \pxrr@any@protrfalse
+\ifpxrrDebug
+\pxrr@debug@show@recomp
+\fi
+  \let\pxrr@locate@head@\pxrr@locate@inner
+  \let\pxrr@locate@end@\pxrr@locate@inner
+  \let\pxrr@locate@sing@\pxrr@locate@inner
+  \ifpxrr@aprotr\else
+    \let\pxrr@locate@end@\pxrr@locate@end
+    \let\pxrr@locate@sing@\pxrr@locate@end
+  \fi
+  \ifpxrr@bprotr\else
+    \let\pxrr@locate@head@\pxrr@locate@head
+    \let\pxrr@locate@sing@\pxrr@locate@head
+  \fi
+  \def\pxrr@pre##1##2##3{%
+    \pxrr@if@last{%
+      \pxrr@compose@twoside@block\pxrr@locate@sing@
+       {##1}{##2}{##3}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+      \pxrr@takeout@any@protr
+    }{%
+      \pxrr@compose@twoside@block\pxrr@locate@head@
+       {##1}{##2}{##3}%
+      \pxrr@intrude@head
+      \unhbox\pxrr@boxr
+    }%
+  }%
+  \def\pxrr@inter##1##2##3{%
+    \pxrr@if@last{%
+      \pxrr@compose@twoside@block\pxrr@locate@end@
+       {##1}{##2}{##3}%
+      \pxrr@inter@mono
+      \unhbox\pxrr@boxr
+      \pxrr@intrude@end
+      \pxrr@takeout@any@protr
+    }{%
+      \pxrr@compose@twoside@block\pxrr@locate@inner
+       {##1}{##2}{##3}%
+      \pxrr@inter@mono
+      \unhbox\pxrr@boxr
+    }%
+  }%
+  \let\pxrr@post\@empty
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@whole@list}%
+  \unhbox\pxrr@boxr
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@ruby@main@tg}
-% 両側ルビ（必ず単純グループルビである）の場合。
+% 両側の単純グループルビの場合。
 %    \begin{macrocode}
 \def\pxrr@ruby@main@tg{%
   \pxrr@check@par@head
@@ -4696,6 +4987,10 @@
     pxrr@whole@list = \meaning\pxrr@whole@list^^J%
     ----
   }%
+}
+\def\pxrr@debug@show@resolve@mode{%
+  \typeout{----\pxrr@pkgname\space resolve-mode:
+    \meaning\pxrr@mode}%
 }
 %    \end{macrocode}
 %
