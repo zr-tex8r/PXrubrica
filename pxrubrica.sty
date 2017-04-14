@@ -2346,6 +2346,479 @@
   \typeout{----\pxrr@pkgname\space resolve-mode:
     \meaning\pxrr@mode}%
 }
+\def\pxrr@warn@na@kmark#1{%
+  \pxrr@warn{Unavailable kenten mark '#1'}%
+}
+\def\pxrr@err@invalid@value#1{%
+  \pxrr@error{Invalid value '#1'}%
+      {\@eha}%
+}
+\def\pxrr@err@yet@unavail@combo#1{%
+  \pxrr@error{%
+    The feature of kenten-ruby combination is\MessageBreak
+    not yet supported. Now you must specify\MessageBreak
+    \@spaces \string\kentenrubycombination{ruby}\MessageBreak
+    to put ruby commands inside kenten commands%
+  }{%
+    Here \string\kentenrubycombination{ruby} is assumed.%
+    \MessageBreak \@ehc
+  }%
+}
+\let\pxrr@k@ymark\@undefined
+\let\pxrr@k@ysmark\@undefined
+\let\pxrr@k@tmark\@undefined
+\let\pxrr@k@tsmark\@undefined
+\AtEndOfPackage{%
+  \pxrr@k@get@mark\pxrr@k@ymark{bullet*}%
+  \pxrr@k@get@mark\pxrr@k@ysmark{sesame*}%
+  \pxrr@k@get@mark\pxrr@k@tmark{sesame*}%
+  \pxrr@k@get@mark\pxrr@k@tsmark{bullet*}%
+}
+\let\pxrr@k@ruby@font\@empty
+\def\pxrr@k@size@ratio{0.5}
+\newif\ifpxrr@k@ghost \pxrr@k@ghosttrue
+\def\pxrr@k@inter@gap{0}
+\def\pxrr@k@ruby@inter@gap{0}
+\chardef\pxrr@k@d@side=0
+\chardef\pxrr@k@d@mark=0
+\chardef\pxrr@k@ruby@combo=1
+\chardef\pxrr@k@mark=0
+\let\pxrr@k@the@mark\relax
+\newif\ifpxrr@avail@UTF
+\def\pxrr@decide@avail@UTF{%
+  \global\let\pxrr@decide@avail@UTF\relax
+  \ifx\UTF\@undefined \global\pxrr@avail@UTFfalse
+  \else \global\pxrr@avail@UTFtrue
+  \fi
+}
+\def\pxrr@k@decompose#1{%
+  \let\pxrr@res\@empty
+  \pxrr@cntr=\z@
+  \pxrr@k@decompose@loopa#1\pxrr@end
+}
+\def\pxrr@k@decompose@loopa{%
+  \futurelet\pxrr@token\pxrr@k@decompose@loopb
+}
+\def\pxrr@k@decompose@loopb{%
+  \pxrr@cond\ifx\pxrr@token\pxrr@end\fi{%
+    \pxrr@appto\pxrr@res{\pxrr@post}%
+  }{\pxrr@if@kspan@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@kspan
+  }{\pxrr@if@ruby@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@ruby
+  }{\pxrr@if@kenten@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@kenten
+  }{%
+    \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
+    \pxrr@k@decompose@loopc
+  }}}}%
+}
+\def\pxrr@k@decompose@loopc#1{%
+  \pxrr@appto\pxrr@res{\pxrr@entry}%
+  \ifpxrr@ok
+    \pxrr@appto\pxrr@res{{{#1}}}%
+  \else
+    \pxrr@appto\pxrr@res{{#1}}%
+  \fi
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@loopd{%
+  \advance\pxrr@cntr\@ne
+  \pxrr@k@decompose@loopa
+}
+\def\pxrr@k@decompose@special#1#2#{%
+  #1{#2}%
+}
+\def\pxrr@k@decompose@kspan#1#2{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@kspan{#1{#2}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@ruby#1#2#3{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@ruby{#1{#2}{#3}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@kenten#1#2{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@kenten{#1{#2}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@cmd@ruby{\jruby}
+\def\pxrr@cmd@kenten{\jkenten}
+\def\pxrr@if@ruby@cmd#1{%
+  \if \ifcat\noexpand#1\relax
+        \ifx#1\pxrr@cmd@ruby T%
+        \else\ifx#1\jruby T%
+        \else\ifx#1\aruby T%
+        \else F%
+        \fi\fi\fi
+      \else F%
+      \fi T\expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+\def\pxrr@if@kspan@cmd#1{%
+  \pxrr@cond\ifx#1\kspan\fi
+}
+\def\pxrr@if@kenten@cmd#1{%
+  \if \ifcat\noexpand#1\relax
+        \ifx#1\pxrr@cmd@kenten T%
+        \else\if#1\jkenten T%
+        \else F%
+        \fi\fi
+      \else F%
+      \fi T\expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+\newcommand*\kentensetup[1]{%
+  \pxrr@in@setuptrue
+  \pxrr@fatal@errorfalse
+  \pxrr@k@parse@option{#1}%
+  \ifpxrr@fatal@error\else
+    \let\pxrr@k@d@side\pxrr@side
+    \let\pxrr@k@d@mark\pxrr@k@mark
+  \fi
+  \pxrr@in@setupfalse
+}
+\newcommand*\kentenfontsetup{}
+\def\kentenfontsetup#{%
+  \def\pxrr@k@ruby@font
+}
+\newcommand*\kentensizeratio[1]{%
+  \edef\pxrr@k@size@ratio{#1}%
+}
+\newcommand*\kentenintergap[1]{%
+  \edef\pxrr@k@inter@gap{#1}%
+}
+\newcommand*\kentenrubyintergap[1]{%
+  \edef\pxrr@k@ruby@inter@gap{#1}%
+}
+\newcommand*\kentenmarkinyoko[1]{%
+  \pxrr@k@get@mark\pxrr@k@ymark{#1}%
+}
+\newcommand*\kentensubmarkinyoko[1]{%
+  \pxrr@k@get@mark\pxrr@k@ysmark{#1}%
+}
+\newcommand*\kentenmarkintate[1]{%
+  \pxrr@k@get@mark\pxrr@k@tmark{#1}%
+}
+\newcommand*\kentensubmarkintate[1]{%
+  \pxrr@k@get@mark\pxrr@k@tsmark{#1}%
+}
+\chardef\pxrr@k@ruby@combo@ruby=0
+\chardef\pxrr@k@ruby@combo@both=1
+\newcommand*\kentenrubycombination[1]{%
+  \pxrr@letcs\pxrr@tempa{pxrr@k@ruby@combo@#1}%
+  \ifx\pxrr@tempa\relax
+    \pxrr@err@invalid@value{#1}%
+  \else
+    \let\pxrr@k@ruby@combo\pxrr@tempa
+  \fi
+}
+\def\pxrr@k@declare@mark#1{%
+  \global\@namedef{pxrr@k@mark@@#1}%
+}
+\def\pxrr@k@let@mark#1{%
+  \global\pxrr@cslet{pxrr@k@mark@@#1}%
+}
+\def\pxrr@k@get@mark#1#2{%
+  \futurelet\pxrr@token\pxrr@k@get@mark@a#2\pxrr@nil#1%
+}
+\def\pxrr@k@get@mark@a{%
+  \pxrr@cond\ifcat A\noexpand\pxrr@token\fi{%
+    \pxrr@k@get@mark@c
+  }{%else
+    \pxrr@k@get@mark@b
+  }%
+}
+\def\pxrr@k@get@mark@b#1\pxrr@nil#2{%
+  \def#2{#1}%
+}
+\def\pxrr@k@get@mark@c#1#2\pxrr@nil#3{%
+  \ifnum`#1<128
+    \pxrr@letcs\pxrr@tempa{pxrr@k@mark@@#1#2}%
+    \ifx\pxrr@tempa\relax
+      \pxrr@warn@na@kmark{#1#2}%
+    \else
+      \let#3\pxrr@tempa
+    \fi
+  \else
+    \pxrr@k@get@mark@b#1#2\pxrr@nil#3%
+  \fi
+}
+\def\pxrr@k@declare@mark@char#1#2{%
+  \pxrr@k@declare@mark@char@a{#1}#2\pxrr@end
+}
+\def\pxrr@k@declare@mark@char@a#1#2:#3\pxrr@end{%
+  \ifnum"#2=\z@
+    \pxrr@k@declare@mark{#1}{\pxrr@k@char@UTF{#1}{#3}}%
+  \else
+    \pxrr@jchardef\pxrr@tempa\pxrr@jc{#2:#3}%
+    \pxrr@k@let@mark{#1}\pxrr@tempa
+  \fi
+}
+\def\pxrr@k@char@UTF#1#2{%
+  \pxrr@decide@avail@UTF
+  \ifpxrr@avail@UTF
+    \pxrr@k@declare@mark{#1}{\UTF{#2}}%
+    \UTF{#2}%
+  \else
+    \pxrr@k@let@mark{#1}\@empty
+    \pxrr@warn@na@kmark{#1}%
+  \fi
+}
+\pxrr@k@declare@mark@char{bullet}  {0000:2022}
+\pxrr@k@declare@mark@char{triangle}{2225:25B2}
+\pxrr@k@declare@mark@char{Triangle}{2224:25B3}
+\pxrr@k@declare@mark@char{fisheye} {0000:25C9}
+\pxrr@k@declare@mark@char{Circle}  {217B:25CB}
+\pxrr@k@declare@mark@char{bullseye}{217D:25CE}
+\pxrr@k@declare@mark@char{circle}  {217C:25CF}
+\pxrr@k@declare@mark@char{Bullet}  {0000:25E6}
+\pxrr@k@declare@mark@char{sesame}  {0000:FE45}
+\pxrr@k@declare@mark@char{Sesame}  {0000:FE46}
+\pxrr@jchardef\pxrr@ja@dot=\pxrr@jc{2126:30FB}
+\pxrr@jchardef\pxrr@ja@comma=\pxrr@jc{2122:3001}
+\pxrr@k@declare@mark{bullet*}{%
+  \pxrr@dima=\pxrr@ruby@zw\relax
+  \hb@xt@\pxrr@dima{%
+    \kern-.5184\pxrr@dima
+    \lower.5184\pxrr@dima\hbox{%
+      \pxrr@dima=\f@size\p@
+      \fontsize{2.0736\pxrr@dima}{\z@}\selectfont
+      \pxrr@ja@dot
+    }%
+    \hss
+  }%
+}
+\pxrr@k@declare@mark{sesame*}{%
+  \pxrr@dima=\pxrr@ruby@zw\relax
+  \hb@xt@\pxrr@dima{%
+    \kern.3\pxrr@dima
+    \pxrr@if@in@tate{\lower.3\pxrr@dima}{\raise.3\pxrr@dima}%
+    \hbox{%
+      \pxrr@dima=\f@size\p@
+      \fontsize{1.44\pxrr@dima}{\z@}\selectfont
+      \pxrr@ja@comma
+    }%
+    \hss
+  }%
+}
+\def\pxrr@k@parse@option#1{%
+  \edef\pxrr@tempa{#1}%
+  \let\pxrr@side\pxrr@k@d@side
+  \let\pxrr@k@mark\pxrr@k@d@mark
+  \expandafter\pxrr@k@parse@option@loop\pxrr@tempa @\pxrr@end
+}
+\def\pxrr@k@parse@option@loop#1{%
+  \pxrr@letcs\pxrr@tempa{pxrr@k@po@PR@#1}%
+  \pxrr@cond\ifx\pxrr@tempa\relax\fi{%
+    \pxrr@fatal@knx@letter{#1}%
+    \pxrr@k@parse@option@exit
+  }{%
+    \pxrr@tempa
+    \pxrr@k@parse@option@loop
+  }%
+}
+\def\pxrr@k@parse@option@exit#1\pxrr@end{%
+  \ifpxrr@in@setup\else
+    \pxrr@k@check@option
+    \pxrr@if@in@tate{%
+      \ifcase\pxrr@k@mark \let\pxrr@k@the@mark\pxrr@k@tmark
+      \or \let\pxrr@k@the@mark\pxrr@k@tsmark
+      \fi
+    }{%
+      \ifcase\pxrr@k@mark \let\pxrr@k@the@mark\pxrr@k@ymark
+      \or \let\pxrr@k@the@mark\pxrr@k@ysmark
+      \fi
+    }%
+  \fi
+}
+\def\pxrr@k@po@PR@@{%
+  \pxrr@k@parse@option@exit
+}
+\def\pxrr@k@po@PR@P{%
+  \chardef\pxrr@side\z@
+}
+\def\pxrr@k@po@PR@S{%
+  \chardef\pxrr@side\@ne
+}
+\def\pxrr@k@po@PR@p{%
+  \chardef\pxrr@k@mark\z@
+}
+\def\pxrr@k@po@PR@s{%
+  \chardef\pxrr@k@mark\@ne
+}
+\def\pxrr@k@check@option{%
+}
+\def\pxrr@k@compose@block#1#2{%
+  \setbox\pxrr@boxa\pxrr@hbox{#1}%
+  \pxrr@k@make@rep@list{\copy\pxrr@boxb}{#2}%
+  \let\pxrr@natwd\pxrr@zeropt
+  \pxrr@evenspace@int\pxrr@locate@inner\pxrr@boxr
+       \relax{\wd\pxrr@boxa}%
+  \setbox\z@\hbox{%
+    \ifnum\pxrr@side=\z@
+      \raise\pxrr@ruby@raise\box\pxrr@boxr
+    \else
+      \lower\pxrr@ruby@lower\box\pxrr@boxr
+    \fi
+  }%
+  \ht\z@\z@ \dp\z@\z@
+  \@tempdima\wd\z@
+  \setbox\pxrr@boxr\hbox{%
+    \box\z@
+    \kern-\@tempdima
+    \box\pxrr@boxa
+  }%
+}
+\def\pxrr@k@make@rep@list#1#2{%
+  \def\pxrr@res{\pxrr@pre{#1}}%
+  \pxrr@cntr=#2\relax
+  \ifnum\pxrr@cntr>\@ne
+    \@tempcnta\pxrr@cntr \advance\@tempcnta\m@ne
+    \@whilenum{\@tempcnta>\z@}\do{%
+      \pxrr@appto\pxrr@res{\pxrr@inter{#1}}%
+      \advance\@tempcnta\m@ne
+    }%
+  \fi
+  \pxrr@appto\pxrr@res{\pxrr@post}%
+}
+\def\pxrr@k@entry@with#1#2{%
+  #1{#2}%
+  \unhbox\pxrr@boxr
+  \pxrr@if@last{}{%else
+    \pxrr@inter@mono
+  }%
+}
+\def\pxrr@kenten@entry{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@
+}
+\def\pxrr@kenten@entry@#1{%
+  \pxrr@k@compose@block{#1}\@ne
+}%
+\def\pxrr@kenten@entry@kspan{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@kspan@
+}
+\def\pxrr@kenten@entry@kspan@#1{%
+  \pxrr@kenten@entry@kspan@a#1
+}%
+\def\pxrr@kenten@entry@kspan@a#1{%
+  \@testopt\pxrr@kenten@entry@kspan@b{}%
+}%
+\def\pxrr@kenten@entry@kspan@b[#1]#2{%
+  \setbox\z@\pxrr@hbox{#2}%
+  \@tempdima\pxrr@body@zw\relax
+  \@tempdimb\wd\z@ \advance\@tempdimb.25\@tempdima
+  \divide\@tempdimb\@tempdima
+  \edef\pxrr@kenten@entry@tempa{\number\@tempdimb}%
+  \pxrr@k@compose@block{#2}\pxrr@kenten@entry@tempa
+}%
+\def\pxrr@kenten@entry@kenten{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@kenten@
+}
+\def\pxrr@kenten@entry@kenten@#1{%
+  \setbox\pxrr@boxr\hbox{#1}%
+}%
+\def\pxrr@kenten@entry@ruby{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@ruby@
+}
+\def\pxrr@kenten@entry@ruby@#1{%
+  \ifnum\pxrr@k@ruby@combo>\z@
+    \pxrr@err@yet@unavail@combo
+  \fi
+  \setbox\pxrr@boxr\hbox{#1}%
+}%
+\newcommand*\kspan{%
+  \@testopt\pxrr@kspan@a{}%
+}
+\pxrr@add@protect\kspan
+\def\pxrr@kspan@a[#1]#2{%
+  \begingroup
+    #2%
+  \endgroup
+}
+\AtBeginDocument{%
+  \providecommand*{\kenten}{\jkenten}%
+}
+\newcommand*{\jkenten}{%
+  \pxrr@k@prologue
+  \pxrr@kenten
+}
+\pxrr@add@protect\jkenten
+\def\pxrr@kenten{%
+  \@testopt\pxrr@kenten@a{}%
+}
+\def\pxrr@kenten@a[#1]{%
+  \def\pxrr@option{#1}%
+  \ifpxrr@safe@mode
+    \expandafter\@firstofone
+  \else
+    \expandafter\pxrr@kenten@proc
+  \fi
+}
+\def\pxrr@k@bind@param{%
+  \let\pxrr@c@ruby@font\pxrr@k@ruby@font
+  \let\pxrr@c@size@ratio\pxrr@k@size@ratio
+  \let\pxrr@c@inter@gap\pxrr@k@inter@gap
+}
+\def\pxrr@kenten@proc#1{%
+  \pxrr@prepare@fallback{#1}%
+  \pxrr@k@bind@param
+  \pxrr@assign@fsize
+  \pxrr@k@parse@option\pxrr@option
+  \pxrr@if@alive{%
+    \pxrr@k@decompose{#1}%
+    \let\pxrr@body@list\pxrr@res
+    \pxrr@kenten@main
+  }%
+  \pxrr@kenten@exit
+}
+\def\pxrr@kenten@main{%
+  \setbox\pxrr@boxb\pxrr@hbox@to\z@{%
+    \pxrr@use@ruby@font
+    \hss\pxrr@k@the@mark\hss
+  }%
+  \let\pxrr@entry\pxrr@kenten@entry
+  \let\pxrr@entry@kspan\pxrr@kenten@entry@kspan
+  \let\pxrr@entry@ruby\pxrr@kenten@entry@ruby
+  \let\pxrr@entry@kenten\pxrr@kenten@entry@kenten
+  \let\pxrr@post\@empty
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@body@list}%
+  \unhbox\pxrr@boxr
+}
+\def\pxrr@k@prologue{%
+  \ifpxrr@k@ghost
+    \pxrr@zspace
+  \fi
+  \begingroup
+    \ifpxrr@k@ghost
+      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \kern-\wd\pxrr@boxa
+    \fi
+}
+\def\pxrr@kenten@exit{%
+  \ifpxrr@fatal@error
+    \pxrr@fallback
+  \fi
+  \pxrr@k@epilogue
+}
+\def\pxrr@k@epilogue{%
+    \ifpxrr@k@ghost
+      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \kern-\wd\pxrr@boxa
+    \fi
+  \endgroup
+  \ifpxrr@k@ghost
+    \pxrr@zspace
+  \fi
+}
+\def\pxrr@debug@show@kenten@input{%
+  \typeout{%
+pxrr@k@the@mark=\meaning\pxrr@k@the@mark^^J%
+pxrr@side=\meaning\pxrr@side^^J%
+pxrr@body@list=\meaning\pxrr@body@list^^J%
+  }%
+}
 \endinput
 %%
 %% End of file `pxrubrica.sty'.

@@ -577,9 +577,14 @@
 %
 % \end{itemize}
 %
+%^^A========================================================
+% \StopEventually
+% \newpage
 % \setlength{\parindent}{0pt}
+% \newcommand*{\cs}[1]{\texttt{\symbol{`\\}#1}}
 %
-% \section{実装}
+%^^A------------------------------------
+% \section{実装（ルビ関連）}
 %
 % \subsection{前提パッケージ}
 %
@@ -5239,6 +5244,928 @@
 }
 %    \end{macrocode}
 %
+%^^A------------------------------------
+% \section{実装（圏点関連）}
+%
+% \subsection{エラーメッセージ}
+%
+% 指定の名前の圏点文字が未登録の場合。
+%    \begin{macrocode}
+\def\pxrr@warn@na@kmark#1{%
+  \pxrr@warn{Unavailable kenten mark '#1'}%
+}
+%    \end{macrocode}
+%
+% パラメタ設定命令で無効な値が指定された場合。
+%    \begin{macrocode}
+\def\pxrr@err@invalid@value#1{%
+  \pxrr@error{Invalid value '#1'}%
+      {\@eha}%
+}
+%    \end{macrocode}
+%
+% ルビと圏点の同時付加（未実装）が実際に適用された場合。
+%    \begin{macrocode}
+\def\pxrr@err@yet@unavail@combo#1{%
+  \pxrr@error{%
+    The feature of kenten-ruby combination is\MessageBreak
+    not yet supported. Now you must specify\MessageBreak
+    \@spaces \string\kentenrubycombination{ruby}\MessageBreak
+    to put ruby commands inside kenten commands%
+  }{%
+    Here \string\kentenrubycombination{ruby} is assumed.%
+    \MessageBreak \@ehc
+  }%
+}
+%    \end{macrocode}
+%
+% \subsection{パラメタ}
+%
+% \subsubsection{全般設定}
+%
+% \begin{macro}{\pxrr@k@ymark}
+% 横組の主の圏点マークのコード。
+%    \begin{macrocode}
+\let\pxrr@k@ymark\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@ysmark}
+% 横組の副の圏点マークのコード。
+%    \begin{macrocode}
+\let\pxrr@k@ysmark\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@tmark}
+% 縦組の主の圏点マークのコード。
+%    \begin{macrocode}
+\let\pxrr@k@tmark\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@tsmark}
+% 縦組の服の圏点マークのコード。
+%    \begin{macrocode}
+\let\pxrr@k@tsmark\@undefined
+%    \end{macrocode}
+% \end{macro}
+%
+% 圏点マークの初期値の設定。
+%    \begin{macrocode}
+\AtEndOfPackage{%
+  \pxrr@k@get@mark\pxrr@k@ymark{bullet*}%
+  \pxrr@k@get@mark\pxrr@k@ysmark{sesame*}%
+  \pxrr@k@get@mark\pxrr@k@tmark{sesame*}%
+  \pxrr@k@get@mark\pxrr@k@tsmark{bullet*}%
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\pxrr@k@ruby@font}
+% 圏点用フォント切替命令。
+%    \begin{macrocode}
+\let\pxrr@k@ruby@font\@empty
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@size@ratio}
+% 圏点文字サイズ。
+% （|\kentensizeratio|）。
+% 実数値マクロ。
+%    \begin{macrocode}
+\def\pxrr@k@size@ratio{0.5}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@k@ghost}
+% ゴースト処理を行うか。
+% スイッチ。
+% \Note 圏点では和文ゴースト処理を必ず行う。
+%    \begin{macrocode}
+\newif\ifpxrr@k@ghost \pxrr@k@ghosttrue
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@inter@gap}
+% 圏点と親文字の間の空き
+% （|\kentenintergap|）。
+% 実数値マクロ。
+%    \begin{macrocode}
+\def\pxrr@k@inter@gap{0}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@ruby@inter@gap}
+% 圏点とルビの間の空き
+% （|\kentenrubyintergap|）。
+% 実数値マクロ。
+%    \begin{macrocode}
+\def\pxrr@k@ruby@inter@gap{0}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@d@side}
+% 圏点を親文字の上下のどちらに付すか。
+% 0 = 上側；1 = 下側。
+% |\kentensetup| の |P|／|S| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@k@d@side=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@d@mark}
+% 圏点マークの種類。
+% 0 = 主；1 = 副。
+% |\kentensetup| の |p|／|s| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@k@d@mark=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@ruby@combo}
+% ルビと圏点が同時に適用された場合の挙動。
+% 0 = ルビだけ出力；1 = ルビの上に圏点（同時付加）。
+% 整数定数。
+% \Note 同時付加は未実装だが、敢えてこれを既定にする。
+%    \begin{macrocode}
+\chardef\pxrr@k@ruby@combo=1
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{呼出時の設定}
+%
+% |\kenten| の |P|／|S| の設定は、|\pxrr@side| をルビと共用する。
+%
+% \begin{macro}{\pxrr@k@mark}
+% 圏点マークの種類。
+% 0 = 主；1 = 副。
+% |\kenten| の |p|／|s| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@k@mark=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@the@mark}
+% 適用される圏点マークの命令。
+%    \begin{macrocode}
+\let\pxrr@k@the@mark\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{補助手続}
+%
+% \subsubsection{\cs{UTF}命令対応}
+%
+% \begin{macro}{\ifpxrr@avail@UTF}
+% |\UTF| 命令が利用できるか。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@avail@UTF
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@decide@avail@UTF}
+% |\ifpxrr@avail@UTF| の値を確定させる。
+%    \begin{macrocode}
+\def\pxrr@decide@avail@UTF{%
+  \global\let\pxrr@decide@avail@UTF\relax
+  \ifx\UTF\@undefined \global\pxrr@avail@UTFfalse
+  \else \global\pxrr@avail@UTFtrue
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{リスト分解}
+%
+% \begin{macro}{\pxrr@k@decompose}
+% |\pxrr@k@decompose{|\jmeta{圏点引数テキスト}|}|\Means
+% テキストを分解した結果の圏点項目リストを |\pxrr@res| に返す。
+% \Note 圏点項目リストの形式\Means\par
+% |\pxrr@entry|[|@XXX|]|{|\jmeta{引数}|}|……
+% |\pxrr@entry|[|@XXX|]|{|\jmeta{引数}|}||\pxrr@post|
+%    \begin{macrocode}
+\def\pxrr@k@decompose#1{%
+  \let\pxrr@res\@empty
+  \pxrr@cntr=\z@
+  \pxrr@k@decompose@loopa#1\pxrr@end
+}
+\def\pxrr@k@decompose@loopa{%
+  \futurelet\pxrr@token\pxrr@k@decompose@loopb
+}
+\def\pxrr@k@decompose@loopb{%
+  \pxrr@cond\ifx\pxrr@token\pxrr@end\fi{%
+    \pxrr@appto\pxrr@res{\pxrr@post}%
+  }{\pxrr@if@kspan@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@kspan
+  }{\pxrr@if@ruby@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@ruby
+  }{\pxrr@if@kenten@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@kenten
+  }{%
+    \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
+    \pxrr@k@decompose@loopc
+  }}}}%
+}
+\def\pxrr@k@decompose@loopc#1{%
+  \pxrr@appto\pxrr@res{\pxrr@entry}%
+  \ifpxrr@ok
+    \pxrr@appto\pxrr@res{{{#1}}}%
+  \else
+    \pxrr@appto\pxrr@res{{#1}}%
+  \fi
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@loopd{%
+  \advance\pxrr@cntr\@ne
+  \pxrr@k@decompose@loopa
+}
+\def\pxrr@k@decompose@special#1#2#{%
+  #1{#2}%
+}
+\def\pxrr@k@decompose@kspan#1#2{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@kspan{#1{#2}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@ruby#1#2#3{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@ruby{#1{#2}{#3}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@k@decompose@kenten#1#2{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@kenten{#1{#2}}}%
+  \pxrr@k@decompose@loopd
+}
+\def\pxrr@cmd@ruby{\jruby}
+\def\pxrr@cmd@kenten{\jkenten}
+\def\pxrr@if@ruby@cmd#1{%
+  \if \ifcat\noexpand#1\relax
+        \ifx#1\pxrr@cmd@ruby T%
+        \else\ifx#1\jruby T%
+        \else\ifx#1\aruby T%
+        \else F%
+        \fi\fi\fi
+      \else F%
+      \fi T\expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+\def\pxrr@if@kspan@cmd#1{%
+  \pxrr@cond\ifx#1\kspan\fi
+}
+\def\pxrr@if@kenten@cmd#1{%
+  \if \ifcat\noexpand#1\relax
+        \ifx#1\pxrr@cmd@kenten T%
+        \else\if#1\jkenten T%
+        \else F%
+        \fi\fi
+      \else F%
+      \fi T\expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{パラメタ設定公開命令}
+%
+% \begin{macro}{\kentensetup}
+% |\pxrr@k@parse@option| で解析した後、設定値を全般設定に
+% コピーする。
+%    \begin{macrocode}
+\newcommand*\kentensetup[1]{%
+  \pxrr@in@setuptrue
+  \pxrr@fatal@errorfalse
+  \pxrr@k@parse@option{#1}%
+  \ifpxrr@fatal@error\else
+    \let\pxrr@k@d@side\pxrr@side
+    \let\pxrr@k@d@mark\pxrr@k@mark
+  \fi
+%    \end{macrocode}
+% |\ifpxrr@in@setup| を偽に戻す。
+% ただし |\ifpxrr@fatal@error| は書き換えられたままであることに注意。
+%    \begin{macrocode}
+  \pxrr@in@setupfalse
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentenfontsetup}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\kentenfontsetup{}
+\def\kentenfontsetup#{%
+  \def\pxrr@k@ruby@font
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentensizeratio}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\kentensizeratio[1]{%
+  \edef\pxrr@k@size@ratio{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentenintergap}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\kentenintergap[1]{%
+  \edef\pxrr@k@inter@gap{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentenrubyintergap}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\kentenrubyintergap[1]{%
+  \edef\pxrr@k@ruby@inter@gap{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentenmarkinyoko}
+% \begin{macro}{\kentensubmarkinyoko}
+% \begin{macro}{\kentenmarkintate}
+% \begin{macro}{\kentensubmarkintate}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\newcommand*\kentenmarkinyoko[1]{%
+  \pxrr@k@get@mark\pxrr@k@ymark{#1}%
+}
+\newcommand*\kentensubmarkinyoko[1]{%
+  \pxrr@k@get@mark\pxrr@k@ysmark{#1}%
+}
+\newcommand*\kentenmarkintate[1]{%
+  \pxrr@k@get@mark\pxrr@k@tmark{#1}%
+}
+\newcommand*\kentensubmarkintate[1]{%
+  \pxrr@k@get@mark\pxrr@k@tsmark{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\kentenrubycombination}
+% 対応するパラメタを設定する。
+%    \begin{macrocode}
+\chardef\pxrr@k@ruby@combo@ruby=0
+\chardef\pxrr@k@ruby@combo@both=1
+\newcommand*\kentenrubycombination[1]{%
+  \pxrr@letcs\pxrr@tempa{pxrr@k@ruby@combo@#1}%
+  \ifx\pxrr@tempa\relax
+    \pxrr@err@invalid@value{#1}%
+  \else
+    \let\pxrr@k@ruby@combo\pxrr@tempa
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{圏点文字}
+%
+% \begin{macro}{\pxrr@k@declare@mark}
+% |\pxrr@k@declare@mark{|\jmeta{名前}|}{|\jmeta{本体}|}|\Means
+% 圏点マーク命令を定義する。
+%    \begin{macrocode}
+\def\pxrr@k@declare@mark#1{%
+  \global\@namedef{pxrr@k@mark@@#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@let@mark}
+% |\pxrr@k@declare@mark{|\jmeta{名前}|}\CS|\Means
+% 圏点マーク命令を |\let| で定義する。
+%    \begin{macrocode}
+\def\pxrr@k@let@mark#1{%
+  \global\pxrr@cslet{pxrr@k@mark@@#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@get@mark}
+% |\pxrr@k@get@mark\CS{|\jmeta{名前または定義本体}|}|\Means
+% 指定の圏点マーク命令を |\CS| に代入する。
+% 第2引数の先頭トークンがASCII英字の場合は名前と見なし、
+% それ以外は定義本体のコードと見なす。
+%    \begin{macrocode}
+\def\pxrr@k@get@mark#1#2{%
+  \futurelet\pxrr@token\pxrr@k@get@mark@a#2\pxrr@nil#1%
+}
+\def\pxrr@k@get@mark@a{%
+  \pxrr@cond\ifcat A\noexpand\pxrr@token\fi{%
+    \pxrr@k@get@mark@c
+  }{%else
+    \pxrr@k@get@mark@b
+  }%
+}
+\def\pxrr@k@get@mark@b#1\pxrr@nil#2{%
+  \def#2{#1}%
+}
+\def\pxrr@k@get@mark@c#1#2\pxrr@nil#3{%
+  \ifnum`#1<128
+    \pxrr@letcs\pxrr@tempa{pxrr@k@mark@@#1#2}%
+    \ifx\pxrr@tempa\relax
+      \pxrr@warn@na@kmark{#1#2}%
+    \else
+      \let#3\pxrr@tempa
+    \fi
+  \else
+    \pxrr@k@get@mark@b#1#2\pxrr@nil#3%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@declare@mark@char}
+% |\pxrr@k@declare@mark@char\CS{|\jmeta{二重コード}|}|\Means
+% 指定のコード値の文字の（和文）chardefを |\CS| に代入する。
+% ただし{\pTeX}でJISに無い文字（コード値がゼロ）
+% の場合は代わりに |\pxrr@k@char@UTF| を利用する。
+%    \begin{macrocode}
+\def\pxrr@k@declare@mark@char#1#2{%
+  \pxrr@k@declare@mark@char@a{#1}#2\pxrr@end
+}
+\def\pxrr@k@declare@mark@char@a#1#2:#3\pxrr@end{%
+% not available in JIS
+  \ifnum"#2=\z@
+    \pxrr@k@declare@mark{#1}{\pxrr@k@char@UTF{#1}{#3}}%
+  \else
+    \pxrr@jchardef\pxrr@tempa\pxrr@jc{#2:#3}%
+    \pxrr@k@let@mark{#1}\pxrr@tempa
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@char@UTF}
+% |\pxrr@k@char@UTF{|\jmeta{名前}|}{|\jmeta{Unicode値}|}|\Means
+% |\UTF{|\jmeta{Unicode値}|}| を実行するが、
+% |\UTF| が利用不可の場合は、
+% （最初の1回だけ）警告した上で何も出力しない。
+%    \begin{macrocode}
+\def\pxrr@k@char@UTF#1#2{%
+  \pxrr@decide@avail@UTF
+  \ifpxrr@avail@UTF
+    \pxrr@k@declare@mark{#1}{\UTF{#2}}%
+    \UTF{#2}%
+  \else
+    \pxrr@k@let@mark{#1}\@empty
+    \pxrr@warn@na@kmark{#1}%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% 標準サポートの圏点マークの定義。
+%    \begin{macrocode}
+\pxrr@k@declare@mark@char{bullet}  {0000:2022}
+\pxrr@k@declare@mark@char{triangle}{2225:25B2}
+\pxrr@k@declare@mark@char{Triangle}{2224:25B3}
+\pxrr@k@declare@mark@char{fisheye} {0000:25C9}
+\pxrr@k@declare@mark@char{Circle}  {217B:25CB}
+\pxrr@k@declare@mark@char{bullseye}{217D:25CE}
+\pxrr@k@declare@mark@char{circle}  {217C:25CF}
+\pxrr@k@declare@mark@char{Bullet}  {0000:25E6}
+\pxrr@k@declare@mark@char{sesame}  {0000:FE45}
+\pxrr@k@declare@mark@char{Sesame}  {0000:FE46}
+\pxrr@jchardef\pxrr@ja@dot=\pxrr@jc{2126:30FB}
+\pxrr@jchardef\pxrr@ja@comma=\pxrr@jc{2122:3001}
+\pxrr@k@declare@mark{bullet*}{%
+  \pxrr@dima=\pxrr@ruby@zw\relax
+  \hb@xt@\pxrr@dima{%
+    \kern-.5184\pxrr@dima
+    \lower.5184\pxrr@dima\hbox{%
+      \pxrr@dima=\f@size\p@
+      \fontsize{2.0736\pxrr@dima}{\z@}\selectfont
+      \pxrr@ja@dot
+    }%
+    \hss
+  }%
+}
+\pxrr@k@declare@mark{sesame*}{%
+  \pxrr@dima=\pxrr@ruby@zw\relax
+  \hb@xt@\pxrr@dima{%
+    \kern.3\pxrr@dima
+    \pxrr@if@in@tate{\lower.3\pxrr@dima}{\raise.3\pxrr@dima}%
+    \hbox{%
+      \pxrr@dima=\f@size\p@
+      \fontsize{1.44\pxrr@dima}{\z@}\selectfont
+      \pxrr@ja@comma
+    }%
+    \hss
+  }%
+}
+%    \end{macrocode}
+%
+% \subsection{圏点オプション解析}
+%
+% \begin{macro}{\pxrr@k@parse@option}
+% |\pxrr@k@parse@option{|\jmeta{オプション}|}|\Means
+% \jmeta{オプション}を解析し、
+% |\pxrr@side| や |\pxrr@k@mark| 等のパラメタを設定する。
+%    \begin{macrocode}
+\def\pxrr@k@parse@option#1{%
+  \edef\pxrr@tempa{#1}%
+  \let\pxrr@side\pxrr@k@d@side
+  \let\pxrr@k@mark\pxrr@k@d@mark
+  \expandafter\pxrr@k@parse@option@loop\pxrr@tempa @\pxrr@end
+}
+\def\pxrr@k@parse@option@loop#1{%
+%    \end{macrocode}
+% 圏点オプションの解析器は“有限状態”を持たないので
+% 非常に単純である。
+%    \begin{macrocode}
+  \pxrr@letcs\pxrr@tempa{pxrr@k@po@PR@#1}%
+  \pxrr@cond\ifx\pxrr@tempa\relax\fi{%
+    \pxrr@fatal@knx@letter{#1}%
+    \pxrr@k@parse@option@exit
+  }{%
+    \pxrr@tempa
+    \pxrr@k@parse@option@loop
+  }%
+}
+\def\pxrr@k@parse@option@exit#1\pxrr@end{%
+  \ifpxrr@in@setup\else
+    \pxrr@k@check@option
+%    \end{macrocode}
+% ここで |\pxrr@k@the@mark| を適切に定義する。
+%    \begin{macrocode}
+    \pxrr@if@in@tate{%
+      \ifcase\pxrr@k@mark \let\pxrr@k@the@mark\pxrr@k@tmark
+      \or \let\pxrr@k@the@mark\pxrr@k@tsmark
+      \fi
+    }{%
+      \ifcase\pxrr@k@mark \let\pxrr@k@the@mark\pxrr@k@ymark
+      \or \let\pxrr@k@the@mark\pxrr@k@ysmark
+      \fi
+    }%
+  \fi
+}
+\def\pxrr@k@po@PR@@{%
+  \pxrr@k@parse@option@exit
+}
+\def\pxrr@k@po@PR@P{%
+  \chardef\pxrr@side\z@
+}
+\def\pxrr@k@po@PR@S{%
+  \chardef\pxrr@side\@ne
+}
+\def\pxrr@k@po@PR@p{%
+  \chardef\pxrr@k@mark\z@
+}
+\def\pxrr@k@po@PR@s{%
+  \chardef\pxrr@k@mark\@ne
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{オプション整合性検査}
+%
+% 今のところ検査すべき点がない。
+%    \begin{macrocode}
+\def\pxrr@k@check@option{%
+}
+%    \end{macrocode}
+%
+% \subsection{ブロック毎の組版}
+%
+% \begin{macro}{\pxrr@k@compose@block}
+% |\pxrr@k@compose@block{|\jmeta{親文字ブロック}|}|^^A
+% |{|\jmeta{圏点の個数}|}|\Means
+% 1つのブロックの組版処理。
+% ボックス |\pxrr@boxb| に圏点1つを組版したものが入っている
+% 必要がある。
+% なお、圏点はゼロ幅に潰した形で扱う前提のため、
+% |\pxrr@boxb| の幅はゼロでないといけない。
+%
+% 基本的に、ルビ用の |\pxrr@compose@oneside@block| を非常に簡略化
+% した処理になっている。
+%    \begin{macrocode}
+\def\pxrr@k@compose@block#1#2{%
+  \setbox\pxrr@boxa\pxrr@hbox{#1}%
+%    \end{macrocode}
+% |\pxrr@evenspace@int| を使うために辻褄を合わせる。
+% すなわち、|\copy\pxrr@boxb| を圏点個数分だけ反復した
+% リストを |\pxrr@res| に入れて、“圏点の自然長”に
+% 当たる |\pxrr@natwd| をゼロとする。
+%    \begin{macrocode}
+  \pxrr@k@make@rep@list{\copy\pxrr@boxb}{#2}%
+  \let\pxrr@natwd\pxrr@zeropt
+  \pxrr@evenspace@int\pxrr@locate@inner\pxrr@boxr
+       \relax{\wd\pxrr@boxa}%
+  \setbox\z@\hbox{%
+    \ifnum\pxrr@side=\z@
+      \raise\pxrr@ruby@raise\box\pxrr@boxr
+    \else
+      \lower\pxrr@ruby@lower\box\pxrr@boxr
+    \fi
+  }%
+  \ht\z@\z@ \dp\z@\z@
+  \@tempdima\wd\z@
+  \setbox\pxrr@boxr\hbox{%
+    \box\z@
+    \kern-\@tempdima
+    \box\pxrr@boxa
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@make@rep@list}
+% |\pxrr@k@make@rep@list{|\jmeta{要素}|}{|\jmeta{回数}|}|\Means
+% 要素を指定の回数だけ反復したリストを |\pxrr@res| に代入する。
+%    \begin{macrocode}
+\def\pxrr@k@make@rep@list#1#2{%
+  \def\pxrr@res{\pxrr@pre{#1}}%
+  \pxrr@cntr=#2\relax
+  \ifnum\pxrr@cntr>\@ne
+    \@tempcnta\pxrr@cntr \advance\@tempcnta\m@ne
+    \@whilenum{\@tempcnta>\z@}\do{%
+      \pxrr@appto\pxrr@res{\pxrr@inter{#1}}%
+      \advance\@tempcnta\m@ne
+    }%
+  \fi
+  \pxrr@appto\pxrr@res{\pxrr@post}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{圏点項目}
+%
+% 圏点項目とは、圏点リストの中の |\pxrr@entry|[|@XXX|]|{...}| のこと。
+%
+% \begin{macro}{\pxrr@k@entry@with}
+% 補助マクロ。
+%    \begin{macrocode}
+\def\pxrr@k@entry@with#1#2{%
+  #1{#2}%
+  \unhbox\pxrr@boxr
+  \pxrr@if@last{}{%else
+    \pxrr@inter@mono
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten@entry}
+% 一般の《文字》を表す圏点項目 |\pxrr@entry{|\jmeta{文字}|}| の処理。
+% 圏点を1つ付けて出力する。
+%    \begin{macrocode}
+\def\pxrr@kenten@entry{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@
+}
+\def\pxrr@kenten@entry@#1{%
+  \pxrr@k@compose@block{#1}\@ne
+}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten@entry@kspan}
+% |\kspan| 命令を表す圏点項目\ 
+% |\pxrr@entry@kspan{\kspan{|\jmeta{テキスト}|}}| の処理。
+% テキストの幅が“およそ$n$全角”である場合に、
+% $n$個の圏点をルビ均等割りで配置して出力する。
+%    \begin{macrocode}
+\def\pxrr@kenten@entry@kspan{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@kspan@
+}
+\def\pxrr@kenten@entry@kspan@#1{%
+  \pxrr@kenten@entry@kspan@a#1
+}%
+\def\pxrr@kenten@entry@kspan@a#1{%
+  \@testopt\pxrr@kenten@entry@kspan@b{}%
+}%
+\def\pxrr@kenten@entry@kspan@b[#1]#2{%
+%    \end{macrocode}
+% ($n-1/4$)zw以上($n+3/4$)zw未満の時に“およそ$n$全角”と見なす。
+%    \begin{macrocode}
+  \setbox\z@\pxrr@hbox{#2}%
+  \@tempdima\pxrr@body@zw\relax
+  \@tempdimb\wd\z@ \advance\@tempdimb.25\@tempdima
+  \divide\@tempdimb\@tempdima
+  \edef\pxrr@kenten@entry@tempa{\number\@tempdimb}%
+  \pxrr@k@compose@block{#2}\pxrr@kenten@entry@tempa
+}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten@entry@kenten}
+% ネストした |\kenten| 命令の圏点項目。
+% 単純にその |\kenten| を実行したものを出力とする。
+% すなわち、内側の圏点の設定のみが生きる。
+%    \begin{macrocode}
+\def\pxrr@kenten@entry@kenten{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@kenten@
+}
+\def\pxrr@kenten@entry@kenten@#1{%
+  \setbox\pxrr@boxr\hbox{#1}%
+}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten@entry@ruby}
+% ルビ命令の圏点項目。
+% \Note 現在は同時付加が未実装なので、常にルビだけ出力する。
+%    \begin{macrocode}
+\def\pxrr@kenten@entry@ruby{%
+  \pxrr@k@entry@with\pxrr@kenten@entry@ruby@
+}
+\def\pxrr@kenten@entry@ruby@#1{%
+  \ifnum\pxrr@k@ruby@combo>\z@
+    \pxrr@err@yet@unavail@combo
+  \fi
+  \setbox\pxrr@boxr\hbox{#1}%
+}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{\cs{kspan}命令}
+%
+% \begin{macro}{\kspan}
+% テキストの幅に相応した個数の圏点を付ける命令。
+% |\kenten| の引数のテキストの中で使う。
+%
+% |\kenten| の外で使われた場合は単純に引数を出力するだけ。
+%
+% \Note 処理の都合上、オプション引数を持たせているが、
+% 実際には（現在は）これは使われない。
+%    \begin{macrocode}
+\newcommand*\kspan{%
+  \@testopt\pxrr@kspan@a{}%
+}
+\pxrr@add@protect\kspan
+\def\pxrr@kspan@a[#1]#2{%
+  \begingroup
+    #2%
+  \endgroup
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{メインです}
+%
+% \subsubsection{エントリーポイント}
+%
+% \begin{macro}{\kenten}
+% \begin{macro}{\jkenten}
+% 圏点の公開命令。
+% |\jkenten| を頑強な命令として定義した上で、|\kenten| はそれに
+% 展開されるマクロに（未定義ならば）定義する。
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \providecommand*{\kenten}{\jkenten}%
+}
+\newcommand*{\jkenten}{%
+  \pxrr@k@prologue
+  \pxrr@kenten
+}
+\pxrr@add@protect\jkenten
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten}
+% オプションの処理を行う。
+%    \begin{macrocode}
+\def\pxrr@kenten{%
+  \@testopt\pxrr@kenten@a{}%
+}
+\def\pxrr@kenten@a[#1]{%
+  \def\pxrr@option{#1}%
+  \ifpxrr@safe@mode
+%    \end{macrocode}
+% 安全モードでは圏点機能は無効なので、フォールバックとして
+% 引数のテキストをそのまま出力する。
+%    \begin{macrocode}
+    \expandafter\@firstofone
+  \else
+    \expandafter\pxrr@kenten@proc
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@bind@param}
+% “呼出時変数”へのコピーを行う。
+%    \begin{macrocode}
+\def\pxrr@k@bind@param{%
+  \let\pxrr@c@ruby@font\pxrr@k@ruby@font
+  \let\pxrr@c@size@ratio\pxrr@k@size@ratio
+  \let\pxrr@c@inter@gap\pxrr@k@inter@gap
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@kenten@proc}
+% |\pxrr@kenten@proc{|\jmeta{親文字列}|}|\Means
+% これが手続の本体となる。
+%    \begin{macrocode}
+\def\pxrr@kenten@proc#1{%
+  \pxrr@prepare@fallback{#1}%
+  \pxrr@k@bind@param
+  \pxrr@assign@fsize
+  \pxrr@k@parse@option\pxrr@option
+  \pxrr@if@alive{%
+    \pxrr@k@decompose{#1}%
+    \let\pxrr@body@list\pxrr@res
+    \pxrr@kenten@main
+  }%
+  \pxrr@kenten@exit
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{組版処理}
+%
+% \begin{macro}{\pxrr@kenten@main}
+% 圏点の組版処理。
+%    \begin{macrocode}
+\def\pxrr@kenten@main{%
+  \setbox\pxrr@boxb\pxrr@hbox@to\z@{%
+    \pxrr@use@ruby@font
+    \hss\pxrr@k@the@mark\hss
+  }%
+  \let\pxrr@entry\pxrr@kenten@entry
+  \let\pxrr@entry@kspan\pxrr@kenten@entry@kspan
+  \let\pxrr@entry@ruby\pxrr@kenten@entry@ruby
+  \let\pxrr@entry@kenten\pxrr@kenten@entry@kenten
+  \let\pxrr@post\@empty
+  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@body@list}%
+  \unhbox\pxrr@boxr
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{前処理}
+%
+% \begin{macro}{\pxrr@jprologue}
+% 圏点用の開始処理。
+%    \begin{macrocode}
+\def\pxrr@k@prologue{%
+  \ifpxrr@k@ghost
+    \pxrr@zspace
+  \fi
+  \begingroup
+    \ifpxrr@k@ghost
+      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \kern-\wd\pxrr@boxa
+    \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{後処理}
+%
+% \begin{macro}{\pxrr@kenten@exit}
+% 出力を終えて、最後に呼ばれるマクロ。
+%    \begin{macrocode}
+\def\pxrr@kenten@exit{%
+  \ifpxrr@fatal@error
+    \pxrr@fallback
+  \fi
+  \pxrr@k@epilogue
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@jepilogue}
+% 終了処理。
+%    \begin{macrocode}
+\def\pxrr@k@epilogue{%
+    \ifpxrr@k@ghost
+      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \kern-\wd\pxrr@boxa
+    \fi
+  \endgroup
+  \ifpxrr@k@ghost
+    \pxrr@zspace
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{デバッグ用出力}
+%
+%    \begin{macrocode}
+\def\pxrr@debug@show@kenten@input{%
+  \typeout{%
+pxrr@k@the@mark=\meaning\pxrr@k@the@mark^^J%
+pxrr@side=\meaning\pxrr@side^^J%
+pxrr@body@list=\meaning\pxrr@body@list^^J%
+  }%
+}
+%    \end{macrocode}
+%
+%^^A------------------------------------
 % \Finale
 %
 \endinput
