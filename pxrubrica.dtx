@@ -3129,6 +3129,14 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@locate@temp}
+% |\pxrr@compose@*side@block@do| で使われる一時変数。
+% 整数定数。
+%    \begin{macrocode}
+\let\pxrr@locate@temp\relax
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@epsilon}
 % ルビ文字列と親文字列の自然長の差がこの値以下の場合は、
 % 差はないものとみなす（演算誤差対策）。
@@ -3247,6 +3255,10 @@
   \pxrr@compose@block@pre
 }
 \def\pxrr@compose@twoside@block@do#1#2#3#4{%
+%    \end{macrocode}
+% |\pxrr@boxa| に親文字、|\pxrr@boxr| に上側ルビ、
+% |\pxrr@boxb| に下側ルビの出力を保持する。
+%    \begin{macrocode}
   \setbox\pxrr@boxa\pxrr@hbox{#2}%
   \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
@@ -3257,46 +3269,76 @@
     #4%
   }%
 %    \end{macrocode}
-% 3つのボックスの最大の幅を求める。
-% これが全体の幅となる。
+% 「何れかのルビが親文字列より長いか」を検査する。
 %    \begin{macrocode}
-  \@tempdima\wd\pxrr@boxa
-  \ifdim\@tempdima<\wd\pxrr@boxr
-    \@tempdima\wd\pxrr@boxr
-  \fi
-  \ifdim\@tempdima<\wd\pxrr@boxb
-    \@tempdima\wd\pxrr@boxb
-  \fi
-  \edef\pxrr@maxwd{\the\@tempdima}%
-  \advance\@tempdima-\pxrr@epsilon\relax
-  \edef\pxrr@maxwdx{\the\@tempdima}%
+  \@tempswafalse
+  \@tempdima\wd\pxrr@boxr
+  \advance\@tempdima-\wd\pxrr@boxa
+  \ifdim\pxrr@epsilon<\@tempdima \@tempswatrue \fi
+  \@tempdima\wd\pxrr@boxb
+  \advance\@tempdima-\wd\pxrr@boxa
+  \ifdim\pxrr@epsilon<\@tempdima \@tempswatrue \fi
 %    \end{macrocode}
-% 全体の幅より短いボックスを均等割りで組み直す。
+% 親文字より長いルビが存在する場合。
+% 長い方のルビ文字列の長さに合わせて、親文字列と
+% 他方のルビ文字列を組み直す。
+% （実際の処理は |\pxrr@compose@twoside@block@sub| で行う。）
 %    \begin{macrocode}
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxr
-    \pxrr@decompose{#3}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
-    \pxrr@evenspace@int{#1}\pxrr@boxr
-     \pxrr@use@ruby@font{\pxrr@maxwd}%
-    \pxrr@adjust@margin
-  \fi
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxb
-    \pxrr@decompose{#4}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
-    \pxrr@evenspace@int{#1}\pxrr@boxb
-     \pxrr@use@ruby@font{\pxrr@maxwd}%
-    \pxrr@adjust@margin
-  \fi
+  \if@tempswa
+    \pxrr@protrtrue
 %    \end{macrocode}
-% 親文字列のボックスを最後に処理して、その |\pxrr@?space| の値を
-% 以降の処理で用いる。
-% （親文字列が短くない場合は |\pxrr@?space| はゼロ。）
+% 「拡張肩付き」指定の場合、前側の突出を抑止する。
 %    \begin{macrocode}
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
-    \pxrr@decompose{#2}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
+    \let\pxrr@locate@temp#1%
+    \ifnum\pxrr@athead>\@ne
+      \ifnum\pxrr@locate@temp=\pxrr@locate@inner
+        \let\pxrr@locate@temp\pxrr@locate@head
+      \fi
+    \fi
+%    \end{macrocode}
+% 上側と下側のどちらのルビが長いかに応じて引数を変えて、
+% |\pxrr@compose@twoside@block@sub| を呼び出す。
+%    \begin{macrocode}
+    \ifdim\wd\pxrr@boxr<\wd\pxrr@boxb
+      \pxrr@compose@twoside@block@sub{#2}{#3}%
+       \pxrr@boxr\pxrr@boxb
+    \else
+      \pxrr@compose@twoside@block@sub{#2}{#4}%
+       \pxrr@boxb\pxrr@boxr
+    \fi
+%    \end{macrocode}
+% 親文字の方が長い場合。
+% 親文字列の長さに合わせて、両方のルビを（片側の場合と同様の）
+% 均等割りで組み直す。
+%    \begin{macrocode}
   \else
+    \pxrr@protrfalse
+%    \end{macrocode}
+% 肩付きルビの場合は組み直しを行わない。
+%    \begin{macrocode}
+    \ifnum\pxrr@athead=\z@
+      \@tempdima\wd\pxrr@boxa
+      \advance\@tempdima-\wd\pxrr@boxr
+      \ifdim\pxrr@epsilon<\@tempdima
+        \pxrr@decompose{#3}%
+        \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
+        \pxrr@evenspace@int{#1}\pxrr@boxr
+         \pxrr@use@ruby@font{\wd\pxrr@boxa}%
+        \pxrr@adjust@margin
+      \fi
+      \@tempdima\wd\pxrr@boxa
+      \advance\@tempdima-\wd\pxrr@boxb
+      \ifdim\pxrr@epsilon<\@tempdima
+        \pxrr@decompose{#4}%
+        \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
+        \pxrr@evenspace@int{#1}\pxrr@boxb
+         \pxrr@use@ruby@font{\wd\pxrr@boxa}%
+        \pxrr@adjust@margin
+      \fi
+    \fi
+%    \end{macrocode}
+% |\pxrr@?space| はゼロに設定する。
+%    \begin{macrocode}
     \let\pxrr@bspace\pxrr@zeropt
     \let\pxrr@aspace\pxrr@zeropt
   \fi
@@ -3318,6 +3360,73 @@
   }%
 }
 %    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@body@wd}
+% |\pxrr@compose@twoside@block@sub| の内部で用いられる変数で、
+% “親文字列の実際の長さ”（均等割りで入った中間の空きを入れるが
+% 両端の空きを入れない）を表す。
+% 寸法値マクロ。
+%    \begin{macrocode}
+\let\pxrr@body@wd\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@compose@twoside@block@sub}
+% |\pxrr@compose@twoside@block@sub| の内部で用いられるマクロ。
+%    \begin{macrocode}
+\let\pxrr@restore@margin@values\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@compose@twoside@block@sub}
+% |\pxrr@compose@twoside@block@sub{|^^A
+% \jmeta{親文字}|}{|\jmeta{短い方のルビ文字}|}\CSa\CSb|\Means
+% 両側ルビで親文字列より長いルビ文字列が存在する場合の
+% 組み直しの処理を行う。
+% このマクロの呼出時、上側ルビの出力結果が |\pxrr@boxr|、
+% 下側ルビの出力結果が |\pxrr@boxb| に入っているが、
+% この2つのボックスのうち、短いルビの方が |\CSa|、
+% 長いルビの方が |\CSb| として渡されている。
+%    \begin{macrocode}
+\def\pxrr@compose@twoside@block@sub#1#2#3#4{%
+  \pxrr@decompose{#1}%
+  \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
+  \pxrr@evenspace@int\pxrr@locate@temp\pxrr@boxa\relax{\wd#4}%
+  \@tempdima\wd#4%
+  \advance\@tempdima-\pxrr@bspace\relax
+  \advance\@tempdima-\pxrr@aspace\relax
+  \edef\pxrr@body@wd{\the\@tempdima}%
+  \advance\@tempdima-\wd#3%
+  \ifdim\pxrr@epsilon<\@tempdima
+    \edef\pxrr@restore@margin@values{%
+      \edef\noexpand\pxrr@bspace{\pxrr@bspace}%
+      \edef\noexpand\pxrr@aspace{\pxrr@aspace}%
+    }%
+    \pxrr@decompose{#2}%
+    \edef\pxrr@natwd{\the\wd#3}%
+    \pxrr@evenspace@int\pxrr@locate@temp#3%
+     \pxrr@use@ruby@font{\pxrr@body@wd}%
+    \pxrr@adjust@margin
+    \pxrr@restore@margin@values
+    \setbox#3\hbox{%
+      \kern\pxrr@bspace\relax
+      \box#3%
+    }%
+  \else
+    \ifnum\pxrr@locate@temp=\pxrr@locate@head
+      \@tempdima\z@
+    \else\ifnum\pxrr@locate@temp=\pxrr@locate@inner
+      \@tempdima.5\@tempdima
+    \fi\fi
+    \advance\@tempdima\pxrr@bspace\relax
+    \setbox#3\hbox{%
+      \kern\@tempdima
+      \box#3%
+    }%
+  \fi
+}
+%     \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\pxrr@compose@block@pre}

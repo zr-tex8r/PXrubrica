@@ -1250,6 +1250,7 @@
 }
 \newif\ifpxrr@protr
 \newif\ifpxrr@any@protr
+\let\pxrr@locate@temp\relax
 \def\pxrr@epsilon{0.01pt}
 \def\pxrr@compose@block#1#2#3{%
   \let\pxrr@compose@block@do\pxrr@compose@oneside@block@do
@@ -1323,35 +1324,50 @@
     \pxrr@use@ruby@font
     #4%
   }%
-  \@tempdima\wd\pxrr@boxa
-  \ifdim\@tempdima<\wd\pxrr@boxr
-    \@tempdima\wd\pxrr@boxr
-  \fi
-  \ifdim\@tempdima<\wd\pxrr@boxb
-    \@tempdima\wd\pxrr@boxb
-  \fi
-  \edef\pxrr@maxwd{\the\@tempdima}%
-  \advance\@tempdima-\pxrr@epsilon\relax
-  \edef\pxrr@maxwdx{\the\@tempdima}%
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxr
-    \pxrr@decompose{#3}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
-    \pxrr@evenspace@int{#1}\pxrr@boxr
-     \pxrr@use@ruby@font{\pxrr@maxwd}%
-    \pxrr@adjust@margin
-  \fi
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxb
-    \pxrr@decompose{#4}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
-    \pxrr@evenspace@int{#1}\pxrr@boxb
-     \pxrr@use@ruby@font{\pxrr@maxwd}%
-    \pxrr@adjust@margin
-  \fi
-  \ifdim\pxrr@maxwdx>\wd\pxrr@boxa
-    \pxrr@decompose{#2}%
-    \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
-    \pxrr@evenspace@int{#1}\pxrr@boxa\relax{\pxrr@maxwd}%
+  \@tempswafalse
+  \@tempdima\wd\pxrr@boxr
+  \advance\@tempdima-\wd\pxrr@boxa
+  \ifdim\pxrr@epsilon<\@tempdima \@tempswatrue \fi
+  \@tempdima\wd\pxrr@boxb
+  \advance\@tempdima-\wd\pxrr@boxa
+  \ifdim\pxrr@epsilon<\@tempdima \@tempswatrue \fi
+  \if@tempswa
+    \pxrr@protrtrue
+    \let\pxrr@locate@temp#1%
+    \ifnum\pxrr@athead>\@ne
+      \ifnum\pxrr@locate@temp=\pxrr@locate@inner
+        \let\pxrr@locate@temp\pxrr@locate@head
+      \fi
+    \fi
+    \ifdim\wd\pxrr@boxr<\wd\pxrr@boxb
+      \pxrr@compose@twoside@block@sub{#2}{#3}%
+       \pxrr@boxr\pxrr@boxb
+    \else
+      \pxrr@compose@twoside@block@sub{#2}{#4}%
+       \pxrr@boxb\pxrr@boxr
+    \fi
   \else
+    \pxrr@protrfalse
+    \ifnum\pxrr@athead=\z@
+      \@tempdima\wd\pxrr@boxa
+      \advance\@tempdima-\wd\pxrr@boxr
+      \ifdim\pxrr@epsilon<\@tempdima
+        \pxrr@decompose{#3}%
+        \edef\pxrr@natwd{\the\wd\pxrr@boxr}%
+        \pxrr@evenspace@int{#1}\pxrr@boxr
+         \pxrr@use@ruby@font{\wd\pxrr@boxa}%
+        \pxrr@adjust@margin
+      \fi
+      \@tempdima\wd\pxrr@boxa
+      \advance\@tempdima-\wd\pxrr@boxb
+      \ifdim\pxrr@epsilon<\@tempdima
+        \pxrr@decompose{#4}%
+        \edef\pxrr@natwd{\the\wd\pxrr@boxb}%
+        \pxrr@evenspace@int{#1}\pxrr@boxb
+         \pxrr@use@ruby@font{\wd\pxrr@boxa}%
+        \pxrr@adjust@margin
+      \fi
+    \fi
     \let\pxrr@bspace\pxrr@zeropt
     \let\pxrr@aspace\pxrr@zeropt
   \fi
@@ -1368,6 +1384,45 @@
     \kern-\@tempdima
     \box\pxrr@boxa
   }%
+}
+\let\pxrr@body@wd\relax
+\let\pxrr@restore@margin@values\relax
+\def\pxrr@compose@twoside@block@sub#1#2#3#4{%
+  \pxrr@decompose{#1}%
+  \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
+  \pxrr@evenspace@int\pxrr@locate@temp\pxrr@boxa\relax{\wd#4}%
+  \@tempdima\wd#4%
+  \advance\@tempdima-\pxrr@bspace\relax
+  \advance\@tempdima-\pxrr@aspace\relax
+  \edef\pxrr@body@wd{\the\@tempdima}%
+  \advance\@tempdima-\wd#3%
+  \ifdim\pxrr@epsilon<\@tempdima
+    \edef\pxrr@restore@margin@values{%
+      \edef\noexpand\pxrr@bspace{\pxrr@bspace}%
+      \edef\noexpand\pxrr@aspace{\pxrr@aspace}%
+    }%
+    \pxrr@decompose{#2}%
+    \edef\pxrr@natwd{\the\wd#3}%
+    \pxrr@evenspace@int\pxrr@locate@temp#3%
+     \pxrr@use@ruby@font{\pxrr@body@wd}%
+    \pxrr@adjust@margin
+    \pxrr@restore@margin@values
+    \setbox#3\hbox{%
+      \kern\pxrr@bspace\relax
+      \box#3%
+    }%
+  \else
+    \ifnum\pxrr@locate@temp=\pxrr@locate@head
+      \@tempdima\z@
+    \else\ifnum\pxrr@locate@temp=\pxrr@locate@inner
+      \@tempdima.5\@tempdima
+    \fi\fi
+    \advance\@tempdima\pxrr@bspace\relax
+    \setbox#3\hbox{%
+      \kern\@tempdima
+      \box#3%
+    }%
+  \fi
 }
 \def\pxrr@compose@block@pre{%
   \pxrr@ifnum{\pxrr@fullsize>\z@}{%
