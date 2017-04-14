@@ -176,6 +176,11 @@
   \else\expandafter\@secondoftwo
   \fi
 }
+\@gobbletwo\if\if \def\pxrr@cond#1\fi{%
+  #1\expandafter\@firstoftwo
+  \else\expandafter\@secondoftwo
+  \fi
+}
 \def\pxrr@cslet#1{%
   \expandafter\let\csname#1\endcsname
 }
@@ -555,10 +560,18 @@
   \let\pxrr@jchardef\chardef
 \fi
 \ifpxrr@in@ptex
-  \pxrr@csletcs{ifpxrr@in@tate}{iftdir}
+  \begingroup \catcode`\|=0
+    \gdef\pxrr@if@in@tate{%
+      \pxrr@cond|iftdir|fi
+    }
+  \endgroup
+\else\ifpxrr@in@luatexja
+  \def\pxrr@if@in@tate{%
+    \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
+  }
 \else
-  \pxrr@csletcs{ifpxrr@in@tate}{iffalse}
-\fi
+  \let\pxrr@if@in@tate\@secondoftwo
+\fi\fi
 \ifpxrr@in@ptex
   \def\pxrr@get@jchar@token#1#2{%
     \begingroup
@@ -1084,9 +1097,9 @@
     \fi
   \fi
   \ifnum\pxrr@athead>\z@
-    \ifpxrr@in@tate\else
+    \pxrr@if@in@tate{}{%else
       \chardef\pxrr@athead\z@
-    \fi
+    }%
     \if g\pxrr@mode
       \chardef\pxrr@athead\z@
     \fi
@@ -1124,11 +1137,11 @@
   \let\pxrr@ruby@zw\pxrr@gtempa
   \pxrr@get@iiskip\pxrr@iiskip
   \pxrr@get@iaiskip\pxrr@iaiskip
-  \ifpxrr@in@tate
+  \pxrr@if@in@tate{%
     \let\pxrr@htratio\pxrr@thtratio
-  \else
+  }{%
     \let\pxrr@htratio\pxrr@yhtratio
-  \fi
+  }%
   \@tempdima\pxrr@body@zw\relax
   \@tempdima\pxrr@htratio\@tempdima
   \@tempdimb\pxrr@ruby@zw\relax

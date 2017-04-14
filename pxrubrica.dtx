@@ -1246,6 +1246,19 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@cond}
+% |\pxrr@cond\ifXXX...\fi{|\jmeta{真}|}{|\jmeta{偽}|}|\Means
+% 一般の{\TeX}のif文 |\ifXXX...| を行うテスト。
+% \Note |\fi| を付けているのは、if-不均衡を避けるため。
+%    \begin{macrocode}
+\@gobbletwo\if\if \def\pxrr@cond#1\fi{%
+  #1\expandafter\@firstoftwo
+  \else\expandafter\@secondoftwo
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@cslet}
 % \begin{macro}{\pxrr@letcs}
 % \begin{macro}{\pxrr@csletcs}
@@ -1935,15 +1948,33 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\ifpxrr@in@tate}
+% \begin{macro}{\pxrr@if@in@tate}
+% |\pxrr@if@in@tate{|\jmeta{真}|}{|\jmeta{偽}|}|\Means
 % 縦組であるか。
-% \Note {p\TeX} 以外での縦組をサポートする予定はない。
 %    \begin{macrocode}
 \ifpxrr@in@ptex
-  \pxrr@csletcs{ifpxrr@in@tate}{iftdir}
+%    \end{macrocode}
+% {p\TeX}系の場合、|\iftdir| プリミティブを利用する。
+% \Note |\iftdir| が未定義のときにifが不均衡になるのを防ぐ。
+%    \begin{macrocode}
+  \begingroup \catcode`\|=0
+    \gdef\pxrr@if@in@tate{%
+      \pxrr@cond|iftdir|fi
+    }
+  \endgroup
+\else\ifpxrr@in@luatexja
+%    \end{macrocode}
+% Lua\TeX-ja利用の場合、|direction| パラメタを利用する。
+%    \begin{macrocode}
+  \def\pxrr@if@in@tate{%
+    \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
+  }
 \else
-  \pxrr@csletcs{ifpxrr@in@tate}{iffalse}
-\fi
+%    \end{macrocode}
+% それ以外は常に横組と見なす。
+%    \begin{macrocode}
+  \let\pxrr@if@in@tate\@secondoftwo
+\fi\fi
 %    \end{macrocode}
 % \end{macro}
 %
@@ -2798,9 +2829,9 @@
 %    \end{macrocode}
 % 横組みでは不可なので中付きに変更する。
 %    \begin{macrocode}
-    \ifpxrr@in@tate\else
+    \pxrr@if@in@tate{}{%else
       \chardef\pxrr@athead\z@
-    \fi
+    }%
 %    \end{macrocode}
 % グループルビでは不可なので中付きに変更する。
 %    \begin{macrocode}
@@ -2914,11 +2945,11 @@
 %    \end{macrocode}
 % |\pxrr@htratio| の値を設定する。
 %    \begin{macrocode}
-  \ifpxrr@in@tate
+  \pxrr@if@in@tate{%
     \let\pxrr@htratio\pxrr@thtratio
-  \else
+  }{%
     \let\pxrr@htratio\pxrr@yhtratio
-  \fi
+  }%
 %    \end{macrocode}
 % |\pxrr@ruby@raise| の値を計算する。
 %    \begin{macrocode}
