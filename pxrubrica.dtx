@@ -3117,6 +3117,12 @@
   \@tempdimb\pxrr@body@zw\relax
   \advance\@tempdima\pxrr@c@inter@gap\@tempdimb
   \edef\pxrr@ruby@lower{\the\@tempdima}%
+%    \end{macrocode}
+% 圏点ルビ同時付加の設定。
+%    \begin{macrocode}
+  \ifpxrr@combo
+    \pxrr@ck@assign@fsize
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3547,6 +3553,9 @@
       \lower\pxrr@ruby@lower\box\pxrr@boxr
     \fi
   }%
+  \ifpxrr@combo
+    \pxrr@ck@compose
+  \fi
   \ht\z@\z@ \dp\z@\z@
   \@tempdima\wd\z@
   \setbox\pxrr@boxr\hbox{%
@@ -4401,6 +4410,10 @@
 % “呼出時変数”へのコピーを行う。
 %    \begin{macrocode}
 \def\pxrr@bind@param{%
+  \pxrr@combofalse
+  \ifpxrr@apply@combo
+    \pxrr@ck@bind@param
+  \fi
   \let\pxrr@c@ruby@font\pxrr@ruby@font
   \let\pxrr@c@size@ratio\pxrr@size@ratio
   \let\pxrr@c@inter@gap\pxrr@inter@gap
@@ -5264,21 +5277,6 @@
 }
 %    \end{macrocode}
 %
-% ルビと圏点の同時付加（未実装）が実際に適用された場合。
-%    \begin{macrocode}
-\def\pxrr@err@yet@unavail@combo#1{%
-  \pxrr@error{%
-    The feature of kenten-ruby combination is\MessageBreak
-    not yet supported. Now you must specify\MessageBreak
-    \@spaces \string\kentenrubycombination{ruby}\MessageBreak
-    to put ruby commands inside kenten commands%
-  }{%
-    Here \string\kentenrubycombination{ruby} is assumed.%
-    \MessageBreak \@ehc
-  }%
-}
-%    \end{macrocode}
-%
 % \subsection{パラメタ}
 %
 % \subsubsection{全般設定}
@@ -5981,7 +5979,7 @@
 }
 \def\pxrr@kenten@entry@ruby@#1{%
   \ifnum\pxrr@k@ruby@combo>\z@
-    \pxrr@err@yet@unavail@combo
+    \pxrr@apply@combotrue
   \fi
   \setbox\pxrr@boxr\hbox{#1}%
 }%
@@ -6164,6 +6162,185 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
   }%
 }
 %    \end{macrocode}
+%
+%^^A------------------------------------
+% \section{実装（圏点ルビ同時付加）}
+%
+% コンボ！
+%
+%    \begin{macrocode}
+%    \end{macrocode}
+%
+% \begin{macro}{\ifpxrr@apply@combo}
+% 直後に実行するルビ命令について同時付加を行うか。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@apply@combo
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@combo}
+% 現在実行中のルビ命令について同時付加を行うか。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@combo
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@ruby@font}
+% \begin{macro}{\pxrr@ck@size@ratio}
+% \begin{macro}{\pxrr@ck@inter@gap}
+% \begin{macro}{\pxrr@ck@ruby@inter@gap}
+% \begin{macro}{\pxrr@ck@side}
+% \begin{macro}{\pxrr@ck@the@mark}
+% 同時付加時の圏点側のパラメタの値。
+%    \begin{macrocode}
+\let\pxrr@ck@ruby@font\relax
+\let\pxrr@ck@size@ratio\relax
+\let\pxrr@ck@inter@gap\relax
+\let\pxrr@ck@ruby@inter@gap\relax
+\let\pxrr@ck@side\relax
+\let\pxrr@ck@the@mark\relax
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@bind@param}
+% “呼出時変数”へのコピーを行う。
+%    \begin{macrocode}
+\def\pxrr@ck@bind@param{%
+  \pxrr@apply@combofalse
+  \pxrr@combotrue
+  \let\pxrr@ck@ruby@font\pxrr@c@ruby@font
+  \let\pxrr@ck@size@ratio\pxrr@c@size@ratio
+  \let\pxrr@ck@inter@gap\pxrr@c@inter@gap
+  \let\pxrr@ck@ruby@inter@gap\pxrr@k@ruby@inter@gap
+  \let\pxrr@ck@side\pxrr@side
+  \let\pxrr@ck@the@mark\pxrr@k@the@mark
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@zw}
+% 圏点の全角幅。
+%    \begin{macrocode}
+\let\pxrr@ck@zw\relax
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\pxrr@ck@raise@P}
+% ルビ側が |P| である場合の、圏点の垂直方向の移動量。
+% \Note 圏点側が |S| である場合は負値になる。
+%    \begin{macrocode}
+\let\pxrr@ck@raise@P\relax
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\pxrr@ck@raise@S}
+% ルビ側が |S| である場合の、圏点の垂直方向の移動量。
+%    \begin{macrocode}
+\let\pxrr@ck@raise@S\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@assign@fsize}
+% フォントに関連する設定。
+%    \begin{macrocode}
+\def\pxrr@ck@assign@fsize{%
+%    \end{macrocode}
+% |\pxrr@ck@zw| の値を求める。
+%    \begin{macrocode}
+  \begingroup
+    \@tempdima=\f@size\p@
+    \@tempdima\pxrr@ck@size@ratio\@tempdima
+    \edef\pxrr@ruby@fsize{\the\@tempdima}%
+    \let\pxrr@c@ruby@font\pxrr@ck@ruby@font
+    \pxrr@use@ruby@font
+    \pxrr@get@zwidth\pxrr@ck@zw
+    \global\let\pxrr@gtempa\pxrr@ck@zw
+  \endgroup
+  \let\pxrr@ck@zw\pxrr@gtempa
+%    \end{macrocode}
+% |\pxrr@ck@raise@P|、|\pxrr@ck@raise@S| の値を計算する。
+%    \begin{macrocode}
+  \ifcase\pxrr@ck@side
+%    \end{macrocode}
+% 圏点側が |P| の場合。
+%    \begin{macrocode}
+    \@tempdimc\pxrr@ck@zw
+    \advance\@tempdimc-\pxrr@htratio\@tempdimc
+    \@tempdima\pxrr@ruby@raise\relax
+    \@tempdimb\pxrr@ruby@zw\relax
+    \advance\@tempdima\pxrr@htratio\@tempdimb
+    \@tempdimb\pxrr@body@zw\relax
+    \advance\@tempdima\pxrr@ck@ruby@inter@gap\@tempdimb
+    \advance\@tempdima\@tempdimc
+    \edef\pxrr@ck@raise@P{\the\@tempdima}%
+    \@tempdima\pxrr@body@zw\relax
+    \@tempdima\pxrr@htratio\@tempdima
+    \@tempdimb\pxrr@body@zw\relax
+    \advance\@tempdima\pxrr@ck@inter@gap\@tempdimb
+    \advance\@tempdima\@tempdimc
+    \edef\pxrr@ck@raise@S{\the\@tempdima}%
+  \or
+%    \end{macrocode}
+% 圏点側が |S| の場合。
+%    \begin{macrocode}
+    \@tempdimc\pxrr@ck@zw
+    \@tempdimc\pxrr@htratio\@tempdimc
+    \@tempdima-\pxrr@ruby@lower\relax
+    \@tempdimb\pxrr@ruby@zw\relax
+    \advance\@tempdimb-\pxrr@htratio\@tempdimb
+    \advance\@tempdima-\@tempdimb
+    \@tempdimb\pxrr@body@zw\relax
+    \advance\@tempdima-\pxrr@ck@ruby@inter@gap\@tempdimb
+    \advance\@tempdima-\@tempdimc
+    \edef\pxrr@ck@raise@S{\the\@tempdima}%
+    \@tempdima-\pxrr@body@zw\relax
+    \advance\@tempdima-\pxrr@htratio\@tempdima
+    \@tempdimb\pxrr@body@zw\relax
+    \advance\@tempdima-\pxrr@ck@inter@gap\@tempdimb
+    \advance\@tempdima-\@tempdimc
+    \edef\pxrr@ck@raise@P{\the\@tempdima}%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@compose}
+% ボックス0に再配置済のルビ、|\pxrr@boxa| に親文字が入っている
+% 前提で、ボックス0に圏点を追加する。
+%    \begin{macrocode}
+\def\pxrr@ck@compose{%
+%    \end{macrocode}
+% 圏点を組んだボックスを作る。
+%    \begin{macrocode}
+  \setbox\pxrr@boxb\pxrr@hbox@to\z@{%
+    \@tempdima=\f@size\p@
+    \@tempdima\pxrr@ck@size@ratio\@tempdima
+    \edef\pxrr@ruby@fsize{\the\@tempdima}%
+    \let\pxrr@c@ruby@font\pxrr@ck@ruby@font
+    \pxrr@use@ruby@font
+    \hss\pxrr@k@the@mark\hss
+  }%
+%    \end{macrocode}
+% 合成処理。
+%    \begin{macrocode}
+  \setbox\z@\hbox{%
+    \unhcopy\z@
+    \kern-\wd\z@
+    \ifcase\pxrr@side
+      \raise\pxrr@ck@raise@P
+    \or
+      \raise\pxrr@ck@raise@S
+    \fi
+    \hb@xt@\wd\pxrr@boxa{\hss\copy\pxrr@boxb\hss}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
 %
 %^^A------------------------------------
 % \Finale
