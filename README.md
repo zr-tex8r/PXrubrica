@@ -47,6 +47,10 @@ This package is distributed under the MIT License.
 Revision History
 ----------------
 
+  * Version 1.2  〈2017/04/20〉
+      - Mono-ruby and jukugo-ruby with switching.
+      - Safe mode.
+      - Support for vertical writing in LuaTeX-ja.
   * Version 1.1  〈2017/04/10〉
       - Support for XeTeX/LuaTeX.
       - Improve the process of two-side ruby.

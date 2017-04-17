@@ -8,8 +8,8 @@
 \newcommand*{\Eg}{E.\,g.\mbox{}}
 \newcommand*{\eg}{e.\,g.\mbox{}}
 \newcommand*{\ie}{i.\,e.\mbox{}}
-\newcommand*{\myfileversion}{1.1}
-\newcommand*{\myfiledate}{2017/04/10}
+\newcommand*{\myfileversion}{1.2}
+\newcommand*{\myfiledate}{2017/04/20}
 \newsavebox{\myexample}
 \begin{document}
 
@@ -44,7 +44,13 @@ There is no options available.
 \item Jukugo ruby (\Opt{j} option): one ruby block per kanji, but read as whole.\\
 \Eg\quad
 \verb+\ruby[j]{孔雀}{く|じゃく}+ $\rightarrow$ \ruby[j]{孔雀}{く|じゃく}\quad
-\verb+\ruby[j]{七面鳥}{しち|めん|ちょう}+ $\rightarrow$ \ruby[j]{七面鳥}{しち|めん|ちょう}
+\verb+\ruby[j]{七面鳥}{しち|めん|ちょう}+ $\rightarrow$ \ruby[j]{七面鳥}{しち|めん|ちょう}\\
+The current implementation uses the following strategy:
+if none of the ruby string per a kanji causes protrusion,
+then the whole is typeset as mono-ruby;
+otherwise, the whole is typeset as group-ruby,
+ignoring the ruby grouping.
+
 \item A \verb+|+ symbol in a ruby string denotes the boundary of reading for each kanji
 (\ie\ 孔 = く and 雀 = じゃく).
 It is not needed in group ruby.

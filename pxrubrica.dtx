@@ -20,7 +20,7 @@
 %<*driver>
 \ProvidesFile{pxrubrica.dtx}
 %</driver>
-  [2017/04/30 v1.2-pre PX Japanese-style ruby]
+  [2017/04/20 v1.2 PX Japanese-style ruby]
 %<*driver>
 \documentclass{jsarticle}
 \usepackage{doc}
@@ -46,6 +46,7 @@
 \newcommand*{\Note}{\par\noindent ※\ }
 \providecommand*{\pTeX}{p\TeX}
 \providecommand*{\upTeX}{u\pTeX}
+\providecommand*{\pdfTeX}{pdf\/\TeX}
 \providecommand*{\XeTeX}{XeTeX}
 \providecommand*{\LuaTeX}{Lua\TeX}
 \inhibitxspcode`／=0
@@ -165,7 +166,9 @@
 %     \texttt{H} &                 & 拡張肩付き\\
 %     \texttt{m} & \fro{mono}      & モノルビ\\
 %     \texttt{g} & \fro{group}     & グループルビ\\
-%     \texttt{j} & \fro{jukugo}    & 熟語ルビ
+%     \texttt{j} & \fro{jukugo}    & 熟語ルビ\\
+%     \texttt{M} &                 & 自動切替モノルビ\\
+%     \texttt{G} &                 & 自動切替グループルビ
 %   \end{tabular}\qquad
 %   \begin{tabular}[t]{l@{ }ll}
 %     \texttt{P} & \fro{primary}    & 上側配置\\
@@ -192,6 +195,11 @@
 %   およびその片仮名）を対応の非小書き仮名
 %   に変換する。
 %   |F| 指定はこの機能を無効にする。
+% \item |M| および |J| の指定は
+%   「グループルビとモノ・熟語ルビの間で自動的に切り替える」
+%   設定である。
+%   具体的には、ルビのグループが1つしかない場合は |m| および |g|、
+%   複数ある場合は |g| と等価になる。
 % \end{itemize}
 %
 % \jmeta{後補助設定}は以下の値の何れか。
@@ -267,8 +275,19 @@
 % 横組の場合、親文字列の上側と下側にルビを付す。
 % 縦組の場合、親文字列の右側と左側にルビを付す。
 %
-% 両側ルビは常に（単純）グループルビとなるので、
-% \jmeta{オプション}の中の |m|、|g|、|j| の指定は無視される。
+% 両側ルビで熟語ルビを使うことはできない。
+% すなわち、\jmeta{オプション}中で |j|、|J| は指定できない。
+%
+% \Note 1.1版以前では常にグループルビの扱いであった。
+% 旧版との互換のため、両側ルビの場合には自動切替モノルビ（|M|）を
+% 既定値とする。
+% \footnote{つまり、旧来の使用ではグループルビと扱われるため、
+%   ルビのグループは1つにしているはずで、これは新版でもそのまま
+%   グループルビと扱われる。
+%   一方で、モノルビを使いたい場合はグループを複数にするはずで、
+%   この時は自動的にモノルビになる。
+%   なので結局、基底モード（\texttt{g}、\texttt{m}）を指定する
+%   必要は無いことになる。}
 %
 % \item |\atruby[|\jmeta{オプション}|]{|\jmeta{親文字}^^A
 % |}{|\jmeta{上側ルビ文字}|}{|\jmeta{下側ルビ文字}|}|
@@ -280,9 +299,13 @@
 %
 % \subsection{入力文字列のグループの指定}
 %
-% 入力文字列（親文字列・ルビ文字列）の中で「\texttt{\vb}」は
+% 入力文字列（親文字列
+% \footnote{後述の通り、現在の版では親文字列を複数グループにする
+%   使用法は存在しないため、親文字列中では「\texttt{\vb}」は使われない。}%
+% ・ルビ文字列）の中で「\texttt{\vb}」は
 % グループの区切りとみなされる（ただし |{ }| の中にあるものは
 % 文字とみなされる）。
+%
 % 例えば、ルビ文字列
 %\begin{quote}\begin{verbatim}
 %じゆく|ご
@@ -389,6 +412,8 @@
 % \item |\rubysetup| での設定は累積する。
 %   例えば、初期状態から、|\rubysetup{hmf}| と |\rubysetup{<->}| を
 %   実行した場合、既定値設定は |<hmPef>| となる。
+% \item この設定に関わらず、両側ルビでは「自動切替モノルビ（|M|）」
+%   が既定として指定される。
 % \end{itemize}
 %
 % \item |\rubyfontsetup{|\jmeta{命令}|}|
@@ -438,6 +463,25 @@
 %
 % \begin{itemize}
 % 
+% \item |\rubysafemode|／|\rubynosafemode|
+%
+% 安全モードを有効／無効にする。
+% ［既定 = 無効］
+% \begin{itemize}
+% \item 本パッケージがサポートするエンジンは
+%   (u){\pTeX}、{\XeTeX}、{\LuaTeX}である。
+%   「安全モード」とは、これらのエンジンを必要とする一部の機能
+%   \footnote{安全モードでは、強制的にグループルビに切り替わる。
+%     また、親文字・ルビの両方の均等割り付け、および、
+%     小書き文字自動変換が無効になる。}%
+%   を無効化したモードである。
+%   つまり、安全モードに切り替えることで、“サポート対象”でない
+%   エンジン（{\pdfTeX}等）でも本パッケージの一部の機能が
+%   使える可能性がある。
+% \item 使用中のエンジンが{\pdfTeX}である場合、既定で安全モード
+%   が有効になる。
+% \end{itemize}
+%
 % \item |\rubysizeratio{|\jmeta{実数}|}|
 %
 % ルビサイズの親文字サイズに対する割合。
