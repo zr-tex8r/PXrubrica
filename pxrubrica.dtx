@@ -5386,7 +5386,6 @@
 % ルビと圏点が同時に適用された場合の挙動。
 % 0 = ルビだけ出力；1 = ルビの上に圏点（同時付加）。
 % 整数定数。
-% \Note 同時付加は未実装だが、敢えてこれを既定にする。
 %    \begin{macrocode}
 \chardef\pxrr@k@ruby@combo=1
 %    \end{macrocode}
@@ -5463,10 +5462,12 @@
     \pxrr@k@decompose@special\pxrr@k@decompose@ruby
   }{\pxrr@if@kenten@cmd\pxrr@token{%
     \pxrr@k@decompose@special\pxrr@k@decompose@kenten
+  }{\pxrr@cond\ifx\pxrr@token\@sptoken\fi{%
+    \pxrr@k@decompose@loope
   }{%
     \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
     \pxrr@k@decompose@loopc
-  }}}}%
+  }}}}}%
 }
 \def\pxrr@k@decompose@loopc#1{%
   \pxrr@appto\pxrr@res{\pxrr@entry}%
@@ -5480,6 +5481,10 @@
 \def\pxrr@k@decompose@loopd{%
   \advance\pxrr@cntr\@ne
   \pxrr@k@decompose@loopa
+}
+\expandafter\def\expandafter\pxrr@k@decompose@loope\space{%
+  \pxrr@okfalse
+  \pxrr@k@decompose@loopc{ }%
 }
 \def\pxrr@k@decompose@special#1#2#{%
   #1{#2}%
@@ -5516,7 +5521,7 @@
 \def\pxrr@if@kenten@cmd#1{%
   \if \ifcat\noexpand#1\relax
         \ifx#1\pxrr@cmd@kenten T%
-        \else\if#1\jkenten T%
+        \else\ifx#1\jkenten T%
         \else F%
         \fi\fi
       \else F%
@@ -5686,18 +5691,21 @@
 % \begin{macro}{\pxrr@k@declare@mark@char}
 % |\pxrr@k@declare@mark@char\CS{|\jmeta{二重コード}|}|\Means
 % 指定のコード値の文字の（和文）chardefを |\CS| に代入する。
-% ただし{\pTeX}でJISに無い文字（コード値がゼロ）
+% ただし{\pTeX}でJISに無い文字
+% （便宜的に和文空白のJISコード値|2121|で表す）
 % の場合は代わりに |\pxrr@k@char@UTF| を利用する。
 %    \begin{macrocode}
 \def\pxrr@k@declare@mark@char#1#2{%
   \pxrr@k@declare@mark@char@a{#1}#2\pxrr@end
 }
 \def\pxrr@k@declare@mark@char@a#1#2:#3\pxrr@end{%
-% not available in JIS
-  \ifnum"#2=\z@
+  \pxrr@jchardef\pxrr@tempa\pxrr@jc{#2:#3}%
+  \ifnum\pxrr@tempa=\pxrr@zspace
+%    \end{macrocode}
+% エンジンが{\pTeX}でかつJISに無い文字である場合。
+%    \begin{macrocode}
     \pxrr@k@declare@mark{#1}{\pxrr@k@char@UTF{#1}{#3}}%
   \else
-    \pxrr@jchardef\pxrr@tempa\pxrr@jc{#2:#3}%
     \pxrr@k@let@mark{#1}\pxrr@tempa
   \fi
 }
@@ -5725,16 +5733,16 @@
 %
 % 標準サポートの圏点マークの定義。
 %    \begin{macrocode}
-\pxrr@k@declare@mark@char{bullet}  {0000:2022}
+\pxrr@k@declare@mark@char{bullet}  {2121:2022}
 \pxrr@k@declare@mark@char{triangle}{2225:25B2}
 \pxrr@k@declare@mark@char{Triangle}{2224:25B3}
-\pxrr@k@declare@mark@char{fisheye} {0000:25C9}
+\pxrr@k@declare@mark@char{fisheye} {2121:25C9}
 \pxrr@k@declare@mark@char{Circle}  {217B:25CB}
 \pxrr@k@declare@mark@char{bullseye}{217D:25CE}
 \pxrr@k@declare@mark@char{circle}  {217C:25CF}
-\pxrr@k@declare@mark@char{Bullet}  {0000:25E6}
-\pxrr@k@declare@mark@char{sesame}  {0000:FE45}
-\pxrr@k@declare@mark@char{Sesame}  {0000:FE46}
+\pxrr@k@declare@mark@char{Bullet}  {2121:25E6}
+\pxrr@k@declare@mark@char{sesame}  {2121:FE45}
+\pxrr@k@declare@mark@char{Sesame}  {2121:FE46}
 \pxrr@jchardef\pxrr@ja@dot=\pxrr@jc{2126:30FB}
 \pxrr@jchardef\pxrr@ja@comma=\pxrr@jc{2122:3001}
 \pxrr@k@declare@mark{bullet*}{%
@@ -5924,7 +5932,7 @@
 }
 \def\pxrr@kenten@entry@#1{%
   \pxrr@k@compose@block{#1}\@ne
-}%
+}
 %    \end{macrocode}
 % \end{macro}
 %
