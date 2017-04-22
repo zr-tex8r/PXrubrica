@@ -5385,9 +5385,19 @@
 % \begin{macro}{\pxrr@k@ruby@combo}
 % ルビと圏点が同時に適用された場合の挙動。
 % 0 = ルビだけ出力；1 = ルビの上に圏点（同時付加）。
+% |\kentenrubycombination| の設定値に対応する。
 % 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@k@ruby@combo=1
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@k@skip@punct}
+% 約物への圏点の付加を抑止するか
+% （|\kenten[no]skippunctuation|）。
+% スイッチ。
+%    \begin{macrocode}
+\newif\ifpxrr@k@skip@punct \pxrr@k@skip@puncttrue
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5630,6 +5640,20 @@
   \fi
 }
 %    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\kentenskippunctuation}
+% \begin{macro}{\kentennoskippunctuation}
+% 対応するスイッチを設定する。
+%    \begin{macrocode}
+\newcommand*\kentenskippunctuation{%
+  \pxrr@k@skip@puncttrue
+}
+\newcommand*\kentennoskippunctuation{%
+  \pxrr@k@skip@punctfalse
+}
+%    \end{macrocode}
+% \end{macro}
 % \end{macro}
 %
 % \subsection{圏点文字}
@@ -5912,13 +5936,53 @@
 %
 % \begin{macro}{\pxrr@k@entry@with}
 % 補助マクロ。
+% 各種圏点項目の共通の処理を行う。
 %    \begin{macrocode}
 \def\pxrr@k@entry@with#1#2{%
   #1{#2}%
-  \unhbox\pxrr@boxr
-  \pxrr@if@last{}{%else
+%    \end{macrocode}
+% ここで |\pxrr@boxr| に圏点項目の組版結果、
+% |\pxrr@k@ref@char| に参照文字コードが入っている。
+%    \begin{macrocode}
+  \ifcase\pxrr@k@block@seq@state
+%    \end{macrocode}
+% 現在項目の結果が圏点ブロックでない場合。
+% （多分）何も調整しなくてよい。
+%    \begin{macrocode}
+  \or
+%    \end{macrocode}
+% 直前が圏点ブロックでなく、現在が圏点ブロックである場合。
+%    \begin{macrocode}
+    \pxrr@k@put@head@penalty
+  \or
+%    \end{macrocode}
+% 直前が圏点ブロックであり、現在も圏点ブロックである場合。
+%    \begin{macrocode}
+    \pxrr@k@put@head@penalty
     \pxrr@inter@mono
-  }%
+  \fi
+  \pxrr@res
+  \ifnum\pxrr@k@block@seq@state>\z@
+    \pxrr@k@put@end@penalty
+  \fi
+}
+\def\pxrr@k@put@head@penalty{%
+  \ifnum\pxrr@k@ref@char>\m@ne
+    \@tempcnta=\prebreakpenalty\pxrr@k@ref@char\relax
+    \ifnum\@tempcnta=\z@\else
+      \@tempcntb\lastpenalty \unpenalty
+      \advance\@tempcntb\@tempcnta
+      \penalty\@tempcntb
+    \fi
+  \fi
+}
+\def\pxrr@k@put@end@penalty{%
+  \ifnum\pxrr@k@ref@char>\m@ne
+    \@tempcnta=\postbreakpenalty\pxrr@k@ref@char\relax
+    \ifnum\@tempcnta=\z@\else
+      \penalty\@tempcnta
+    \fi
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -5931,7 +5995,15 @@
   \pxrr@k@entry@with\pxrr@kenten@entry@
 }
 \def\pxrr@kenten@entry@#1{%
-  \pxrr@k@compose@block{#1}\@ne
+  \pxrr@k@check@char{#1}%
+  \ifnum\pxrr@k@ref@char<\z@
+    \def\pxrr@res{#1}%
+    \chardef\pxrr@k@block@seq@state\z@
+  \else
+    \pxrr@k@compose@block{#1}\@ne
+    \def\pxrr@res{\unhbox\pxrr@boxr}%
+    \pxrr@k@block@seq@incr
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -5946,11 +6018,15 @@
   \pxrr@k@entry@with\pxrr@kenten@entry@kspan@
 }
 \def\pxrr@kenten@entry@kspan@#1{%
-  \pxrr@kenten@entry@kspan@a#1
-}%
+  \pxrr@kenten@entry@kspan@a#1%
+}
 \def\pxrr@kenten@entry@kspan@a#1{%
-  \@testopt\pxrr@kenten@entry@kspan@b{}%
-}%
+  \@ifstar{%
+    \@testopt\pxrr@kenten@entry@kspan@c{}%
+  }{%
+    \@testopt\pxrr@kenten@entry@kspan@b{}%
+  }%
+}
 \def\pxrr@kenten@entry@kspan@b[#1]#2{%
 %    \end{macrocode}
 % ($n-1/4$)zw以上($n+3/4$)zw未満の時に“およそ$n$全角”と見なす。
@@ -5961,7 +6037,19 @@
   \divide\@tempdimb\@tempdima
   \edef\pxrr@kenten@entry@tempa{\number\@tempdimb}%
   \pxrr@k@compose@block{#2}\pxrr@kenten@entry@tempa
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \pxrr@k@block@seq@incr
+}
+\def\pxrr@kenten@entry@kspan@c[#1]#2{%
+%    \end{macrocode}
+% |\kspan*| となっている場合。
+% この時は圏点を付加しない。
+%    \begin{macrocode}
+  \def\pxrr@res{#2}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \chardef\pxrr@k@block@seq@state\z@
+}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5975,7 +6063,10 @@
 }
 \def\pxrr@kenten@entry@kenten@#1{%
   \setbox\pxrr@boxr\hbox{#1}%
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \let\pxrr@k@block@seq@state\z@
+}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5991,7 +6082,10 @@
     \pxrr@apply@combotrue
   \fi
   \setbox\pxrr@boxr\hbox{#1}%
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \let\pxrr@k@block@seq@state\z@
+}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -6007,13 +6101,104 @@
 % 実際には（現在は）これは使われない。
 %    \begin{macrocode}
 \newcommand*\kspan{%
-  \@testopt\pxrr@kspan@a{}%
+  \@ifstar{%
+    \@testopt\pxrr@kspan@a{}%
+  }{%
+    \@testopt\pxrr@kspan@a{}%
+  }%
 }
 \pxrr@add@protect\kspan
 \def\pxrr@kspan@a[#1]#2{%
   \begingroup
     #2%
   \endgroup
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{自動抑止の検査}
+%
+% \begin{macro}{\pxrr@k@check@char}
+% 通常項目（|\pxrr@entry|）の引数を検査する。
+% 圏点付加を抑止すべきである場合は、$-1$を |\pxrr@cntr| に返す。
+% それ以外の（圏点を付加してよい）場合、
+% 引数が（単一の）通常文字である時はその文字、
+% 引数がグループの場合は和文空白の内部文字コードを |\pxrr@cntr| に
+% 返す（禁則ペナルティを後で見られるように）。
+%    \begin{macrocode}
+\def\pxrr@k@check@char#1{%
+  \futurelet\pxrr@token\pxrr@k@check@char@a#1\pxrr@end
+}
+\def\pxrr@k@check@char@a#1\pxrr@end{%
+  \pxrr@cond\ifx\pxrr@token\bgroup\fi{%
+%    \end{macrocode}
+% 引数がグループだから和文空白の文字コードを返す。
+%    \begin{macrocode}
+    \let\pxrr@k@ref@char\pxrr@zspace
+  }{\pxrr@cond\ifx\pxrr@token\@sptoken\fi{%
+%    \end{macrocode}
+% 欧文空白には圏点を付けない。
+%    \begin{macrocode}
+    \let\pxrr@k@ref@char\m@ne
+  }{%
+    \pxrr@check@char\pxrr@token
+    \ifcase\pxrr@cntr
+%    \end{macrocode}
+% 通常文字でないので圏点を付けない。
+%    \begin{macrocode}
+      \let\pxrr@k@ref@char\m@ne
+    \or
+%    \end{macrocode}
+% 欧文の通常文字。文字コードを戻り値とする。
+%    \begin{macrocode}
+      \chardef\pxrr@k@ref@char=`#1\relax
+      \chardef\pxrr@tempc\z@
+    \or
+%    \end{macrocode}
+% 和文の通常文字。
+%    \begin{macrocode}
+      \chardef\pxrr@k@ref@char=`#1\relax
+      \chardef\pxrr@tempc\@ne
+    \fi
+%    \end{macrocode}
+% 約物の圏点抑止が有効の場合は、引数の文字が約物であるかを検査し、
+% そうである場合は戻り値を$-1$に変える。
+%    \begin{macrocode}
+    \ifpxrr@k@skip@punct\ifnum\pxrr@k@ref@char>\m@ne
+      \pxrr@k@check@punct\pxrr@k@ref@char\pxrr@tempc
+      \ifpxrr@ok
+        \let\pxrr@k@ref@char\m@ne
+      \fi
+    \fi\fi
+  }}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{約物の検査}
+%
+% \begin{macro}{\pxrr@k@check@punct}
+% |\pxrr@k@check@punct{|\jmeta{文字コード}|}{|\jmeta{和文フラグ}|}|\Means
+% 指定の文字コードの文字が“約物であるか”を調べて、
+% 結果を |\ifpxrr@ok| に返す。
+% \jmeta{和文フラグ}は“対象が{\pTeX}の和文である”場合に1、
+% それ以外は0。
+%
+% \Note 暫定実装。
+%    \begin{macrocode}
+\def\pxrr@k@check@punct#1#2{%
+  \pxrr@okfalse
+  \ifpxrr@in@ptex
+     \ifcase#2\relax
+        \ifnum\xspcode#1=\thr@@\else
+           \pxrr@oktrue
+        \fi
+     \else
+        \ifnum\inhibitxspcode#1=\thr@@\else
+           \pxrr@oktrue
+        \fi
+     \fi
+  \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6093,6 +6278,26 @@
 %
 % \subsubsection{組版処理}
 %
+% \begin{macro}{\pxrr@k@block@seq@state}
+% 圏点ブロックを連続状態を管理する変数。
+%    \begin{macrocode}
+\chardef\pxrr@k@block@seq@state\z@
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@block@seq@incr}
+% |\pxrr@k@block@seq@state| の値をインクリメントする。
+%    \begin{macrocode}
+\def\pxrr@k@block@seq@incr{%
+  \ifcase\pxrr@k@block@seq@state
+    \chardef\pxrr@k@block@seq@state\@ne
+  \or
+    \chardef\pxrr@k@block@seq@state\tw@
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@kenten@main}
 % 圏点の組版処理。
 %    \begin{macrocode}
@@ -6106,6 +6311,7 @@
   \let\pxrr@entry@ruby\pxrr@kenten@entry@ruby
   \let\pxrr@entry@kenten\pxrr@kenten@entry@kenten
   \let\pxrr@post\@empty
+  \chardef\pxrr@k@block@seq@state\z@
   \setbox\pxrr@boxr\pxrr@hbox{\pxrr@body@list}%
   \unhbox\pxrr@boxr
 }

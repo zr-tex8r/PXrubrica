@@ -2381,6 +2381,7 @@
 \chardef\pxrr@k@d@side=0
 \chardef\pxrr@k@d@mark=0
 \chardef\pxrr@k@ruby@combo=1
+\newif\ifpxrr@k@skip@punct \pxrr@k@skip@puncttrue
 \chardef\pxrr@k@mark=0
 \let\pxrr@k@the@mark\relax
 \newif\ifpxrr@avail@UTF
@@ -2518,6 +2519,12 @@
   \else
     \let\pxrr@k@ruby@combo\pxrr@tempa
   \fi
+}
+\newcommand*\kentenskippunctuation{%
+  \pxrr@k@skip@puncttrue
+}
+\newcommand*\kentennoskippunctuation{%
+  \pxrr@k@skip@punctfalse
 }
 \def\pxrr@k@declare@mark#1{%
   \global\@namedef{pxrr@k@mark@@#1}%
@@ -2691,26 +2698,63 @@
 }
 \def\pxrr@k@entry@with#1#2{%
   #1{#2}%
-  \unhbox\pxrr@boxr
-  \pxrr@if@last{}{%else
+  \ifcase\pxrr@k@block@seq@state
+  \or
+    \pxrr@k@put@head@penalty
+  \or
+    \pxrr@k@put@head@penalty
     \pxrr@inter@mono
-  }%
+  \fi
+  \pxrr@res
+  \ifnum\pxrr@k@block@seq@state>\z@
+    \pxrr@k@put@end@penalty
+  \fi
+}
+\def\pxrr@k@put@head@penalty{%
+  \ifnum\pxrr@k@ref@char>\m@ne
+    \@tempcnta=\prebreakpenalty\pxrr@k@ref@char\relax
+    \ifnum\@tempcnta=\z@\else
+      \@tempcntb\lastpenalty \unpenalty
+      \advance\@tempcntb\@tempcnta
+      \penalty\@tempcntb
+    \fi
+  \fi
+}
+\def\pxrr@k@put@end@penalty{%
+  \ifnum\pxrr@k@ref@char>\m@ne
+    \@tempcnta=\postbreakpenalty\pxrr@k@ref@char\relax
+    \ifnum\@tempcnta=\z@\else
+      \penalty\@tempcnta
+    \fi
+  \fi
 }
 \def\pxrr@kenten@entry{%
   \pxrr@k@entry@with\pxrr@kenten@entry@
 }
 \def\pxrr@kenten@entry@#1{%
-  \pxrr@k@compose@block{#1}\@ne
+  \pxrr@k@check@char{#1}%
+  \ifnum\pxrr@k@ref@char<\z@
+    \def\pxrr@res{#1}%
+    \chardef\pxrr@k@block@seq@state\z@
+  \else
+    \pxrr@k@compose@block{#1}\@ne
+    \def\pxrr@res{\unhbox\pxrr@boxr}%
+    \pxrr@k@block@seq@incr
+  \fi
 }
 \def\pxrr@kenten@entry@kspan{%
   \pxrr@k@entry@with\pxrr@kenten@entry@kspan@
 }
 \def\pxrr@kenten@entry@kspan@#1{%
-  \pxrr@kenten@entry@kspan@a#1
-}%
+  \pxrr@kenten@entry@kspan@a#1%
+}
 \def\pxrr@kenten@entry@kspan@a#1{%
-  \@testopt\pxrr@kenten@entry@kspan@b{}%
-}%
+  \@ifstar{%
+    \@testopt\pxrr@kenten@entry@kspan@c{}%
+  }{%
+    \@testopt\pxrr@kenten@entry@kspan@b{}%
+  }%
+}
 \def\pxrr@kenten@entry@kspan@b[#1]#2{%
   \setbox\z@\pxrr@hbox{#2}%
   \@tempdima\pxrr@body@zw\relax
@@ -2718,13 +2762,24 @@
   \divide\@tempdimb\@tempdima
   \edef\pxrr@kenten@entry@tempa{\number\@tempdimb}%
   \pxrr@k@compose@block{#2}\pxrr@kenten@entry@tempa
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \pxrr@k@block@seq@incr
+}
+\def\pxrr@kenten@entry@kspan@c[#1]#2{%
+  \def\pxrr@res{#2}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \chardef\pxrr@k@block@seq@state\z@
+}
 \def\pxrr@kenten@entry@kenten{%
   \pxrr@k@entry@with\pxrr@kenten@entry@kenten@
 }
 \def\pxrr@kenten@entry@kenten@#1{%
   \setbox\pxrr@boxr\hbox{#1}%
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \let\pxrr@k@block@seq@state\z@
+}
 \def\pxrr@kenten@entry@ruby{%
   \pxrr@k@entry@with\pxrr@kenten@entry@ruby@
 }
@@ -2733,15 +2788,63 @@
     \pxrr@apply@combotrue
   \fi
   \setbox\pxrr@boxr\hbox{#1}%
-}%
+  \def\pxrr@res{\unhbox\pxrr@boxr}%
+  \let\pxrr@k@ref@char\pxrr@zspace
+  \let\pxrr@k@block@seq@state\z@
+}
 \newcommand*\kspan{%
-  \@testopt\pxrr@kspan@a{}%
+  \@ifstar{%
+    \@testopt\pxrr@kspan@a{}%
+  }{%
+    \@testopt\pxrr@kspan@a{}%
+  }%
 }
 \pxrr@add@protect\kspan
 \def\pxrr@kspan@a[#1]#2{%
   \begingroup
     #2%
   \endgroup
+}
+\def\pxrr@k@check@char#1{%
+  \futurelet\pxrr@token\pxrr@k@check@char@a#1\pxrr@end
+}
+\def\pxrr@k@check@char@a#1\pxrr@end{%
+  \pxrr@cond\ifx\pxrr@token\bgroup\fi{%
+    \let\pxrr@k@ref@char\pxrr@zspace
+  }{\pxrr@cond\ifx\pxrr@token\@sptoken\fi{%
+    \let\pxrr@k@ref@char\m@ne
+  }{%
+    \pxrr@check@char\pxrr@token
+    \ifcase\pxrr@cntr
+      \let\pxrr@k@ref@char\m@ne
+    \or
+      \chardef\pxrr@k@ref@char=`#1\relax
+      \chardef\pxrr@tempc\z@
+    \or
+      \chardef\pxrr@k@ref@char=`#1\relax
+      \chardef\pxrr@tempc\@ne
+    \fi
+    \ifpxrr@k@skip@punct\ifnum\pxrr@k@ref@char>\m@ne
+      \pxrr@k@check@punct\pxrr@k@ref@char\pxrr@tempc
+      \ifpxrr@ok
+        \let\pxrr@k@ref@char\m@ne
+      \fi
+    \fi\fi
+  }}%
+}
+\def\pxrr@k@check@punct#1#2{%
+  \pxrr@okfalse
+  \ifpxrr@in@ptex
+     \ifcase#2\relax
+        \ifnum\xspcode#1=\thr@@\else
+           \pxrr@oktrue
+        \fi
+     \else
+        \ifnum\inhibitxspcode#1=\thr@@\else
+           \pxrr@oktrue
+        \fi
+     \fi
+  \fi
 }
 \AtBeginDocument{%
   \providecommand*{\kenten}{\jkenten}%
@@ -2779,6 +2882,14 @@
   }%
   \pxrr@kenten@exit
 }
+\chardef\pxrr@k@block@seq@state\z@
+\def\pxrr@k@block@seq@incr{%
+  \ifcase\pxrr@k@block@seq@state
+    \chardef\pxrr@k@block@seq@state\@ne
+  \or
+    \chardef\pxrr@k@block@seq@state\tw@
+  \fi
+}
 \def\pxrr@kenten@main{%
   \setbox\pxrr@boxb\pxrr@hbox@to\z@{%
     \pxrr@use@ruby@font
@@ -2789,6 +2900,7 @@
   \let\pxrr@entry@ruby\pxrr@kenten@entry@ruby
   \let\pxrr@entry@kenten\pxrr@kenten@entry@kenten
   \let\pxrr@post\@empty
+  \chardef\pxrr@k@block@seq@state\z@
   \setbox\pxrr@boxr\pxrr@hbox{\pxrr@body@list}%
   \unhbox\pxrr@boxr
 }
