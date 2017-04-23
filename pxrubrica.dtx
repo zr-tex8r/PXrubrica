@@ -2332,14 +2332,14 @@
 % \end{macro}
 %
 % \begin{macro}{\pxrr@get@prebreakpenalty}
-% |\pxrr@get@prebreakpenalty\CS{|\jmeta{文字}|}|\Means
-% 文字の前禁則ペナルティ値を整数レジスタに代入する。
+% |\pxrr@get@prebreakpenalty\CS{|\jmeta{文字コード}|}|\Means
+% 文字の後禁則ペナルティ値を整数レジスタに代入する。
 %
 % {\pTeX}の場合、|\prebreakpenalty| を使う。
 %    \begin{macrocode}
 \ifpxrr@in@ptex
   \def\pxrr@get@prebreakpenalty#1#2{%
-    #1=\prebreakpenalty`#2\relax
+    #1=\prebreakpenalty#2\relax
   }
 %    \end{macrocode}
 %
@@ -2347,7 +2347,7 @@
 %    \begin{macrocode}
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@prebreakpenalty#1#2{%
-    #1=\ltjgetparameter{prebreakpenalty}{`#2}\relax
+    #1=\ltjgetparameter{prebreakpenalty}{#2}\relax
   }
 %    \end{macrocode}
 %
@@ -2356,6 +2356,89 @@
 \else
   \def\pxrr@get@prebreakpenalty#1#2{%
     #1=\z@
+  }
+\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@get@postbreakpenalty}
+% |\pxrr@get@postbreakpenalty\CS{|\jmeta{文字コード}|}|\Means
+% 文字の前禁則ペナルティ値を整数レジスタに代入する。
+%
+% {\pTeX}の場合、|\postbreakpenalty| を使う。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\postbreakpenalty#2\relax
+  }
+%    \end{macrocode}
+%
+% \PKN{LuaTeX-ja}使用時は、postbreakpenalty プロパティを読み出す。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\ltjgetparameter{postbreakpenalty}{#2}\relax
+  }
+%    \end{macrocode}
+%
+% それ以外の場合はゼロとして扱う。
+%    \begin{macrocode}
+\else
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\z@
+  }
+\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@check@punct@char}
+% |\pxrr@is@punct@char{|\jmeta{文字コード}|}{|\jmeta{和文フラグ}|}|\Means
+% 指定の文字コードの文字が“約物であるか”を調べて、
+% 結果を |\ifpxrr@ok| に返す。
+% \jmeta{和文フラグ}は“対象が{\pTeX}の和文である”場合に1、
+% それ以外は0。
+%
+% {\pTeX}の場合、欧文なら |\xspcode|、和文なら |\inhibitxspcode| の
+% 値を見て、それが3以外なら約物と見なす。
+%    \begin{macrocode}
+\ifpxrr@in@ptex
+  \def\pxrr@check@punct@char#1#2{%
+    \pxrr@okfalse
+    \ifcase#2\relax
+      \ifnum\xspcode#1=\thr@@\else
+        \pxrr@oktrue
+      \fi
+    \else
+      \ifnum\inhibitxspcode#1=\thr@@\else
+        \pxrr@oktrue
+      \fi
+    \fi
+  }
+%    \end{macrocode}
+%
+% \PKN{LuaTeX-ja}使用時も基本的に{\pTeX}と同じロジックを使う。
+% ただし\PKN{LuaTeX-ja}では「文字トークンの和文と欧文の区別」という
+% 概念が存在しないため、\jmeta{和文フラグ}は必ず0となる。
+% そして、|\xspcode|／|\inhibitxspcode| に相当するパラメタとしては、
+% 欧文用のalxspmodeと和文用のjaxspmodeが一応あるが、
+% 実際には和文と欧文の区別はなくこの両者は同義になっている。
+% 従って、「jaxspmodeが3以外か」を調べることにする。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \def\pxrr@check@punct@char#1#2{%
+    \ifnum\ltjgetparameter{jaxspmode}{#1}=\thr@@
+      \pxrr@okfalse
+    \else
+      \pxrr@oktrue
+    \fi
+  }
+%    \end{macrocode}
+%
+% それ以外の場合はゼロとして扱う。
+%    \begin{macrocode}
+\else
+  \def\pxrr@check@punct@char#1#2{%
+    \pxrr@okfalse
   }
 \fi\fi
 %    \end{macrocode}
@@ -3987,7 +4070,7 @@
   \pxrr@check@kinsoku@c#1#1%
 }
 \def\pxrr@check@kinsoku@c#1{%
-  \pxrr@get@prebreakpenalty\pxrr@cntr{#1}%
+  \pxrr@get@prebreakpenalty\pxrr@cntr{`#1}%
   \pxrr@tempb
 }
 %    \end{macrocode}
@@ -5933,6 +6016,7 @@
 % \subsection{圏点項目}
 %
 % 圏点項目とは、圏点リストの中の |\pxrr@entry|[|@XXX|]|{...}| のこと。
+% \Note TODO 用語定義
 %
 % \begin{macro}{\pxrr@k@entry@with}
 % 補助マクロ。
@@ -5966,9 +6050,13 @@
     \pxrr@k@put@end@penalty
   \fi
 }
+%    \end{macrocode}
+% 参照文字が有効な場合にその前禁則ペナルティを適用する。
+% \Note 既にペナルティがある場合は合算する。
+%    \begin{macrocode}
 \def\pxrr@k@put@head@penalty{%
   \ifnum\pxrr@k@ref@char>\m@ne
-    \@tempcnta=\prebreakpenalty\pxrr@k@ref@char\relax
+    \pxrr@get@prebreakpenalty\@tempcnta\pxrr@k@ref@char
     \ifnum\@tempcnta=\z@\else
       \@tempcntb\lastpenalty \unpenalty
       \advance\@tempcntb\@tempcnta
@@ -5976,9 +6064,12 @@
     \fi
   \fi
 }
+%    \end{macrocode}
+% 参照文字が有効な場合にその後禁則ペナルティを適用する。
+%    \begin{macrocode}
 \def\pxrr@k@put@end@penalty{%
   \ifnum\pxrr@k@ref@char>\m@ne
-    \@tempcnta=\postbreakpenalty\pxrr@k@ref@char\relax
+    \pxrr@get@postbreakpenalty\@tempcnta\pxrr@k@ref@char
     \ifnum\@tempcnta=\z@\else
       \penalty\@tempcnta
     \fi
@@ -6152,53 +6243,25 @@
 % 欧文の通常文字。文字コードを戻り値とする。
 %    \begin{macrocode}
       \chardef\pxrr@k@ref@char=`#1\relax
-      \chardef\pxrr@tempc\z@
+      \chardef\pxrr@check@char@temp\z@
     \or
 %    \end{macrocode}
 % 和文の通常文字。
 %    \begin{macrocode}
       \chardef\pxrr@k@ref@char=`#1\relax
-      \chardef\pxrr@tempc\@ne
+      \chardef\pxrr@check@char@temp\@ne
     \fi
 %    \end{macrocode}
 % 約物の圏点抑止が有効の場合は、引数の文字が約物であるかを検査し、
 % そうである場合は戻り値を$-1$に変える。
 %    \begin{macrocode}
     \ifpxrr@k@skip@punct\ifnum\pxrr@k@ref@char>\m@ne
-      \pxrr@k@check@punct\pxrr@k@ref@char\pxrr@tempc
+      \pxrr@check@punct@char\pxrr@k@ref@char\pxrr@check@char@temp
       \ifpxrr@ok
         \let\pxrr@k@ref@char\m@ne
       \fi
     \fi\fi
   }}%
-}
-%    \end{macrocode}
-% \end{macro}
-%
-% \subsection{約物の検査}
-%
-% \begin{macro}{\pxrr@k@check@punct}
-% |\pxrr@k@check@punct{|\jmeta{文字コード}|}{|\jmeta{和文フラグ}|}|\Means
-% 指定の文字コードの文字が“約物であるか”を調べて、
-% 結果を |\ifpxrr@ok| に返す。
-% \jmeta{和文フラグ}は“対象が{\pTeX}の和文である”場合に1、
-% それ以外は0。
-%
-% \Note 暫定実装。
-%    \begin{macrocode}
-\def\pxrr@k@check@punct#1#2{%
-  \pxrr@okfalse
-  \ifpxrr@in@ptex
-     \ifcase#2\relax
-        \ifnum\xspcode#1=\thr@@\else
-           \pxrr@oktrue
-        \fi
-     \else
-        \ifnum\inhibitxspcode#1=\thr@@\else
-           \pxrr@oktrue
-        \fi
-     \fi
-  \fi
 }
 %    \end{macrocode}
 % \end{macro}

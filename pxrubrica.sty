@@ -711,15 +711,54 @@
 \fi\fi\fi\fi
 \ifpxrr@in@ptex
   \def\pxrr@get@prebreakpenalty#1#2{%
-    #1=\prebreakpenalty`#2\relax
+    #1=\prebreakpenalty#2\relax
   }
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@prebreakpenalty#1#2{%
-    #1=\ltjgetparameter{prebreakpenalty}{`#2}\relax
+    #1=\ltjgetparameter{prebreakpenalty}{#2}\relax
   }
 \else
   \def\pxrr@get@prebreakpenalty#1#2{%
     #1=\z@
+  }
+\fi\fi
+\ifpxrr@in@ptex
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\postbreakpenalty#2\relax
+  }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\ltjgetparameter{postbreakpenalty}{#2}\relax
+  }
+\else
+  \def\pxrr@get@postbreakpenalty#1#2{%
+    #1=\z@
+  }
+\fi\fi
+\ifpxrr@in@ptex
+  \def\pxrr@check@punct@char#1#2{%
+    \pxrr@okfalse
+    \ifcase#2\relax
+      \ifnum\xspcode#1=\thr@@\else
+        \pxrr@oktrue
+      \fi
+    \else
+      \ifnum\inhibitxspcode#1=\thr@@\else
+        \pxrr@oktrue
+      \fi
+    \fi
+  }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@check@punct@char#1#2{%
+    \ifnum\ltjgetparameter{jaxspmode}{#1}=\thr@@
+      \pxrr@okfalse
+    \else
+      \pxrr@oktrue
+    \fi
+  }
+\else
+  \def\pxrr@check@punct@char#1#2{%
+    \pxrr@okfalse
   }
 \fi\fi
 \newif\ifpxrr@in@setup \pxrr@in@setupfalse
@@ -1649,7 +1688,7 @@
   \pxrr@check@kinsoku@c#1#1%
 }
 \def\pxrr@check@kinsoku@c#1{%
-  \pxrr@get@prebreakpenalty\pxrr@cntr{#1}%
+  \pxrr@get@prebreakpenalty\pxrr@cntr{`#1}%
   \pxrr@tempb
 }
 \def\pxrr@tempa#1#2\pxrr@nil{%
@@ -2712,7 +2751,7 @@
 }
 \def\pxrr@k@put@head@penalty{%
   \ifnum\pxrr@k@ref@char>\m@ne
-    \@tempcnta=\prebreakpenalty\pxrr@k@ref@char\relax
+    \pxrr@get@prebreakpenalty\@tempcnta\pxrr@k@ref@char
     \ifnum\@tempcnta=\z@\else
       \@tempcntb\lastpenalty \unpenalty
       \advance\@tempcntb\@tempcnta
@@ -2722,7 +2761,7 @@
 }
 \def\pxrr@k@put@end@penalty{%
   \ifnum\pxrr@k@ref@char>\m@ne
-    \@tempcnta=\postbreakpenalty\pxrr@k@ref@char\relax
+    \pxrr@get@postbreakpenalty\@tempcnta\pxrr@k@ref@char
     \ifnum\@tempcnta=\z@\else
       \penalty\@tempcnta
     \fi
@@ -2819,32 +2858,18 @@
       \let\pxrr@k@ref@char\m@ne
     \or
       \chardef\pxrr@k@ref@char=`#1\relax
-      \chardef\pxrr@tempc\z@
+      \chardef\pxrr@check@char@temp\z@
     \or
       \chardef\pxrr@k@ref@char=`#1\relax
-      \chardef\pxrr@tempc\@ne
+      \chardef\pxrr@check@char@temp\@ne
     \fi
     \ifpxrr@k@skip@punct\ifnum\pxrr@k@ref@char>\m@ne
-      \pxrr@k@check@punct\pxrr@k@ref@char\pxrr@tempc
+      \pxrr@check@punct@char\pxrr@k@ref@char\pxrr@check@char@temp
       \ifpxrr@ok
         \let\pxrr@k@ref@char\m@ne
       \fi
     \fi\fi
   }}%
-}
-\def\pxrr@k@check@punct#1#2{%
-  \pxrr@okfalse
-  \ifpxrr@in@ptex
-     \ifcase#2\relax
-        \ifnum\xspcode#1=\thr@@\else
-           \pxrr@oktrue
-        \fi
-     \else
-        \ifnum\inhibitxspcode#1=\thr@@\else
-           \pxrr@oktrue
-        \fi
-     \fi
-  \fi
 }
 \AtBeginDocument{%
   \providecommand*{\kenten}{\jkenten}%
