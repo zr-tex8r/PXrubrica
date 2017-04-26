@@ -1051,7 +1051,11 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \subsubsection{ルビ呼出時の設定}
+% \subsubsection{呼出時パラメタ・変数}
+%
+% 一般的に、特定のルビ・圏点命令の呼出に固有である
+% （つまりその内側にネストされたルビ・圏点命令に継承すべきでない）
+% パラメタは、呼出時の値を別に保持しておくべきである。
 %
 % \begin{macro}{\ifpxrr@bprotr}
 % \begin{macro}{\ifpxrr@aprotr}
@@ -1201,7 +1205,20 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \subsection{変数}
+% \begin{macro}{\pxrr@c@ruby@font}
+% \begin{macro}{\pxrr@c@size@ratio}
+% \begin{macro}{\pxrr@c@inter@gap}
+% 以下は“オプションで指定する”以外のパラメタに対応するもの。
+%    \begin{macrocode}
+\let\pxrr@c@ruby@font\@undefined
+\let\pxrr@c@size@ratio\@undefined
+\let\pxrr@c@inter@gap\@undefined
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{その他の変数}
 %
 % \begin{macro}{\pxrr@body@list}
 % 親文字列のために使うリスト。
@@ -2444,6 +2461,17 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\pxrr@inhibitglue}
+% |\inhibitglue| が定義されているなら実行する。
+%    \begin{macrocode}
+\ifx\inhibitglue\@undefined
+  \let\pxrr@inhibitglue\relax
+\else
+  \let\pxrr@inhibitglue\inhibitglue
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{パラメタ設定公開命令}
 %
 % \begin{macro}{\ifpxrr@in@setup}
@@ -3091,6 +3119,12 @@
   \if g\pxrr@mode\else
     \chardef\pxrr@evensp\@ne
   \fi
+%    \end{macrocode}
+% 圏点ルビ同時付加の場合の調整。
+%    \begin{macrocode}
+    \ifpxrr@combo
+      \pxrr@ck@check@option
+    \fi
 }
 %    \end{macrocode}
 % \end{macro}
@@ -3574,6 +3608,8 @@
 % #4は空
 \def\pxrr@compose@oneside@block@do#1#2#3#4{%
   \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \edef\pxrr@ck@body@natwd{\the\wd\pxrr@boxa}%
+  \let\pxrr@ck@locate\pxrr@locate@inner
   \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
@@ -3594,6 +3630,7 @@
         \let\pxrr@locate@temp\pxrr@locate@head
       \fi
     \fi
+    \let\pxrr@ck@locate\pxrr@locate@temp
     \pxrr@decompose{#2}%
     \edef\pxrr@natwd{\the\wd\pxrr@boxa}%
     \pxrr@evenspace@int\pxrr@locate@temp\pxrr@boxa\relax
@@ -3636,8 +3673,8 @@
       \lower\pxrr@ruby@lower\box\pxrr@boxr
     \fi
   }%
-  \ifpxrr@combo
-    \pxrr@ck@compose
+  \ifnum \ifpxrr@combo\pxrr@ck@ruby@combo\else\z@\fi >\z@
+    \pxrr@ck@compose{#2}%
   \fi
   \ht\z@\z@ \dp\z@\z@
   \@tempdima\wd\z@
@@ -3669,6 +3706,8 @@
 % |\pxrr@boxb| に下側ルビの出力を保持する。
 %    \begin{macrocode}
   \setbox\pxrr@boxa\pxrr@hbox{#2}%
+  \edef\pxrr@ck@body@natwd{\the\wd\pxrr@boxa}%
+  \let\pxrr@ck@locate\pxrr@locate@inner
   \setbox\pxrr@boxr\pxrr@hbox{%
     \pxrr@use@ruby@font
     #3%
@@ -3704,6 +3743,7 @@
         \let\pxrr@locate@temp\pxrr@locate@head
       \fi
     \fi
+    \let\pxrr@ck@locate\pxrr@locate@temp
 %    \end{macrocode}
 % 上側と下側のどちらのルビが長いかに応じて引数を変えて、
 % |\pxrr@compose@twoside@block@sub| を呼び出す。
@@ -3760,6 +3800,9 @@
     \kern-\@tempdima
     \lower\pxrr@ruby@lower\box\pxrr@boxb
   }%
+  \ifnum \ifpxrr@combo\pxrr@ck@ruby@combo\else\z@\fi >\z@
+    \pxrr@ck@compose{#2}%
+  \fi
   \ht\z@\z@ \dp\z@\z@
   \@tempdima\wd\z@
   \setbox\pxrr@boxr\hbox{%
@@ -4493,9 +4536,17 @@
 % “呼出時変数”へのコピーを行う。
 %    \begin{macrocode}
 \def\pxrr@bind@param{%
-  \pxrr@combofalse
+%    \end{macrocode}
+% 圏点ルビ同時付加フラグの処理。
+% 圏点側が指定した |apply@combo| の値を“呼出時パラメタ”の |pxrr@combo| に
+% 移動させる。
+%    \begin{macrocode}
   \ifpxrr@apply@combo
+    \pxrr@apply@combofalse
+    \pxrr@combotrue
     \pxrr@ck@bind@param
+  \else
+    \pxrr@combofalse
   \fi
   \let\pxrr@c@ruby@font\pxrr@ruby@font
   \let\pxrr@c@size@ratio\pxrr@size@ratio
@@ -5532,8 +5583,9 @@
 % \subsubsection{リスト分解}
 %
 % \begin{macro}{\pxrr@k@decompose}
-% |\pxrr@k@decompose{|\jmeta{圏点引数テキスト}|}|\Means
-% テキストを分解した結果の圏点項目リストを |\pxrr@res| に返す。
+% |\pxrr@k@decompose{|\jmeta{テキスト}|}|\Means
+% テキスト（圏点命令の引数）を分解した結果の圏点項目リスト
+% を |\pxrr@res| に返す。
 % \Note 圏点項目リストの形式\Means\par
 % |\pxrr@entry|[|@XXX|]|{|\jmeta{引数}|}|……
 % |\pxrr@entry|[|@XXX|]|{|\jmeta{引数}|}||\pxrr@post|
@@ -5553,6 +5605,8 @@
     \pxrr@k@decompose@special\pxrr@k@decompose@kspan
   }{\pxrr@if@ruby@cmd\pxrr@token{%
     \pxrr@k@decompose@special\pxrr@k@decompose@ruby
+  }{\pxrr@if@truby@cmd\pxrr@token{%
+    \pxrr@k@decompose@special\pxrr@k@decompose@truby
   }{\pxrr@if@kenten@cmd\pxrr@token{%
     \pxrr@k@decompose@special\pxrr@k@decompose@kenten
   }{\pxrr@cond\ifx\pxrr@token\@sptoken\fi{%
@@ -5560,7 +5614,7 @@
   }{%
     \pxrr@setok{\pxrr@ifx{\pxrr@token\bgroup}}%
     \pxrr@k@decompose@loopc
-  }}}}}%
+  }}}}}}%
 }
 \def\pxrr@k@decompose@loopc#1{%
   \pxrr@appto\pxrr@res{\pxrr@entry}%
@@ -5590,6 +5644,10 @@
   \pxrr@appto\pxrr@res{\pxrr@entry@ruby{#1{#2}{#3}}}%
   \pxrr@k@decompose@loopd
 }
+\def\pxrr@k@decompose@truby#1#2#3#4{%
+  \pxrr@appto\pxrr@res{\pxrr@entry@ruby{#1{#2}{#3}{#4}}}%
+  \pxrr@k@decompose@loopd
+}
 \def\pxrr@k@decompose@kenten#1#2{%
   \pxrr@appto\pxrr@res{\pxrr@entry@kenten{#1{#2}}}%
   \pxrr@k@decompose@loopd
@@ -5603,6 +5661,17 @@
         \else\ifx#1\aruby T%
         \else F%
         \fi\fi\fi
+      \else F%
+      \fi T\expandafter\@firstoftwo
+  \else \expandafter\@secondoftwo
+  \fi
+}
+\def\pxrr@if@truby@cmd#1{%
+  \if \ifcat\noexpand#1\relax
+        \ifx#1\truby T%
+        \else\ifx#1\atruby T%
+        \else F%
+        \fi\fi
       \else F%
       \fi T\expandafter\@firstoftwo
   \else \expandafter\@secondoftwo
@@ -6015,65 +6084,177 @@
 %
 % \subsection{圏点項目}
 %
-% 圏点項目とは、圏点リストの中の |\pxrr@entry|[|@XXX|]|{...}| のこと。
-% \Note TODO 用語定義
+% \begin{itemize}
+% \item 圏点項目リスト\Means
+%   テキストを |\pxrr@k@decompose| で分解した結果のリスト。
+% \item 圏点項目\Means
+%   圏点リストに含まれる |\pxrr@entry|[|@XXX|]|{...}| という形式のこと。
+%   圏点項目は直接に実行する（出力する）ことができる。
+% \item 圏点ブロック\Means
+%   一つの《文字》に圏点を付加して出力したもの。
+% \item 参照文字コード\Means
+%   圏点項目の出力の前後の禁則ペナルティの扱いにおいて、
+%   「ある文字と同等」と扱う場合の、その文字の文字コード。
+% \end{itemize}
+%
+% ※現状では、まず |\pxrr@kenten@entry@XXX| というマクロを定義して
+% 圏点命令の実行時にそれを |\pxrr@entry@XXX| にコピーする、という
+% 手続きを採っている。
+% （ただそうする意味が全く無い気がする。）
+%
+% \begin{macro}{\ifpxrr@k@first@entry}
+% 先頭の項目であるか。
+%    \begin{macrocode}
+\newif\ifpxrr@k@first@entry
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@k@last@entry}
+% 末尾の項目であるか。
+%    \begin{macrocode}
+\newif\ifpxrr@k@last@entry
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@k@prev@is@block}
+% 直前の項目の結果が圏点ブロックであったか。
+%    \begin{macrocode}
+\newif\ifpxrr@k@prev@is@block
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@accum@res}
+% 累積の直接出力。
+%    \begin{macrocode}
+\let\pxrr@k@accum@res\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% 以下の3つの変数は“項目の下請けマクロ”が値を返すべきもの。
+% これらに加えて、|\pxrr@res| と |\pxrr@boxr| の一方に
+% （組版の）結果を返す必要がある。
+%
+% \begin{macro}{\pxrr@k@prebreakpenalty}
+% 圏点項目の前禁則ペナルティ。
+%    \begin{macrocode}
+\mathchardef\pxrr@k@prebreakpenalty\z@
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@postbreakpenalty}
+% 圏点項目の後禁則ペナルティ。
+%    \begin{macrocode}
+\mathchardef\pxrr@k@postbreakpenalty\z@
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@entry@res@type}
+% 項目の出力のタイプ。
+% 0=直接出力；1=ボックス出力；2=圏点ブロック。
+% 0の場合、出力は |\pxrr@res| にあり、それ以外は、
+% 出力は |\pxrr@boxr| にある。
+%    \begin{macrocode}
+\chardef\pxrr@k@entry@res@type\z@
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@list@pre}
+% 圏点項目リストの出力の開始時に行う処理。
+%    \begin{macrocode}
+\def\pxrr@k@list@pre{%
+  \pxrr@k@first@entrytrue
+  \pxrr@k@last@entryfalse
+  \pxrr@k@prev@is@blockfalse
+  \let\pxrr@k@accum@res\@empty
+  \chardef\pxrr@k@block@seq@state\z@
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\pxrr@k@entry@with}
 % 補助マクロ。
 % 各種圏点項目の共通の処理を行う。
+% \Note |#1| は各圏点項目命令の下請けのマクロで、|#2| は
+% 圏点項目の引数。
 %    \begin{macrocode}
 \def\pxrr@k@entry@with#1#2{%
+  \pxrr@if@last{%
+    \pxrr@k@last@entrytrue
+    \pxrr@k@entry@with@a#1{#2}%
+  }{%
+    \pxrr@k@entry@with@a#1{#2}%
+  }%
+}
+\def\pxrr@k@entry@with@a#1#2{%
+  \mathchardef\pxrr@k@prebreakpenalty\z@
+  \mathchardef\pxrr@k@postbreakpenalty\z@
+%    \end{macrocode}
+% 下請けマクロを実行して結果を得る。
+%    \begin{macrocode}
   #1{#2}%
+%\typeout{%
+%first=\meaning\ifpxrr@k@first@entry^^J%
+%last=\meaning\ifpxrr@k@last@entry^^J%
+%prev=\meaning\ifpxrr@k@prev@is@block^^J%
+%res=\meaning\pxrr@res^^J%
+%type=\meaning\pxrr@k@entry@res@type^^J%
+%prepen=\the\pxrr@k@prebreakpenalty^^J%
+%postpen=\the\pxrr@k@postbreakpenalty}%
 %    \end{macrocode}
-% ここで |\pxrr@boxr| に圏点項目の組版結果、
-% |\pxrr@k@ref@char| に参照文字コードが入っている。
+% 累積直接出力の処理。
 %    \begin{macrocode}
-  \ifcase\pxrr@k@block@seq@state
-%    \end{macrocode}
-% 現在項目の結果が圏点ブロックでない場合。
-% （多分）何も調整しなくてよい。
-%    \begin{macrocode}
-  \or
-%    \end{macrocode}
-% 直前が圏点ブロックでなく、現在が圏点ブロックである場合。
-%    \begin{macrocode}
-    \pxrr@k@put@head@penalty
-  \or
-%    \end{macrocode}
-% 直前が圏点ブロックであり、現在も圏点ブロックである場合。
-%    \begin{macrocode}
-    \pxrr@k@put@head@penalty
-    \pxrr@inter@mono
+  \ifnum\pxrr@k@entry@res@type=\z@
+    \expandafter\pxrr@appto\expandafter\pxrr@k@accum@res
+        \expandafter{\pxrr@res}%
+  \else
+    \pxrr@k@accum@res
+    \let\pxrr@k@accum@res\@empty
   \fi
-  \pxrr@res
-  \ifnum\pxrr@k@block@seq@state>\z@
-    \pxrr@k@put@end@penalty
+%    \end{macrocode}
+% 前禁則ペナルティを入れる。
+%    \begin{macrocode}
+  \ifnum\pxrr@k@prebreakpenalty>\z@
+    \@tempcntb\lastpenalty \unpenalty
+    \advance\@tempcntb\pxrr@k@prebreakpenalty
+    \penalty\@tempcntb
   \fi
+%    \end{macrocode}
+% 圏点ブロックが連続する場合は和文間空白を入れる。
+%    \begin{macrocode}
+  \ifnum\pxrr@k@entry@res@type=\tw@
+    \ifpxrr@k@prev@is@block
+      \pxrr@inter@mono
+    \fi
+    \pxrr@k@prev@is@blocktrue
+  \else
+    \pxrr@k@prev@is@blockfalse
+  \fi
+%    \end{macrocode}
+% ボックスの結果を実際に出力する。
+%    \begin{macrocode}
+  \ifnum\pxrr@k@entry@res@type>\z@
+    \unhbox\pxrr@boxr
+  \fi
+%    \end{macrocode}
+% 後禁則ペナルティを入れる。
+%    \begin{macrocode}
+  \ifnum\pxrr@k@postbreakpenalty>\z@
+    \penalty\pxrr@k@postbreakpenalty
+  \fi
+%    \end{macrocode}
+% 次の項目に進む。
+%    \begin{macrocode}
+  \pxrr@k@first@entryfalse
 }
 %    \end{macrocode}
-% 参照文字が有効な場合にその前禁則ペナルティを適用する。
-% \Note 既にペナルティがある場合は合算する。
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@list@post}
+% 圏点項目リストの出力の最後に行う処理。
 %    \begin{macrocode}
-\def\pxrr@k@put@head@penalty{%
-  \ifnum\pxrr@k@ref@char>\m@ne
-    \pxrr@get@prebreakpenalty\@tempcnta\pxrr@k@ref@char
-    \ifnum\@tempcnta=\z@\else
-      \@tempcntb\lastpenalty \unpenalty
-      \advance\@tempcntb\@tempcnta
-      \penalty\@tempcntb
-    \fi
-  \fi
-}
-%    \end{macrocode}
-% 参照文字が有効な場合にその後禁則ペナルティを適用する。
-%    \begin{macrocode}
-\def\pxrr@k@put@end@penalty{%
-  \ifnum\pxrr@k@ref@char>\m@ne
-    \pxrr@get@postbreakpenalty\@tempcnta\pxrr@k@ref@char
-    \ifnum\@tempcnta=\z@\else
-      \penalty\@tempcnta
-    \fi
-  \fi
+\def\pxrr@k@list@post{%
+  \pxrr@k@accum@res
+  \let\pxrr@k@accum@res\@empty
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6087,13 +6268,12 @@
 }
 \def\pxrr@kenten@entry@#1{%
   \pxrr@k@check@char{#1}%
-  \ifnum\pxrr@k@ref@char<\z@
-    \def\pxrr@res{#1}%
-    \chardef\pxrr@k@block@seq@state\z@
-  \else
+  \ifpxrr@ok
     \pxrr@k@compose@block{#1}\@ne
-    \def\pxrr@res{\unhbox\pxrr@boxr}%
-    \pxrr@k@block@seq@incr
+    \chardef\pxrr@k@entry@res@type=\tw@
+  \else
+    \def\pxrr@res{#1}%
+    \chardef\pxrr@k@entry@res@type=\z@
   \fi
 }
 %    \end{macrocode}
@@ -6112,6 +6292,9 @@
   \pxrr@kenten@entry@kspan@a#1%
 }
 \def\pxrr@kenten@entry@kspan@a#1{%
+%    \end{macrocode}
+% |\kspan|（=\,|#1|）が |*| 付かを調べる。
+%    \begin{macrocode}
   \@ifstar{%
     \@testopt\pxrr@kenten@entry@kspan@c{}%
   }{%
@@ -6128,18 +6311,15 @@
   \divide\@tempdimb\@tempdima
   \edef\pxrr@kenten@entry@tempa{\number\@tempdimb}%
   \pxrr@k@compose@block{#2}\pxrr@kenten@entry@tempa
-  \def\pxrr@res{\unhbox\pxrr@boxr}%
-  \let\pxrr@k@ref@char\pxrr@zspace
-  \pxrr@k@block@seq@incr
+  \chardef\pxrr@k@entry@res@type=\tw@
 }
 \def\pxrr@kenten@entry@kspan@c[#1]#2{%
 %    \end{macrocode}
 % |\kspan*| となっている場合。
-% この時は圏点を付加しない。
+% この時は圏点を付加せず直接出力する。
 %    \begin{macrocode}
   \def\pxrr@res{#2}%
-  \let\pxrr@k@ref@char\pxrr@zspace
-  \chardef\pxrr@k@block@seq@state\z@
+  \chardef\pxrr@k@entry@res@type=\z@
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6153,29 +6333,25 @@
   \pxrr@k@entry@with\pxrr@kenten@entry@kenten@
 }
 \def\pxrr@kenten@entry@kenten@#1{%
+%    \end{macrocode}
+% この場合は圏点ブロックとは見なさないことに注意。
+%    \begin{macrocode}
   \setbox\pxrr@boxr\hbox{#1}%
-  \def\pxrr@res{\unhbox\pxrr@boxr}%
-  \let\pxrr@k@ref@char\pxrr@zspace
-  \let\pxrr@k@block@seq@state\z@
+  \chardef\pxrr@k@entry@res@type=\@ne
 }
 %    \end{macrocode}
 % \end{macro}
 %
 % \begin{macro}{\pxrr@kenten@entry@ruby}
 % ルビ命令の圏点項目。
-% \Note 現在は同時付加が未実装なので、常にルビだけ出力する。
 %    \begin{macrocode}
 \def\pxrr@kenten@entry@ruby{%
   \pxrr@k@entry@with\pxrr@kenten@entry@ruby@
 }
 \def\pxrr@kenten@entry@ruby@#1{%
-  \ifnum\pxrr@k@ruby@combo>\z@
-    \pxrr@apply@combotrue
-  \fi
+  \pxrr@apply@combotrue
   \setbox\pxrr@boxr\hbox{#1}%
-  \def\pxrr@res{\unhbox\pxrr@boxr}%
-  \let\pxrr@k@ref@char\pxrr@zspace
-  \let\pxrr@k@block@seq@state\z@
+  \chardef\pxrr@k@entry@res@type=\@ne
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6210,9 +6386,10 @@
 % \subsection{自動抑止の検査}
 %
 % \begin{macro}{\pxrr@k@check@char}
-% 通常項目（|\pxrr@entry|）の引数を検査する。
-% 圏点付加を抑止すべきである場合は、$-1$を |\pxrr@cntr| に返す。
-% それ以外の（圏点を付加してよい）場合、
+% 通常項目（|\pxrr@entry|）の引数を検査して、
+% 圏点を付加すべきか否かをスイッチ |pxrr@ok| に返す。
+% また、項目の前禁則・後禁則ペナルティを設定する。
+%
 % 引数が（単一の）通常文字である時はその文字、
 % 引数がグループの場合は和文空白の内部文字コードを |\pxrr@cntr| に
 % 返す（禁則ペナルティを後で見られるように）。
@@ -6223,44 +6400,50 @@
 \def\pxrr@k@check@char@a#1\pxrr@end{%
   \pxrr@cond\ifx\pxrr@token\bgroup\fi{%
 %    \end{macrocode}
-% 引数がグループだから和文空白の文字コードを返す。
+% グループには圏点を付ける。
 %    \begin{macrocode}
-    \let\pxrr@k@ref@char\pxrr@zspace
+    \pxrr@oktrue
   }{\pxrr@cond\ifx\pxrr@token\@sptoken\fi{%
 %    \end{macrocode}
 % 欧文空白には圏点を付けない。
 %    \begin{macrocode}
-    \let\pxrr@k@ref@char\m@ne
+    \pxrr@okfalse
   }{%
     \pxrr@check@char\pxrr@token
     \ifcase\pxrr@cntr
 %    \end{macrocode}
 % 通常文字でないので圏点を付けない。
 %    \begin{macrocode}
-      \let\pxrr@k@ref@char\m@ne
+      \pxrr@okfalse
     \or
 %    \end{macrocode}
-% 欧文の通常文字。文字コードを戻り値とする。
+% 欧文の通常文字。圏点を付ける。
 %    \begin{macrocode}
-      \chardef\pxrr@k@ref@char=`#1\relax
+      \pxrr@oktrue
       \chardef\pxrr@check@char@temp\z@
     \or
 %    \end{macrocode}
-% 和文の通常文字。
+% 和文の通常文字。圏点を付ける。
 %    \begin{macrocode}
-      \chardef\pxrr@k@ref@char=`#1\relax
+      \pxrr@oktrue
       \chardef\pxrr@check@char@temp\@ne
     \fi
 %    \end{macrocode}
-% 約物の圏点抑止が有効の場合は、引数の文字が約物であるかを検査し、
-% そうである場合は戻り値を$-1$に変える。
+% 約物の圏点抑止が有効の場合は、引数の文字が約物であるか検査し、
+% そうである場合は圏点を付けない。
 %    \begin{macrocode}
-    \ifpxrr@k@skip@punct\ifnum\pxrr@k@ref@char>\m@ne
-      \pxrr@check@punct@char\pxrr@k@ref@char\pxrr@check@char@temp
-      \ifpxrr@ok
-        \let\pxrr@k@ref@char\m@ne
+    \ifpxrr@k@skip@punct\ifpxrr@ok
+      \pxrr@check@punct@char{`#1}\pxrr@check@char@temp
+      \ifpxrr@ok \pxrr@okfalse
+      \else \pxrr@oktrue
       \fi
     \fi\fi
+    \ifpxrr@ok
+      \pxrr@get@prebreakpenalty\@tempcnta{`#1}%
+      \mathchardef\pxrr@k@prebreakpenalty\@tempcnta
+      \pxrr@get@postbreakpenalty\@tempcnta{`#1}%
+      \mathchardef\pxrr@k@postbreakpenalty\@tempcnta
+    \fi
   }}%
 }
 %    \end{macrocode}
@@ -6309,7 +6492,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\pxrr@bind@param}
+% \begin{macro}{\pxrr@k@bind@param}
 % “呼出時変数”へのコピーを行う。
 %    \begin{macrocode}
 \def\pxrr@k@bind@param{%
@@ -6341,26 +6524,6 @@
 %
 % \subsubsection{組版処理}
 %
-% \begin{macro}{\pxrr@k@block@seq@state}
-% 圏点ブロックを連続状態を管理する変数。
-%    \begin{macrocode}
-\chardef\pxrr@k@block@seq@state\z@
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\pxrr@k@block@seq@incr}
-% |\pxrr@k@block@seq@state| の値をインクリメントする。
-%    \begin{macrocode}
-\def\pxrr@k@block@seq@incr{%
-  \ifcase\pxrr@k@block@seq@state
-    \chardef\pxrr@k@block@seq@state\@ne
-  \or
-    \chardef\pxrr@k@block@seq@state\tw@
-  \fi
-}
-%    \end{macrocode}
-% \end{macro}
-%
 % \begin{macro}{\pxrr@kenten@main}
 % 圏点の組版処理。
 %    \begin{macrocode}
@@ -6373,10 +6536,9 @@
   \let\pxrr@entry@kspan\pxrr@kenten@entry@kspan
   \let\pxrr@entry@ruby\pxrr@kenten@entry@ruby
   \let\pxrr@entry@kenten\pxrr@kenten@entry@kenten
-  \let\pxrr@post\@empty
-  \chardef\pxrr@k@block@seq@state\z@
-  \setbox\pxrr@boxr\pxrr@hbox{\pxrr@body@list}%
-  \unhbox\pxrr@boxr
+  \let\pxrr@post\pxrr@k@list@post
+  \pxrr@k@list@pre
+  \pxrr@body@list
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6389,6 +6551,7 @@
 \def\pxrr@k@prologue{%
   \ifpxrr@k@ghost
     \pxrr@zspace
+    \pxrr@inhibitglue
   \fi
   \begingroup
     \ifpxrr@k@ghost
@@ -6423,6 +6586,7 @@
     \fi
   \endgroup
   \ifpxrr@k@ghost
+    \pxrr@inhibitglue
     \pxrr@zspace
   \fi
 }
@@ -6446,8 +6610,7 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 %
 % コンボ！
 %
-%    \begin{macrocode}
-%    \end{macrocode}
+% \subsection{呼出時パラメタ}
 %
 % \begin{macro}{\ifpxrr@apply@combo}
 % 直後に実行するルビ命令について同時付加を行うか。
@@ -6471,7 +6634,8 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 % \begin{macro}{\pxrr@ck@ruby@inter@gap}
 % \begin{macro}{\pxrr@ck@side}
 % \begin{macro}{\pxrr@ck@the@mark}
-% 同時付加時の圏点側のパラメタの値。
+% \begin{macro}{\pxrr@ck@ruby@combo}
+% 同時付加時の圏点側の呼出時パラメタの値。
 %    \begin{macrocode}
 \let\pxrr@ck@ruby@font\relax
 \let\pxrr@ck@size@ratio\relax
@@ -6479,7 +6643,9 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 \let\pxrr@ck@ruby@inter@gap\relax
 \let\pxrr@ck@side\relax
 \let\pxrr@ck@the@mark\relax
+\let\pxrr@ck@ruby@combo\relax
 %    \end{macrocode}
+% \end{macro}
 % \end{macro}
 % \end{macro}
 % \end{macro}
@@ -6487,21 +6653,38 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 % \end{macro}
 % \end{macro}
 %
+% \begin{macro}{\ifpxrr@ck@kenten@head}
+% 当該のルビ命令が、圏点命令の引数の先頭にあるか。
+%    \begin{macrocode}
+\newif\ifpxrr@ck@kenten@head
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ifpxrr@ck@kenten@end}
+% 当該のルビ命令が、圏点命令の引数の先頭にあるか。
+%    \begin{macrocode}
+\newif\ifpxrr@ck@kenten@end
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\pxrr@ck@bind@param}
 % “呼出時変数”へのコピーを行う。
 %    \begin{macrocode}
 \def\pxrr@ck@bind@param{%
-  \pxrr@apply@combofalse
-  \pxrr@combotrue
   \let\pxrr@ck@ruby@font\pxrr@c@ruby@font
   \let\pxrr@ck@size@ratio\pxrr@c@size@ratio
   \let\pxrr@ck@inter@gap\pxrr@c@inter@gap
   \let\pxrr@ck@ruby@inter@gap\pxrr@k@ruby@inter@gap
   \let\pxrr@ck@side\pxrr@side
   \let\pxrr@ck@the@mark\pxrr@k@the@mark
+  \let\pxrr@ck@ruby@combo\pxrr@k@ruby@combo
+  \pxrr@csletcs{ifpxrr@ck@kenten@head}{ifpxrr@k@first@entry}%
+  \pxrr@csletcs{ifpxrr@ck@kenten@end}{ifpxrr@k@last@entry}%
 }
 %    \end{macrocode}
 % \end{macro}
+
+% \subsection{その他の変数}
 %
 % \begin{macro}{\pxrr@ck@zw}
 % 圏点の全角幅。
@@ -6522,6 +6705,35 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 \let\pxrr@ck@raise@S\relax
 %    \end{macrocode}
 % \end{macro}
+%
+% \begin{macro}{\pxrr@ck@raise@t}
+% ルビ側が両側ルビである場合の、圏点の垂直方向の移動量。
+%    \begin{macrocode}
+\let\pxrr@ck@raise@t\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{オプション整合性検査}
+%
+% \begin{macro}{\pxrr@ck@check@option}
+% 同時付加のための呼出時パラメタの調整。
+%    \begin{macrocode}
+\def\pxrr@ck@check@option{%
+  \ifpxrr@ck@kenten@head
+    \let\pxrr@bintr@\@empty
+    \let\pxrr@bscomp=.\relax
+    \pxrr@bnobrtrue
+  \fi
+  \ifpxrr@ck@kenten@end
+    \let\pxrr@aintr@\@empty
+    \let\pxrr@ascomp=.\relax
+    \pxrr@anobrtrue
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{フォントサイズ}
 %
 % \begin{macro}{\pxrr@ck@assign@fsize}
 % フォントに関連する設定。
@@ -6562,6 +6774,7 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
     \advance\@tempdima\pxrr@ck@inter@gap\@tempdimb
     \advance\@tempdima\@tempdimc
     \edef\pxrr@ck@raise@S{\the\@tempdima}%
+    \let\pxrr@ck@raise@t\pxrr@ck@raise@P
   \or
 %    \end{macrocode}
 % 圏点側が |S| の場合。
@@ -6582,27 +6795,78 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
     \advance\@tempdima-\pxrr@ck@inter@gap\@tempdimb
     \advance\@tempdima-\@tempdimc
     \edef\pxrr@ck@raise@P{\the\@tempdima}%
+    \let\pxrr@ck@raise@t\pxrr@ck@raise@S
   \fi
 }
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\pxrr@ck@compose}
-% ボックス0に再配置済のルビ、|\pxrr@boxa| に親文字が入っている
-% 前提で、ボックス0に圏点を追加する。
+% \subsection{ブロック毎の組版}
+%
+% \begin{macro}{\pxrr@ck@body@natwd}
+% 親文字列の自然長。
 %    \begin{macrocode}
-\def\pxrr@ck@compose{%
+\let\pxrr@ck@body@natwd\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@locate}
+% 圏点列のパターン指定。
+%    \begin{macrocode}
+\let\pxrr@ck@locate\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@kenten@list}
+% 圏点列のリスト。
+%    \begin{macrocode}
+\let\pxrr@ck@kenten@list\relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@ck@compose}
+% |#1| に親文字テキスト、|\pxrr@ck@body@natwd| に親文字の自然長、
+% ボックス0にルビ出力、|\pxrr@boxa| に親文字出力、
+% |\pxrr@ck@locate| にパターンが入っている前提で、
+% ボックス0に圏点を追加する。
+% 
+%    \begin{macrocode}
+\def\pxrr@ck@compose#1{%
 %    \end{macrocode}
 % 圏点を組んだボックスを作る。
 %    \begin{macrocode}
-  \setbox\pxrr@boxb\pxrr@hbox@to\z@{%
+  \setbox\tw@\pxrr@hbox@to\z@{%
     \@tempdima=\f@size\p@
     \@tempdima\pxrr@ck@size@ratio\@tempdima
     \edef\pxrr@ruby@fsize{\the\@tempdima}%
     \let\pxrr@c@ruby@font\pxrr@ck@ruby@font
     \pxrr@use@ruby@font
-    \hss\pxrr@k@the@mark\hss
+    \hss\pxrr@ck@the@mark\hss
   }%
+%    \end{macrocode}
+% 親文字テキストを分解した後、リスト |\pxrr@res| を
+% 圏点のリストに置き換える。
+%    \begin{macrocode}
+  \pxrr@save@listproc
+  \pxrr@decompose{#1}%
+  \def\pxrr@pre{%
+    \let\pxrr@res\@empty
+    \pxrr@ck@compose@entry\pxrr@pre
+  }%
+  \def\pxrr@inter{%
+    \pxrr@ck@compose@entry\pxrr@inter
+  }%
+  \def\pxrr@post{%
+    \pxrr@appto\pxrr@res{\pxrr@post}%
+  }%
+  \pxrr@res
+  \pxrr@restore@listproc
+  \let\pxrr@natwd\pxrr@ck@body@natwd
+%    \end{macrocode}
+% 圏点リストを均等配置する。
+%    \begin{macrocode}
+  \pxrr@evenspace@int\pxrr@ck@locate\pxrr@boxb\relax
+      {\wd\pxrr@boxa}%
 %    \end{macrocode}
 % 合成処理。
 %    \begin{macrocode}
@@ -6613,9 +6877,18 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
       \raise\pxrr@ck@raise@P
     \or
       \raise\pxrr@ck@raise@S
+    \or
+      \raise\pxrr@ck@raise@t
     \fi
     \hb@xt@\wd\pxrr@boxa{\hss\copy\pxrr@boxb\hss}%
   }%
+}
+\def\pxrr@ck@compose@entry#1#2{%
+  \setbox\pxrr@boxb\pxrr@hbox{#2}%
+  \edef\pxrr@tempa{%
+    \noexpand\pxrr@appto\noexpand\pxrr@res{\noexpand#1{%
+        \hb@xt@\the\wd\pxrr@boxb{\hss\copy\tw@\hss}}}%
+  }\pxrr@tempa
 }
 %    \end{macrocode}
 % \end{macro}
