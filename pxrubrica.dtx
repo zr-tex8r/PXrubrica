@@ -22,7 +22,7 @@
 %</driver>
   [2017/04/30 v1.3-pre PX Japanese-style ruby]
 %<*driver>
-\documentclass{jsarticle}
+\documentclass[uplatex]{jsarticle}
 \usepackage{doc}
 \addtolength{\textwidth}{-1in}
 \addtolength{\evensidemargin}{1in}
@@ -5579,12 +5579,13 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\ifpxrr@k@skip@punct}
-% 約物への圏点の付加を抑止するか
-% （|\kenten[no]skippunctuation|）。
-% スイッチ。
+% \begin{macro}{\pxrr@k@d@full}
+% 約物にも圏点を付加するか。
+% 0 = 無効；1 = 有効。
+% |\kentensetup| の |f|／|F| の設定。
+% 整数定数。
 %    \begin{macrocode}
-\newif\ifpxrr@k@skip@punct \pxrr@k@skip@puncttrue
+\chardef\pxrr@k@d@full=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5599,6 +5600,16 @@
 % 整数定数。
 %    \begin{macrocode}
 \chardef\pxrr@k@mark=0
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@k@full}
+% 約物にも圏点を付加するか。
+% 0 = 無効；1 = 有効。
+% |\kenten| の |f|／|F| の設定。
+% 整数定数。
+%    \begin{macrocode}
+\chardef\pxrr@k@full=0
 %    \end{macrocode}
 % \end{macro}
 %
@@ -5760,6 +5771,7 @@
   \ifpxrr@fatal@error\else
     \let\pxrr@k@d@side\pxrr@side
     \let\pxrr@k@d@mark\pxrr@k@mark
+    \let\pxrr@k@d@full\pxrr@k@full
   \fi
 %    \end{macrocode}
 % |\ifpxrr@in@setup| を偽に戻す。
@@ -5845,20 +5857,6 @@
   \fi
 }
 %    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\kentenskippunctuation}
-% \begin{macro}{\kentennoskippunctuation}
-% 対応するスイッチを設定する。
-%    \begin{macrocode}
-\newcommand*\kentenskippunctuation{%
-  \pxrr@k@skip@puncttrue
-}
-\newcommand*\kentennoskippunctuation{%
-  \pxrr@k@skip@punctfalse
-}
-%    \end{macrocode}
-% \end{macro}
 % \end{macro}
 %
 % \subsection{圏点文字}
@@ -6013,6 +6011,7 @@
   \edef\pxrr@tempa{#1}%
   \let\pxrr@side\pxrr@k@d@side
   \let\pxrr@k@mark\pxrr@k@d@mark
+  \let\pxrr@k@full\pxrr@k@d@full
   \expandafter\pxrr@k@parse@option@loop\pxrr@tempa @\pxrr@end
 }
 \def\pxrr@k@parse@option@loop#1{%
@@ -6060,6 +6059,12 @@
 }
 \def\pxrr@k@po@PR@s{%
   \chardef\pxrr@k@mark\@ne
+}
+\def\pxrr@k@po@PR@F{%
+  \chardef\pxrr@k@full\z@
+}
+\def\pxrr@k@po@PR@f{%
+  \chardef\pxrr@k@full\@ne
 }
 %    \end{macrocode}
 % \end{macro}
@@ -6482,10 +6487,10 @@
       \chardef\pxrr@check@char@temp\@ne
     \fi
 %    \end{macrocode}
-% 約物の圏点抑止が有効の場合は、引数の文字が約物であるか検査し、
+% 約物の圏点付加が無効の場合は、引数の文字が約物であるか検査し、
 % そうである場合は圏点を付けない。
 %    \begin{macrocode}
-    \ifpxrr@k@skip@punct\ifpxrr@ok
+    \ifnum\pxrr@k@full=\z@\ifpxrr@ok
       \pxrr@check@punct@char{`#1}\pxrr@check@char@temp
       \ifpxrr@ok \pxrr@okfalse
       \else \pxrr@oktrue

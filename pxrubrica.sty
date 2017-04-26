@@ -2465,8 +2465,9 @@
 \chardef\pxrr@k@d@side=0
 \chardef\pxrr@k@d@mark=0
 \chardef\pxrr@k@ruby@combo=1
-\newif\ifpxrr@k@skip@punct \pxrr@k@skip@puncttrue
+\chardef\pxrr@k@d@full=0
 \chardef\pxrr@k@mark=0
+\chardef\pxrr@k@full=0
 \let\pxrr@k@the@mark\relax
 \newif\ifpxrr@avail@UTF
 \def\pxrr@decide@avail@UTF{%
@@ -2583,6 +2584,7 @@
   \ifpxrr@fatal@error\else
     \let\pxrr@k@d@side\pxrr@side
     \let\pxrr@k@d@mark\pxrr@k@mark
+    \let\pxrr@k@d@full\pxrr@k@full
   \fi
   \pxrr@in@setupfalse
 }
@@ -2620,12 +2622,6 @@
   \else
     \let\pxrr@k@ruby@combo\pxrr@tempa
   \fi
-}
-\newcommand*\kentenskippunctuation{%
-  \pxrr@k@skip@puncttrue
-}
-\newcommand*\kentennoskippunctuation{%
-  \pxrr@k@skip@punctfalse
 }
 \def\pxrr@k@declare@mark#1{%
   \global\@namedef{pxrr@k@mark@@#1}%
@@ -2721,6 +2717,7 @@
   \edef\pxrr@tempa{#1}%
   \let\pxrr@side\pxrr@k@d@side
   \let\pxrr@k@mark\pxrr@k@d@mark
+  \let\pxrr@k@full\pxrr@k@d@full
   \expandafter\pxrr@k@parse@option@loop\pxrr@tempa @\pxrr@end
 }
 \def\pxrr@k@parse@option@loop#1{%
@@ -2761,6 +2758,12 @@
 }
 \def\pxrr@k@po@PR@s{%
   \chardef\pxrr@k@mark\@ne
+}
+\def\pxrr@k@po@PR@F{%
+  \chardef\pxrr@k@full\z@
+}
+\def\pxrr@k@po@PR@f{%
+  \chardef\pxrr@k@full\@ne
 }
 \def\pxrr@k@check@option{%
 }
@@ -2941,7 +2944,7 @@
       \pxrr@oktrue
       \chardef\pxrr@check@char@temp\@ne
     \fi
-    \ifpxrr@k@skip@punct\ifpxrr@ok
+    \ifnum\pxrr@k@full=\z@\ifpxrr@ok
       \pxrr@check@punct@char{`#1}\pxrr@check@char@temp
       \ifpxrr@ok \pxrr@okfalse
       \else \pxrr@oktrue
