@@ -612,6 +612,27 @@
     \def#1{?}%
   }
 \fi\fi
+\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
+\ifpxrr@in@uptex
+  \kchardef\pxrr@jghost@char="113000
+\else\ifpxrr@in@luatexja
+  \let\pxrr@jghost@char\pxrr@zspace
+  \def\pxrr@jghost@check{%
+    \begingroup
+      \setbox\z@\hbox{\char"3001\char"3000}%
+      \setbox\tw@\hbox{\char"3001\inhibitglue\char"3000}%
+      \ifdim\wd\tw@=\wd\z@
+        \global\chardef\pxrr@jghost@char@="00A0
+        \gdef\pxrr@jghost@char{\ltjjachar\pxrr@jghost@char@}%
+      \fi
+    \endgroup
+  }
+  \AtBeginDocument{%
+    \pxrr@jghost@check
+  }
+\else
+  \let\pxrr@jghost@char\pxrr@zspace
+\fi\fi
 \pxrr@jchardef\pxrr@x@K=\pxrr@jc{306C:4E00}
 \ifpxrr@in@ptex
   \def\pxrr@get@iiskip#1{%
@@ -2292,16 +2313,16 @@
 }
 \let\pxrr@ruby@main@mg\@undefined
 \newif\ifpxrr@ghost
-\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
 \def\pxrr@jprologue{%
   \ifpxrr@jghost
-    \pxrr@zspace
+    \pxrr@jghost@char
+    \pxrr@inhibitglue
   \fi
   \begingroup
     \pxrr@abodyfalse
     \pxrr@csletcs{ifpxrr@ghost}{ifpxrr@jghost}%
     \ifpxrr@jghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
 }
@@ -2345,12 +2366,13 @@
 }
 \def\pxrr@jepilogue{%
     \ifpxrr@jghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
   \endgroup
   \ifpxrr@jghost
-    \pxrr@zspace
+    \pxrr@inhibitglue
+    \pxrr@jghost@char
   \fi
 }
 \def\pxrr@aepilogue{%
@@ -2984,12 +3006,12 @@
 }
 \def\pxrr@k@prologue{%
   \ifpxrr@k@ghost
-    \pxrr@zspace
+    \pxrr@jghost@char
     \pxrr@inhibitglue
   \fi
   \begingroup
     \ifpxrr@k@ghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
 }
@@ -3001,13 +3023,13 @@
 }
 \def\pxrr@k@epilogue{%
     \ifpxrr@k@ghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
   \endgroup
   \ifpxrr@k@ghost
     \pxrr@inhibitglue
-    \pxrr@zspace
+    \pxrr@jghost@char
   \fi
 }
 \def\pxrr@debug@show@kenten@input{%

@@ -2143,6 +2143,9 @@
 % \begin{macro}{\pxrr@get@jchar@token}
 % |\pxrr@get@jchar@token\CS{|\jmeta{整数}|}|\Means
 % 内部文字コードが\jmeta{整数}である和文文字のトークンを得る。
+% \Note |.sty|ファイルは完全にASCII文字だけにする方針のため、
+% 和文文字が必要な場合はこの補助マクロや |\pxrr@jchardef| を
+% 利用して複合コード値から作り出すことになる。
 %
 % {\pTeX}系の場合。|\kansuji| トリックを利用する。
 %    \begin{macrocode}
@@ -2172,6 +2175,62 @@
   \def\pxrr@get@jchar@token#1#2{%
     \def#1{?}%
   }
+\fi\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@zspace}
+% 全角空白文字。
+% 文字そのものをファイルに含ませたくないのでchardefにする。
+%    \begin{macrocode}
+\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@jghost@char}
+% 和文ゴースト処理に利用する文字。
+% 字形が空であり、かつ一般の漢字と同じ挙動を示す必要がある。
+% 実際のゴースト処理では字幅を相殺する処理を入れる為、
+% 字幅がゼロである必要はない。
+%
+% ほとんどの場合、全角空白文字で構わないが、全角空白文字が
+% 文字タイプ0でないJFMが使われている場合は問題になる。
+%
+% {\upTeX}の場合、“拡張符号空間”の文字コードを使う。
+% すなわち、文字コード |"113000| の文字はDVIでは文字コード |"3000| と
+% 扱われるが、“BMP外”にあるため必ず文字タイプ0になる。
+%    \begin{macrocode}
+\ifpxrr@in@uptex
+  \kchardef\pxrr@jghost@char="113000
+%    \end{macrocode}
+% {\LuaTeX}-jaの場合。
+% 文書先頭で“全角空白文字が使えるか”を検査して、失敗した場合は
+% 「和文のU+00A0」を代わりに利用することにする。
+%    \begin{macrocode}
+\else\ifpxrr@in@luatexja
+  \let\pxrr@jghost@char\pxrr@zspace
+  \def\pxrr@jghost@check{%
+    \begingroup
+%      \ltjsetparameter{jaxspmode={\pxrr@zspace,3}}%
+%      \ltjsetparameter{xkanjiskip=\p@}%
+%      \ltjsetparameter{autoxspacing=false}%
+      \setbox\z@\hbox{\char"3001\char"3000}%
+%      \ltjsetparameter{autoxspacing=true}%
+      \setbox\tw@\hbox{\char"3001\inhibitglue\char"3000}%
+      \ifdim\wd\tw@=\wd\z@
+        \global\chardef\pxrr@jghost@char@="00A0
+        \gdef\pxrr@jghost@char{\ltjjachar\pxrr@jghost@char@}%
+      \fi
+    \endgroup
+  }
+  \AtBeginDocument{%
+    \pxrr@jghost@check
+  }
+%    \end{macrocode}
+% それ以外の場合は（仕方が無いので）全角空白を用いる。
+%    \begin{macrocode}
+\else
+  \let\pxrr@jghost@char\pxrr@zspace
 \fi\fi
 %    \end{macrocode}
 % \end{macro}
@@ -5187,14 +5246,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\pxrr@zspace}
-% 全角空白文字。
-% 文字そのものをファイルに含ませたくないのでchardefにする。
-%    \begin{macrocode}
-\pxrr@jchardef\pxrr@zspace=\pxrr@jc{2121:3000}
-%    \end{macrocode}
-% \end{macro}
-%
 % \begin{macro}{\pxrr@jprologue}
 % 和文ルビ用の開始処理。
 %    \begin{macrocode}
@@ -5204,7 +5255,8 @@
 % ゴースト文字（全角空白）であることが肝要である。
 %    \begin{macrocode}
   \ifpxrr@jghost
-    \pxrr@zspace
+    \pxrr@jghost@char
+    \pxrr@inhibitglue
   \fi
 %    \end{macrocode}
 % ルビの処理の本体は全てこのグループの中で行われる。
@@ -5216,7 +5268,7 @@
 % 出力した全角空白の幅だけ戻しておく。
 %    \begin{macrocode}
     \ifpxrr@jghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
 }
@@ -5300,7 +5352,7 @@
 %    \begin{macrocode}
 \def\pxrr@jepilogue{%
     \ifpxrr@jghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
 %    \end{macrocode}
@@ -5308,7 +5360,8 @@
 %    \begin{macrocode}
   \endgroup
   \ifpxrr@jghost
-    \pxrr@zspace
+    \pxrr@inhibitglue
+    \pxrr@jghost@char
   \fi
 }
 %    \end{macrocode}
@@ -6550,12 +6603,12 @@
 %    \begin{macrocode}
 \def\pxrr@k@prologue{%
   \ifpxrr@k@ghost
-    \pxrr@zspace
+    \pxrr@jghost@char
     \pxrr@inhibitglue
   \fi
   \begingroup
     \ifpxrr@k@ghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
 }
@@ -6581,13 +6634,13 @@
 %    \begin{macrocode}
 \def\pxrr@k@epilogue{%
     \ifpxrr@k@ghost
-      \setbox\pxrr@boxa\hbox{\pxrr@zspace}%
+      \setbox\pxrr@boxa\hbox{\pxrr@jghost@char}%
       \kern-\wd\pxrr@boxa
     \fi
   \endgroup
   \ifpxrr@k@ghost
     \pxrr@inhibitglue
-    \pxrr@zspace
+    \pxrr@jghost@char
   \fi
 }
 %    \end{macrocode}
