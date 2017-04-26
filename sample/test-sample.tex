@@ -1,0 +1,136 @@
+\documentclass[autodetect-engine,dvi=dvipdfmx,ja=standard,
+  a4paper]{bxjsarticle}
+\usepackage{setspace}
+\usepackage{pxrubrica}
+\newcommand*{\vb}{\symbol{`\|}}
+\newcommand*{\Opt}[1]{\texttt{#1}}
+\newcommand*{\PKN}[1]{\textsf{#1}}
+\newsavebox{\myexample}
+\rubysetup{f}
+\begin{document}
+
+\title{\PKN{pxrubrica}パッケージサンプル}
+\author{某ZR}
+\date{コンパイル日付： \today}
+\maketitle
+
+\section{サンプル}
+
+\subsection{基本的な用法}
+
+\begin{itemize}
+\item モノルビ（\Opt{m}オプション）：各漢字に一つのルビブロック\\
+例：\quad
+\verb+\ruby[m]{鷹}{たか}+ → \ruby[m]{鷹}{たか}\quad
+\verb+\ruby[m]{鶯}{うぐいす}+ → \ruby[m]{鶯}{うぐいす}
+\item グループルビ（\Opt{m}オプション）：漢字列全体に一つのルビブロック\\
+例：\quad
+\verb+\ruby[g]{雲雀}{ひばり}+ → \ruby[g]{雲雀}{ひばり}\quad
+\verb+\ruby[g]{不如帰}{ほととぎす}+ → \ruby[g]{不如帰}{ほととぎす}
+\item 熟語ルビ（\Opt{j}オプション）：各漢字にルビを対応させるが熟語として読む\\
+例：\quad
+\verb+\ruby[j]{孔雀}{く|じゃく}+ → \ruby[j]{孔雀}{く|じゃく}\quad
+\verb+\ruby[j]{七面鳥}{しち|めん|ちょう}+ → \ruby[j]{七面鳥}{しち|めん|ちょう}
+\item ルビ文字列中の \verb+|+ は各漢字の読みの境界を示す。
+（孔＝く、雀＝じゃく）。
+グループルビでは不要である。
+\item 組版結果の比較：
+\begin{quote}\begin{tabular}{ll@{\ }l@{\ }c*3{@{\quad}c}}
+モノルビ & (\verb+\ruby[m]{小鳩}{こ|ばと}+) & →
+  & \ruby[m]{小鳩}{こ|ばと}
+  & \ruby[m]{鶺鴒}{せき|れい}
+  & \ruby[m]{雷鳥}{らい|ちょう}
+  & \ruby[m]{燕}{つばめ}
+\\
+グループルビ & (\verb+\ruby[g]{小鳩}{こばと}+) & →
+  & \ruby[g]{小鳩}{こばと}
+  & \ruby[g]{鶺鴒}{せきれい}
+  & \ruby[g]{雷鳥}{らいちょう}
+  & \ruby[g]{燕}{つばめ}
+\\
+熟語ルビ & (\verb+\ruby[j]{小鳩}{こ|ばと}+) & →
+  & \ruby[j]{小鳩}{こ|ばと}
+  & \ruby[j]{鶺鴒}{せき|れい}
+  & \ruby[j]{雷鳥}{らい|ちょう}
+  & \ruby[j]{燕}{つばめ}
+\end{tabular}\end{quote}
+熟語の各漢字とルビが対応する場合は、熟語ルビ（\Opt{j}）を使い、
+そうでない（熟字訓の）場合はグループルビ（\Opt{g}）を使うのが通例である。
+特に熟語の各漢字ごとの読みを明示したい場合は
+モノルビ（\Opt{m}）を使うとよい。
+なお、漢字一文字に対するルビの場合は、
+\Opt{m}、\Opt{g}、\Opt{j}の何れも同じ結果になる。
+\item オプションの既定値を \verb+\rubysetup+ 命令で設定できる。
+例えば、\verb+\rubysetup{g}\ruby{軍鶏}{しゃも}+
+は \verb+\ruby[g]{軍鶏}{しゃも}+ と等価になる。
+“既定値の既定値”は\Opt{|cjPeF|}である。
+\end{itemize}
+
+\subsection{進入・突出}
+
+\begin{itemize}
+\item ルビの進入の制御：
+\begin{center}\begin{tabular}{ll@{\ }l@{\ }c*2{@{\quad}c}}
+進入無し & \verb+この\ruby[|-|]{鵲}{かささぎ}の+ & →
+ & この\ruby[|-|]{鵲}{かささぎ}の
+ & この\ruby[|-|]{鸛}{こうのとり}の
+ & この\ruby[|-|]{鵜}{う}の
+\\
+進入量小 & \verb+この\ruby[(-)]{鵲}{かささぎ}の+ & →
+ & この\ruby[(-)]{鵲}{かささぎ}の
+ & この\ruby[(-)]{鸛}{こうのとり}の
+ & この\ruby[(-)]{鵜}{う}の
+\\
+進入量大 & \verb+この\ruby[<->]{鵲}{かささぎ}の+ & →
+ & この\ruby[<->]{鵲}{かささぎ}の
+ & この\ruby[<->]{鸛}{こうのとり}の
+ & この\ruby[<->]{鵜}{う}の
+\end{tabular}\end{center}
+\item もし「ルビは仮名にはかけてよいが漢字はダメ」という場合は、
+“\verb+この\ruby[<-|]{鵲}{かささぎ}等+”
+と書くと「この\ruby[<-|]{鵲}{かささぎ}等」の出力が得られる。
+\item 基本モード（\Opt{m}／\Opt{g}／\Opt{j}）と進入を同時に指定したい場合は、
+オプション文字列を \Opt{|g|} や \Opt{|m>} のようにする。
+ここで、“\Opt{-}”は「基本モードは既定値を用いる」ことを意味する。
+\item 突出の制御：
+オプション \Opt{||} で突出が抑止される。
+\begin{quote}
+\begin{lrbox}{\myexample}
+\small$\leftarrow$ \verb+\ruby[||->]{雀}{すずめ}+
+\end{lrbox}
+\fbox{\parbox{.42\linewidth}{%
+\ruby[||->]{雀}{すずめ}の…
+\quad \usebox{\myexample}%
+\rule{0pt}{12pt}\\
+インコの
+}}\quad vs.\quad
+\begin{lrbox}{\myexample}
+\small$\leftarrow$ \verb+\ruby[|->]{雀}{すずめ}+
+\end{lrbox}
+\fbox{\parbox{.42\linewidth}{%
+\ruby[|->]{雀}{すずめ}の…
+\quad \usebox{\myexample}%
+\rule{0pt}{12pt}\\
+インコの
+}}
+\end{quote}
+\end{itemize}
+
+\subsection{発展的な用法}
+
+\begin{itemize}
+\item \verb+\aruby+：欧文に対してルビを付ける：
+\par\noindent 例：\quad
+\verb+\aruby{Get out}{ゲラウッ}!+ →\
+  \aruby{Get out}{ゲラウッ}!
+\item \verb+\rubyfontsetup+：ルビ出力のためのフォントを指定する。
+例えば、ゴシック体の漢字列に対して明朝体のルビを振りたい場合は、
+次のようにする：
+\par\noindent
+{\small
+\verb+\rubyfontsetup{\mcfamily}この{\gtfamily \ruby[j]{明朝体}{みん|ちょう|たい}}+}
+→\
+{\rubyfontsetup{\mcfamily}この{\gtfamily \ruby[j]{明朝体}{みん|ちょう|たい}}}
+\end{itemize}
+
+\end{document}
