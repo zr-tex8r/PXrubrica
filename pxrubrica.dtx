@@ -68,6 +68,7 @@
 % \setcounter{tocdepth}{3}
 % \tableofcontents
 %
+%^^A------------------------------------
 % \section{パッケージ読込}
 %
 % |\usepackage| 命令を用いて読み込む。
@@ -76,7 +77,8 @@
 %\usepackage{pxrubrica}
 %\end{verbatim}\end{quote}
 %
-% \section{基本機能}
+%^^A------------------------------------
+% \section{ルビ機能}
 %
 % \subsection{用語集}
 % 
@@ -515,6 +517,252 @@
 %
 % \end{itemize}
 %
+%^^A------------------------------------
+% \section{圏点機能}
+%
+% \subsection{圏点用命令}
+%
+% \begin{itemize}
+% \item |\kenten[|\jmeta{オプション}|]{|\jmeta{親文字}|}|
+%
+% 和文文字列の上側（横組）／右側（縦組）に圏点を付す
+% （オプションで逆側にもできる）。
+%
+% \jmeta{オプション}は複数指定可能で、排他な指定が併存した場合は
+% 後のものが有効になる。
+% また、省略された指定については |\kentensetup| で指定された
+% 既定値が用いられる。
+%
+% オプションに指定できる値は以下の通り。
+% \begin{quote}
+%   \newcommand*\fro[1]{{\scriptsize($<$\,\textit{#1})}}
+%   \begin{tabular}[t]{l@{ }ll}
+%     \texttt{p} & \fro{primary}   & 主マーク\\
+%     \texttt{s} & \fro{seconday}  & 副マーク\\
+%     \texttt{f} & \fro{full}      & 全文字付加有効\\
+%     \texttt{F} &                 & 全文字付加無効
+%   \end{tabular}\qquad
+%   \begin{tabular}[t]{l@{ }ll}
+%     \texttt{P} & \fro{primary}    & 上側配置\\
+%     \texttt{S} & \fro{secondary}  & 下側配置
+%   \end{tabular}
+% \end{quote}
+%
+% \begin{itemize}
+% \item |p|、|s| は付加する圏点の種類を表す。
+%   横組では主マーク（|p|）は黒中点、副マーク（|s|）は黒ゴマ点が
+%   用いられ、縦組では逆に主マークが黒ゴマ点、副マークが黒中点となる。
+%   ただし設定命令により圏点の種類は変更できる。
+% \item |P| は親文字列の上側（横組）／右側（縦組）、
+%   |S| は親文字列の下側（横組）／左側（縦組）に圏点を付す指定。
+% \item |f| 指定時は、親文字列に含まれる“通常文字”の全てに圏点を付加する。
+%   |F| 指定時は、約物である“通常文字”には圏点を付加しない。
+% \end{itemize}
+%
+% \end{itemize}
+%
+% \subsection{圏点命令の親文字列}
+%
+% 圏点付加の処理では親文字列を文字毎に分解する必要がある。
+% このため、圏点命令の親文字列は一定の規則に従って
+% 書かれる必要がある。
+%
+% 圏点命令の親文字列には以下のものを含めることができる。
+%
+% \begin{itemize}
+% \item 通常文字\Means {\LaTeX}の命令や特殊文字や欧文空白でない、
+%   欧文または和文の文字を指す。
+%   通常文字には一つの圏点が付加される。
+%   \begin{itemize}
+%   \item |F| オプションを指定した場合、約物（句読点等）の文字には
+%     圏点が付加されない。
+%   \item 欧文文字に圏点を付けた場合、その文字は組版上
+%     “和文文字のように”振舞う。
+%   \end{itemize}
+% \item {\LaTeX}の命令および欧文空白\Means これらには
+%   圏点が付加されない。
+%   \begin{itemize}
+%   \item 主に |\,| や |\quad| のような空白用の命令の使用を
+%     意図している。
+%   \item |\hspace{1zw}| のような引数を取る命令をそのまま書くことは
+%     できない。
+%     この場合は、以降に示す何れかの書式を利用する必要がある。
+%     \footnote{全角空白（\verb|\hspace{1zw}|）や和欧文間空白
+%       （\verb|\hspace{\kanjiskip}|）を出力する専用のマクロを用意して
+%       おくと便利かもしれない。}
+%   \end{itemize}
+% \item グループ\Means すなわち、|{ }| に囲まれた任意のテキスト。
+%   ルビ命令のグループと同様に、一つの《文字》として扱われ、
+%   全体に対して一つの圏点が付加される。
+%   \begin{itemize}
+%   \item \PKN{japanese-otf}パッケージの |\CID| 命令のような、
+%     「特殊な和文文字を出力する命令」の使用を意図している。
+%   \end{itemize}
+% \item |\kspan{|\jmeta{テキスト}|}|\Means これは、
+%   出力されるテキストの幅に応じた個数の圏点が付加される。
+%   \begin{itemize}
+%   \item 例えば、“くの字点”に圏点を付す場合に使える。
+%   \item あるいは、（少々手抜きであるが
+%     \footnote{本来は、\verb|\textgt| の中で改めて \verb|\kenten|
+%       を使うべきである。}%
+%     ）|\kenten{この\kspan{\textgt{文字}}だ}| みたいな使い方も
+%     考えられる。
+%   \end{itemize}
+% \item |\kspan*{|\jmeta{テキスト}|}|\Means これは
+%   圏点を付さずにテキストをそのまま出力する。
+% \item ルビ命令（|\ruby| 等）\Means 例えば
+%\begin{quote}\begin{verbatim}
+%\kenten{これが\ruby[|j|]{圏点}{けん|てん}です}。
+%\end{verbatim}\end{quote}
+%   のように、ルビ命令はそのまま書くことができる。
+%   \begin{itemize}
+%   \item |\kentenrubycombination| の設定によっては、ルビと圏点の両方が
+%     付加される。
+%   \item 実装上の制限
+%     \footnote{圏点命令は常にゴースト処理を伴うため、先述の
+%     「ゴースト処理と進入は共存しない」という制限に引っかかるのである。}%
+%     のため、圏点命令の先頭にルビ命令がある場合、
+%     ルビの前側の進入が無効になる。
+%     同様に、圏点命令の末尾にルビ命令がある場合、
+%     ルビの後側の進入が無効になる。
+%   \item 圏点命令中のルビの処理は通常の場合と比べて“複雑”であるため、
+%     自動的な禁則処理が働かない可能性が高い。
+%     従って、必要に応じて補助設定で分割禁止（|*|）を指定する必要がある。
+%   \item 逆にルビ命令の入力に圏点命令をそのまま書くことはできない。
+%\begin{quote}\begin{verbatim}
+%\ruby[|j|]{\kenten{圏点}}{けん|てん}% 不可
+%\end{verbatim}\end{quote}
+%     |{ }| で囲った《文字》の中では使えるが、この場合は同時付加とは
+%     見なされず、独立に動作することになる。
+%   \end{itemize}
+% \end{itemize}
+%
+% \subsection{ゴースト処理}
+%
+% 圏点出力ではルビと異なり進入の処理が不要である。
+% このため、現状では、圏点命令については
+% \textgt{常に}和文ゴースト処理を適用する。
+%
+% \Note 非標準の和文メトリック（JFM）が使われている等の理由で、
+% 和文ゴースト処理が正常に機能しない場合が存在する。
+% このため、将来的に、圏点命令についても和文ゴースト処理を
+% 行わない（ルビ命令と同様の補助設定を適用する）設定を
+% 用意する予定である。
+%
+% \subsection{パラメタ設定命令}
+%
+% \begin{itemize}
+%
+% \item |\kentensetup{|\jmeta{オプション}|}|
+%
+% オプションの既定値設定。
+% ［既定 = \texttt{pPF}］
+%
+% \item |\kentenmarkinyoko{|\jmeta{名前またはテキスト}|}|
+%
+% 横組時の主マーク（|p| 指定時）として使われる圏点を指定する。
+% ［既定 = |bullet*|］
+%
+% パッケージで予め用意されている圏点種別については名前で指定できる。
+% \begin{quote}
+%   \newcommand*\Us[1]{\symbol{"#1}}
+%   \newcommand*\Ucomp{{\small \<（合成）\<}}
+%   \newcommand*\U[1]{\texttt{#1}}
+%   \begin{tabular}[t]{ll@{ }ll}
+%     \texttt{bullet*}   & {・}      & \Ucomp   & 黒中点\\
+%     \texttt{bullet}    & {・}      & \U{2022*}& 黒中点\\
+%     \texttt{Bullet}    & \Us{25E6} & \U{25E6*}& 白中点\\
+%     \texttt{sesame*}   & \Us{FE45} & \Ucomp   & 黒ゴマ点\\
+%     \texttt{sesame}    & \Us{FE45} & \U{FE45*}& 黒ゴマ点\\
+%     \texttt{Sesame}    & \Us{FE46} & \U{FE46*}& 白ゴマ点
+%   \end{tabular}\qquad
+%   \begin{tabular}[t]{ll@{ }ll}
+%     \texttt{triangle}  & \Us{25B2} & \U{25B2} & 黒三角\\
+%     \texttt{Triangle}  & \Us{25B3} & \U{25B3} & 白三角\\
+%     \texttt{circle}    & \Us{25CF} & \U{25CF} & 黒丸\\
+%     \texttt{Circle}    & \Us{25CB} & \U{25CB} & 白丸\\
+%     \texttt{bullseye}  & \Us{25CE} & \U{25CE} & 二重丸\\
+%     \texttt{fisheye}   & \Us{25C9} & \U{25C9*}& 蛇の目点
+%   \end{tabular}
+% \end{quote}
+% \begin{itemize}
+% \item これらの圏点種別のうち、
+%   |bullet*| は中黒“{・}”（U+30FB）、
+%   |sesame*| は読点“{、}”（U+3001）の
+%   字形を加工したものを利用する。
+%   これらはどんな日本語フォントでもサポートされているので、
+%   確実に使用できる。
+% \item それ以外の圏点種別は、記載の文字コードをもつ
+%   Unicode文字を出力する。
+%   使用するフォントによっては、字形を持っていないため何も出力されない、
+%   あるいは字形が全角幅でないため正常に出力されない、
+%   という可能性がある。
+% \item 文字コード値に |*| を付けたものは、その文字が
+%   JIS~X~0208にないことを表す。
+%   {\pLaTeX}でこれらの圏点種別を利用するためには
+%   \PKN{japanese-otf}パッケージを読み込む必要がある。
+% \end{itemize}
+%
+% あるいは、名前の代わりに任意の{\LaTeX}のテキストを書くことができる。
+% \footnote{ただし、引数の先頭の文字がASCII英字である場合は
+%   名前の指定と見なされるため、テキストとして扱いたい場合は
+%   適宜 \verb|{ }| を補う等の措置が必要である。}%
+%\begin{quote}\begin{verbatim}
+%\kentenmarkinyoko{※}
+%\end{verbatim}\end{quote}
+%
+% \item |\kentensubmarkinyoko{|\jmeta{名前またはテキスト}|}|
+%
+% 横組時の副マーク（|s| 指定時）として使われる圏点を指定する。
+% ［既定 = |sesame*|］
+%
+% \item |\kentenmarkintate{|\jmeta{名前またはテキスト}|}|
+%
+% 縦組時の主マーク（|p| 指定時）として使われる圏点を指定する。
+% ［既定 = |sesame*|］
+%
+% \item |\kentensubmarkintate{|\jmeta{名前またはテキスト}|}|
+%
+% 縦組時の副マーク（|s| 指定時）として使われる圏点を指定する。
+% ［既定 = |bullet*|］
+%
+% \item |\kentenfontsetup{|\jmeta{命令}|}|
+%
+% 圏点用のフォント切替命令を設定する。
+%
+% \item |\kentenintergap{|\jmeta{実数}|}|
+%
+% 圏点と親文字の間の空き（親文字全角単位）。
+% ［既定 = 0］
+%
+% \item |\kentensizeratio{|\jmeta{実数}|}|
+%
+% 圏点サイズの親文字サイズに対する割合。
+% ［既定 = 0.5］
+%
+% \end{itemize}
+%
+% 圏点とルビの同時付加に関する設定。
+%
+% \begin{itemize}
+%
+% \item |\kentenrubycombination{|\jmeta{値}|}|
+% 圏点命令の親文字中でルビ命令が使われた時の挙動を指定する。
+% ［既定 = |both|］
+% \begin{itemize}
+% \item |ruby|： ルビのみを出力する。
+% \item |both|： ルビの外側に圏点を出力する。
+% \end{itemize}
+%
+% \item |\kentenrubyintergap{|\jmeta{実数}|}|
+%
+% 圏点とルビが同じ側に付いた時の間の空き（親文字全角単位）。
+% ［既定 = 0］
+%
+% \end{itemize}
+%
+%^^A------------------------------------
+%\iffalse
 % \section{将来の拡張機能\<（未実装）}
 %
 % （この節では、まだ実装されていないが、
@@ -576,7 +824,7 @@
 % ［既定 = 許さない］
 %
 % \end{itemize}
-%
+%\fi
 %^^A========================================================
 % \StopEventually
 % \newpage
