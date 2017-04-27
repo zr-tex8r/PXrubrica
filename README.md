@@ -8,13 +8,16 @@ follows the style conventional in Japanese typography, as described in
 the W3C technical note “Requirements for Japanese Text Layout” ([JLREQ])
 and the JIS specification JIS X 4051.
 
+Starting with version 1.3, this package also provides function to add
+kenten (emphasis marks) to Japanese text.
+
 [JLREQ]: <http://www.w3.org/TR/jlreq/>
 
 ### SYSTEM REQUIREMENTS
 
   * TeX format: LaTeX.
-  * TeX engine: pTeX and its derivatives.
-  * DVI driver: Anything that supports pTeX DVI.
+  * TeX engine: pTeX, upTeX, LuaTeX, XeTeX.
+  * DVI driver (in DVI output): Anything that supports pTeX DVI.
 
 ### CONTENT
 
@@ -47,6 +50,10 @@ This package is distributed under the MIT License.
 Revision History
 ----------------
 
+  * Version 1.3  〈2017/04/27〉
+      - Kenten function.
+      - Improve Japanese-text ghost insertion.
+      - Support the use in PDF strings.
   * Version 1.2  〈2017/04/20〉
       - Mono-ruby and jukugo-ruby with switching.
       - Safe mode.
