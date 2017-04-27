@@ -3178,6 +3178,33 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
         \hb@xt@\the\wd\pxrr@boxb{\hss\copy\tw@\hss}}}%
   }\pxrr@tempa
 }
+\def\pxrr@dumb@sub#1#2#{#1}
+\def\pxrr@dumb@ruby{%
+  \pxrr@dumb@sub\pxrr@dumb@ruby@
+}
+\def\pxrr@dumb@ruby@#1#2{#1}
+\def\pxrr@dumb@truby{%
+  \pxrr@dumb@sub\pxrr@dumb@truby@
+}
+\def\pxrr@dumb@truby@#1#2#3{#1}
+\def\pxrr@dumb@kenten{%
+  \pxrr@dumb@sub\pxrr@dumb@kenten@
+}
+\def\pxrr@dumb@kenten@#1{#1}
+\providecommand*\pdfstringdefPreHook{}
+\g@addto@macro\pdfstringdefPreHook{%
+  \ifx\pxrr@cmd@ruby\ruby
+    \let\ruby\pxrr@dumb@ruby
+  \fi
+  \let\jruby\pxrr@dumb@ruby
+  \let\aruby\pxrr@dumb@ruby
+  \let\truby\pxrr@dumb@truby
+  \let\atruby\pxrr@dumb@truby
+  \ifx\pxrr@cmd@kenten\kenten
+    \let\kenten\pxrr@dumb@kenten
+  \fi
+  \let\kspan\pxrr@dumb@kenten
+}
 \endinput
 %%
 %% End of file `pxrubrica.sty'.

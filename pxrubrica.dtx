@@ -7200,6 +7200,72 @@ pxrr@body@list=\meaning\pxrr@body@list^^J%
 % \end{macro}
 %
 %^^A------------------------------------
+% \section{実装：hyperref対策}
+%
+% PDF文字列中ではルビ命令や圏点命令が“無難な出力”をするようにする。
+% 現状では、ルビ・圏点ともに親文字のみを出力することにする。
+%
+% \begin{macro}{\pxrr@dumb@sub}
+% オプション部分を読み飛ばす補助マクロ。
+%    \begin{macrocode}
+\def\pxrr@dumb@sub#1#2#{#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@dumb@ruby}
+% 無難なルビ命令。
+%    \begin{macrocode}
+\def\pxrr@dumb@ruby{%
+  \pxrr@dumb@sub\pxrr@dumb@ruby@
+}
+\def\pxrr@dumb@ruby@#1#2{#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@dumb@truby}
+% 無難な両側ルビ命令。
+%    \begin{macrocode}
+\def\pxrr@dumb@truby{%
+  \pxrr@dumb@sub\pxrr@dumb@truby@
+}
+\def\pxrr@dumb@truby@#1#2#3{#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\pxrr@dumb@tkenten}
+% 無難な圏点命令。
+% \Note |\kspan| もこの定義を利用する。
+%    \begin{macrocode}
+\def\pxrr@dumb@kenten{%
+  \pxrr@dumb@sub\pxrr@dumb@kenten@
+}
+\def\pxrr@dumb@kenten@#1{#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \PKN{hyperref}の |\pdfstringdef| 用のフック |\pdfstringdefPreHook|
+% に上書き処理を追記する。
+%    \begin{macrocode}
+\providecommand*\pdfstringdefPreHook{}
+\g@addto@macro\pdfstringdefPreHook{%
+%    \end{macrocode}
+% |\ruby| と |\kenten| は「本パッケージの命令であるか」の検査が必要。
+%    \begin{macrocode}
+  \ifx\pxrr@cmd@ruby\ruby
+    \let\ruby\pxrr@dumb@ruby
+  \fi
+  \let\jruby\pxrr@dumb@ruby
+  \let\aruby\pxrr@dumb@ruby
+  \let\truby\pxrr@dumb@truby
+  \let\atruby\pxrr@dumb@truby
+  \ifx\pxrr@cmd@kenten\kenten
+    \let\kenten\pxrr@dumb@kenten
+  \fi
+  \let\kspan\pxrr@dumb@kenten
+}
+%    \end{macrocode}
+%
+%^^A------------------------------------
 % \Finale
 %
 \endinput
