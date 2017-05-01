@@ -2274,6 +2274,14 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% {\LuaTeX}エンジンの場合、本パッケージ用のLuaモジュール |pxrubtica|
+% を作成しておく。
+%    \begin{macrocode}
+\ifpxrr@in@luatex
+  \directlua{ pxrubrica = {} }
+\fi
+%    \end{macrocode}
+%
 % \begin{macro}{\ifpxrr@in@luatexja}
 % \PKN{LuaTeX-ja}パッケージが使用されているか。
 %    \begin{macrocode}
@@ -2374,11 +2382,17 @@
   \endgroup
 \else\ifpxrr@in@luatexja
 %    \end{macrocode}
-% Lua\TeX-ja利用の場合、|direction| パラメタを利用する。
+% {\LuaTeX-ja}利用の場合、|direction| パラメタを利用する。
+% \Note 縦組対応（|\ltj@curtfnt| が定義済）でない古い{\LuaTeX-ja}の
+% 場合は常に横組と見なす。
 %    \begin{macrocode}
-  \def\pxrr@if@in@tate{%
-    \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
-  }
+  \ifx\ltj@curtfnt\@undefined
+    \let\pxrr@if@in@tate\@secondoftwo
+  \else
+    \def\pxrr@if@in@tate{%
+      \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
+    }
+  \fi
 \else
 %    \end{macrocode}
 % それ以外は常に横組と見なす。
@@ -2527,13 +2541,96 @@
 %    \begin{macrocode}
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@iiskip#1{%
-    \edef#1{%
-      \ifnum\ltjgetparameter{autospacing}=\@ne
-        \ltjgetparameter{kanjiskip}%
-      \else \pxrr@zeropt
+    \ifnum\ltjgetparameter{autospacing}=\@ne
+      \xdef\pxrr@x@gtempa{\ltjgetparameter{kanjiskip}}%
+      \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+%    \end{macrocode}
+% |kanjiskip|パラメタの値が |\maxdimen| の場合、JFMのパラメタに
+% より和欧文間空白の量が決定される。
+% この値を読み出す公式のインタフェースは存在しないため、
+% 実際の組版結果から推定する。
+% （値は |\pxrr@x@gtempa| に返る。）
+%    \begin{macrocode}
+        \pxrr@get@interchar@glue{\pxrr@x@K\pxrr@x@K}%
+        \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+%    \end{macrocode}
+% 推定が失敗した場合。
+% 警告を（一度だけ）出した上で、値をゼロとして扱う。
+%    \begin{macrocode}
+          \pxrr@warn@unknown@iiskip
+          \global\let\pxrr@x@gtempa\pxrr@zeropt
+        \fi
       \fi
-    }%
+      \let#1\pxrr@x@gtempa
+    \else
+      \let#1\pxrr@zeropt
+    \fi
   }
+%    \end{macrocode}
+% 和文間空白の推定に失敗した場合の警告。
+%    \begin{macrocode}
+  \def\pxrr@warn@unknown@iiskip{%
+    \global\let\pxrr@warn@unknown@iiskip\relax
+    \pxrr@warn{Cannot find the kanjiskip value}%
+  }
+%    \end{macrocode}
+% テキスト |#1| を組版した水平ボックスの中にある、
+% “文字間グルー”の値を |\pxrr@g@tempa| に返す。
+%    \begin{macrocode}
+  \def\pxrr@get@interchar@glue#1{%
+    \begingroup
+      \setbox\z@\hbox{#1}%
+%    \end{macrocode}
+% Luaの補助関数は所望の値を |\skip0| に返す。
+% 失敗時の検出のため、このレジスタを |\maxdimen| で初期化する。
+%    \begin{macrocode}
+      \skip\z@\maxdimen\relax
+      \directlua{%
+        pcall(pxrubrica._get_interchar_glue)
+      }%
+      \xdef\pxrr@x@gtempa{\the\skip\z@}%
+    \endgroup
+  }
+  \begingroup
+    \endlinechar=10 \directlua{%
+      local node, tex = node, tex
+      local id_glyph, id_glue = node.id("glyph"), node.id("glue")
+      local id_hlist = node.id("hlist")
+%    \end{macrocode}
+% |_get_interchar_glue()| は |\box0| の“文字間グルー”の量を
+% 取得し、|\skip0| に代入する。
+% 実際には、「最初の glyph ノードの後にある最初の glue ノードを
+% “文字間グルー”と判断し、その量を読み出す。
+%    \begin{macrocode}
+      function pxrubrica._get_interchar_glue()
+        local c, n = false, tex.box[0].head
+        while n do
+%    \end{macrocode}
+% \Note 2014年頃の{\LuaTeX-ja}では文字の部分がhlistノードになっている。
+%    \begin{macrocode}
+          if n.id == id_glyph or n.id == id_hlist then
+            c = true
+          elseif c and n.id == id_glue then
+%    \end{macrocode}
+% ここでの |n| が“文字間グルー”のノードである。
+% \Note 0.85版以降の{\LuaTeX}では、glueノードに直接値（|n.width| 等）
+% が入っている。
+% それより古い版では、|glue_spec| データを介したインタフェースに
+% なっている。
+%    \begin{macrocode}
+            if n.width then
+              tex.setglue(0, n.width, n.stretch, n.shrink,
+                  n.stretch_order, n.shrink_order)
+            elseif n.spec then
+              tex.setskip(0, node.copy(n.spec))
+            end
+            break
+          end
+          n = n.next
+        end
+      end
+    }%
+  \endgroup%
 %    \end{macrocode}
 %
 % それ以外の場合はゼロとする。
@@ -2573,15 +2670,33 @@
 %    \end{macrocode}
 %
 % \PKN{LuaTeX-ja}使用の場合。
+% 処理の流れは和文間空白の場合と同じ。
 %    \begin{macrocode}
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@iaiskip#1{%
-    \edef#1{%
-      \ifnum\ltjgetparameter{autoxspacing}=\@ne
-        \ltjgetparameter{xkanjiskip}%
-      \else \pxrr@zeropt
+    \ifnum\ltjgetparameter{autoxspacing}=\@ne
+      \xdef\pxrr@x@gtempa{\ltjgetparameter{xkanjiskip}}%
+      \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+%    \end{macrocode}
+% 判定用のボックスは欧文・和文の組とする。
+%    \begin{macrocode}
+        \pxrr@get@interchar@glue{A\pxrr@x@K}%
+        \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+          \pxrr@warn@unknown@iaiskip
+          \global\let\pxrr@x@gtempa\pxrr@zeropt
+        \fi
       \fi
-    }%
+      \let#1\pxrr@x@gtempa
+    \else
+      \let#1\pxrr@zeropt
+    \fi
+  }
+%    \end{macrocode}
+% 和欧文間空白の推定に失敗した場合の警告。
+%    \begin{macrocode}
+  \def\pxrr@warn@unknown@iaiskip{%
+    \global\let\pxrr@warn@unknown@iaiskip\relax
+    \pxrr@warn{Cannot find the xkanjiskip value}%
   }
 %    \end{macrocode}
 %

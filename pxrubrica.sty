@@ -524,6 +524,9 @@
 }{%
   \pxrr@csletcs{ifpxrr@in@luatex}{iffalse}%
 }
+\ifpxrr@in@luatex
+  \directlua{ pxrubrica = {} }
+\fi
 \@ifpackageloaded{luatexja-core}{%
   \pxrr@csletcs{ifpxrr@in@luatexja}{iftrue}%
 }{%
@@ -585,9 +588,13 @@
     }
   \endgroup
 \else\ifpxrr@in@luatexja
-  \def\pxrr@if@in@tate{%
-    \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
-  }
+  \ifx\ltj@curtfnt\@undefined
+    \let\pxrr@if@in@tate\@secondoftwo
+  \else
+    \def\pxrr@if@in@tate{%
+      \pxrr@cond\ifnum\ltjgetparameter{direction}=\thr@@\fi
+    }
+  \fi
 \else
   \let\pxrr@if@in@tate\@secondoftwo
 \fi\fi
@@ -654,13 +661,58 @@
   }
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@iiskip#1{%
-    \edef#1{%
-      \ifnum\ltjgetparameter{autospacing}=\@ne
-        \ltjgetparameter{kanjiskip}%
-      \else \pxrr@zeropt
+    \ifnum\ltjgetparameter{autospacing}=\@ne
+      \xdef\pxrr@x@gtempa{\ltjgetparameter{kanjiskip}}%
+      \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+        \pxrr@get@interchar@glue{\pxrr@x@K\pxrr@x@K}%
+        \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+          \pxrr@warn@unknown@iiskip
+          \global\let\pxrr@x@gtempa\pxrr@zeropt
+        \fi
       \fi
-    }%
+      \let#1\pxrr@x@gtempa
+    \else
+      \let#1\pxrr@zeropt
+    \fi
   }
+  \def\pxrr@warn@unknown@iiskip{%
+    \global\let\pxrr@warn@unknown@iiskip\relax
+    \pxrr@warn{Cannot find the kanjiskip value}%
+  }
+  \def\pxrr@get@interchar@glue#1{%
+    \begingroup
+      \setbox\z@\hbox{#1}%
+      \skip\z@\maxdimen\relax
+      \directlua{%
+        pcall(pxrubrica._get_interchar_glue)
+      }%
+      \xdef\pxrr@x@gtempa{\the\skip\z@}%
+    \endgroup
+  }
+  \begingroup
+    \endlinechar=10 \directlua{%
+      local node, tex = node, tex
+      local id_glyph, id_glue = node.id("glyph"), node.id("glue")
+      local id_hlist = node.id("hlist")
+      function pxrubrica._get_interchar_glue()
+        local c, n = false, tex.box[0].head
+        while n do
+          if n.id == id_glyph or n.id == id_hlist then
+            c = true
+          elseif c and n.id == id_glue then
+            if n.width then
+              tex.setglue(0, n.width, n.stretch, n.shrink,
+                  n.stretch_order, n.shrink_order)
+            elseif n.spec then
+              tex.setskip(0, node.copy(n.spec))
+            end
+            break
+          end
+          n = n.next
+        end
+      end
+    }%
+  \endgroup%
 \else
   \def\pxrr@get@iiskip#1{%
     \let#1\pxrr@zeropt
@@ -686,12 +738,23 @@
   }
 \else\ifpxrr@in@luatexja
   \def\pxrr@get@iaiskip#1{%
-    \edef#1{%
-      \ifnum\ltjgetparameter{autoxspacing}=\@ne
-        \ltjgetparameter{xkanjiskip}%
-      \else \pxrr@zeropt
+    \ifnum\ltjgetparameter{autoxspacing}=\@ne
+      \xdef\pxrr@x@gtempa{\ltjgetparameter{xkanjiskip}}%
+      \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+        \pxrr@get@interchar@glue{A\pxrr@x@K}%
+        \ifdim\glueexpr\pxrr@x@gtempa=\maxdimen
+          \pxrr@warn@unknown@iaiskip
+          \global\let\pxrr@x@gtempa\pxrr@zeropt
+        \fi
       \fi
-    }%
+      \let#1\pxrr@x@gtempa
+    \else
+      \let#1\pxrr@zeropt
+    \fi
+  }
+  \def\pxrr@warn@unknown@iaiskip{%
+    \global\let\pxrr@warn@unknown@iaiskip\relax
+    \pxrr@warn{Cannot find the xkanjiskip value}%
   }
 \else
   \def\pxrr@get@iaiskip#1{%
