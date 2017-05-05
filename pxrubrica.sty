@@ -584,7 +584,9 @@
 \ifpxrr@in@ptex
   \begingroup \catcode`\|=0
     \gdef\pxrr@if@in@tate{%
-      \pxrr@cond|iftdir|fi
+      \pxrr@cond{\if
+          |iftdir|ifmdir F|else T|fi|else F|fi
+          T}\fi
     }
   \endgroup
 \else\ifpxrr@in@luatexja

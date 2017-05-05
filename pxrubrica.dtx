@@ -2374,10 +2374,15 @@
 %    \end{macrocode}
 % {p\TeX}系の場合、|\iftdir| プリミティブを利用する。
 % \Note |\iftdir| が未定義のときにifが不均衡になるのを防ぐ。
+% \Note 本パッケージの処理の範囲では、縦数式組方向は
+% 単に「縦組でない」と判定する。
+% （|\ifmdir| は数式組方向を判定するプリミティブ。）
 %    \begin{macrocode}
   \begingroup \catcode`\|=0
     \gdef\pxrr@if@in@tate{%
-      \pxrr@cond|iftdir|fi
+      \pxrr@cond{\if
+          |iftdir|ifmdir F|else T|fi|else F|fi
+          T}\fi
     }
   \endgroup
 \else\ifpxrr@in@luatexja
