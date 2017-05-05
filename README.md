@@ -50,6 +50,9 @@ This package is distributed under the MIT License.
 Revision History
 ----------------
 
+  * Version 1.3a 〈2017/05/05〉
+      - Adjust for tate math direction.
+      - Bug fix.
   * Version 1.3  〈2017/04/27〉
       - Kenten function.
       - Improve Japanese-text ghost insertion.
