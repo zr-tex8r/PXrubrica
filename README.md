@@ -50,6 +50,8 @@ This package is distributed under the MIT License.
 Revision History
 ----------------
 
+  * Version 1.3b 〈2017/11/19〉
+      - Bug fix.
   * Version 1.3a 〈2017/05/05〉
       - Adjust for tate math direction.
       - Bug fix.
