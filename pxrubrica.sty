@@ -850,6 +850,17 @@
     \pxrr@okfalse
   }
 \fi\fi
+\ifpxrr@in@ptex
+  \def\pxrr@force@nonpunct@achar#1{%
+    \global\xspcode#1=\thr@@
+  }
+\else\ifpxrr@in@luatexja
+  \def\pxrr@force@nonpunct@achar#1{%
+    \ltjglobalsetparameter{jaxspmode={#1,3}}%
+  }
+\else
+  \def\pxrr@force@nonpunct@achar#1{}
+\fi\fi
 \ifx\inhibitglue\@undefined
   \let\pxrr@inhibitglue\relax
 \else
@@ -2402,7 +2413,7 @@
     \endgroup
     \global\pxrr@letcs\pxrr@aghostfont{T1/lmr/m/n/2.5}%
     \gdef\pxrr@aghost{{\pxrr@aghostfont\pxrr@aghostchar}}%
-    \global\xspcode\pxrr@aghostchar=3 %
+    \pxrr@force@nonpunct@achar{\pxrr@aghostchar}%
   }{%else
     \pxrr@warn{Ghost embedding for \string\aruby\space
       is disabled,\MessageBreak
