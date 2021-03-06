@@ -2194,12 +2194,12 @@
 % \end{quote}
 %    \begin{macrocode}
 \def\pxrr@zip@single#1#2{%
-  \expandafter\pxrr@zip@single@a\expandafter#1#2\pxrr@end
+  \expandafter\pxrr@zip@single@a\expandafter#1\expandafter{#2}%
 }
 \def\pxrr@zip@single@a#1{%
-  \expandafter\pxrr@zip@single@b#1\pxrr@end
+  \expandafter\pxrr@zip@single@b\expandafter{#1}%
 }
-\def\pxrr@zip@single@b#1\pxrr@end#2\pxrr@end{%
+\def\pxrr@zip@single@b#1#2{%
   \def\pxrr@res{\pxrr@pre{#1}{#2}\pxrr@post}%
 }
 %    \end{macrocode}
@@ -2216,15 +2216,16 @@
 % \end{quote}
 %    \begin{macrocode}
 \def\pxrr@tzip@single#1#2#3{%
-  \expandafter\pxrr@tzip@single@a\expandafter#1\expandafter#2#3\pxrr@end
+  \expandafter\pxrr@tzip@single@a\expandafter#1\expandafter#2%
+   \expandafter{#3}%
 }
 \def\pxrr@tzip@single@a#1#2{%
-  \expandafter\pxrr@tzip@single@b\expandafter#1#2\pxrr@end
+  \expandafter\pxrr@tzip@single@b\expandafter#1\expandafter{#2}%
 }
 \def\pxrr@tzip@single@b#1{%
-  \expandafter\pxrr@tzip@single@c#1\pxrr@end
+  \expandafter\pxrr@tzip@single@c\expandafter{#1}%
 }
-\def\pxrr@tzip@single@c#1\pxrr@end#2\pxrr@end#3\pxrr@end{%
+\def\pxrr@tzip@single@c#1#2#3{%
   \def\pxrr@res{\pxrr@pre{#1}{#2}{#3}\pxrr@post}%
 }
 %    \end{macrocode}
