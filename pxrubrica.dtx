@@ -2268,11 +2268,17 @@
 % \end{macro}
 %
 % \begin{macro}{\ifpxrr@in@uptex}
-% エンジンが{\upTeX}系であるか。
-% |\enablecjktoken| のプリミティブテストで判定する。
+% エンジンが{\upTeX}系でありかつ内部漢字コードがUnicodeであるか。
+% エンジン判定は |\kchardef| のプリミティブテストで判定する。
+% \Note テストするプリミティブを |\enablecjktoken| から |\kchardef| に
+% 変更（|\kchardef| は実際に使っている）。
 %    \begin{macrocode}
-\pxrr@ifprimitive\enablecjktoken{%
-  \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+\pxrr@ifprimitive\kchardef{%
+  \ifnum\ucs"3000="3000
+    \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+  \else
+    \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
+  \fi
 }{%
   \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
 }

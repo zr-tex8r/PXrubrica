@@ -500,8 +500,12 @@
 }{%
   \pxrr@csletcs{ifpxrr@in@ptex}{iffalse}%
 }
-\pxrr@ifprimitive\enablecjktoken{%
-  \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+\pxrr@ifprimitive\kchardef{%
+  \ifnum\ucs"3000="3000
+    \pxrr@csletcs{ifpxrr@in@uptex}{iftrue}%
+  \else
+    \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
+  \fi
 }{%
   \pxrr@csletcs{ifpxrr@in@uptex}{iffalse}%
 }
