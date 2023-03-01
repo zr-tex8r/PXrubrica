@@ -50,6 +50,8 @@ This package is distributed under the MIT License.
 Revision History
 ----------------
 
+  * Version 1.3e 〈2023/03/01〉
+      - Bug fix.
   * Version 1.3d 〈2021/03/06〉
       - Bug fix.
   * Version 1.3c 〈2018/08/16〉
